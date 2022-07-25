@@ -91,13 +91,34 @@ Here `pkg.MockModule` will typically provide a `newMock` constructor which creat
 
 ### Apps (binaries)
 
+Apps represent the final binaries defined by the agent.
+Each "flavor" of agent is defined in a different sub-package of `cmd/`.
+
+Apps are formulaic and should not contain any complex logic.
+Their job is to parse command-line options, set up an `fx` App, and run it.
+
 ### Dependencies
+
+Component dependencies are automatically determined from the arguments to a component constructor.
+For example, a component that depends on the log component will have a `logs.Component` in its argument list:
+
+```go
+import "github.com/djmitche/dd-agent-comp-experiments/comp/util/log"
+
+func newThing(..., log log.Component, ...) Component {
+    return &thing{
+        log: log,
+        ...
+    }
+}
+```
 
 ### Component Bundles
 
 Many components naturally gather into larger areas of the agent codebase, such as DogStatsD.
 In many cases, these components are not intended for use outside of that area.
 These components should be defined in an `internal/` package, and included in a `Modules` definition in the parent package.
+This single `Modules` can then be included by apps that require that functionality.
 
 ### Testing
 
@@ -125,6 +146,20 @@ func TestMyComponent(t *testing.T) {
 
 ## Subscriptions
 
+A common mode of interaction between two components is for one to subscribe to notifications from the other.
+The `pkg/util/subscriptions` package provides generic support for this.
+
+Subscriptions are usually static for the lifetime of an Agent, and should be made during the setup phase, before components have started.
+The documentation for components supporting subscriptions will make this clear.
+
+## Actors
+
+Components often take the form of an [actor](https://en.wikipedia.org/wiki/Actor_model): a dedicated goroutine that processes events in a loop.
+This approach requires no concurrency controls, since all activity takes place in one goroutine.
+It is also easy to test: start a goroutine, send it some events, and assert on the output.
+
+The `pkg/util/actor` package supports components that use the actor structure, including connecting them to the `fx` life cycle.
+
 ## Plugins
 
 Plugins are things like Launchers, Tailers, Config Providers, Listeners, etc. where there are several implementations that perform the same job in different contexts.
@@ -151,10 +186,14 @@ Try to arrange for such panics to happen consistently, so that such programming 
      * Component linting
      * maybe just put these in `component.go`?
  * add Mocks to a component and try them out
- * nesting is allowed, right?
- * everything under comp/ or pkg/ or whatever?
- * actor model conventions
+ * [DONE] actor model conventions
  * [DONE] subscription conventions
  * guidelines for non-component stuff
    * utility libraries
-   * shared types (e.g., LogSource) (PODs?)
+   * shared POD types (e.g., LogSource)
+ * everything under comp/ or pkg/ or whatever?
+ * selecting among multiple implementations of the same component (e.g., Tagger)
+ * CLI / subcommands (`agent run`, etc.)
+ * status/health reporting
+ * tlm
+ * API
