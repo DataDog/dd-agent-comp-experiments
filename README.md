@@ -29,9 +29,12 @@ A component is defined in a dedicated package, with the following defined in `co
 
  * Extensive package-level documentation.
    This should define, as precisely as possible, the behavior of the component, acting as a contract on which users of the component may depend.
-   The documentation should also include:
+
+   The documentation (both package-level and method-level) should also include:
 
    * Precise information about which interface methods can be called during the setup phase, and which must only be called after the component is started.
+   * Precise information about data ownership of passed values and returned values (does the method modify its arguments?  can the caller modify a returned slice or map?).
+   * Precise information about goroutines and blocking (does the method block? is a callback invoked in a dedicated goroutine? what happens if a channel is full?)
 
  * `pkg.Component` -- the type implemented by the component.
    This can be an empty interface, but is the type by which other components will find this one via `fx`.
@@ -107,9 +110,15 @@ Plugins are things like Launchers, Tailers, Config Providers, Listeners, etc. wh
 We typically want to include different sets of plugins in different builds, differentiating at build time.
 For example, a slimmed-down logs agent for limited systems might only support logging TCP inputs, while a full-fledged logs agent includes support for containers, syslog, files, and so on.
 
-Plugins always "plug in" to some collection, and should depend on that collection and register themselves with that collection at startup.
+Plugins always "plug in" to some "manager", and should depend on that manager and register themselves with it at startup.
 Then, it is up to apps to depend on the necessary plugins.
 TODO: ^^ this might be weird-looking, since the app never _does_ anything.  Maybe a "register" method?
+
+## Programming Errors
+
+Programming errors, such as calling a method at an inappropriate time, should be handled with `panic(..)` instead of errors.
+If an error is returned, it will likely be logged and may not be seen.
+Try to arrange for such panics to happen consistently, so that such programming errors are quick to find.
 
 # TODO
 
@@ -118,7 +127,9 @@ TODO: ^^ this might be weird-looking, since the app never _does_ anything.  Mayb
      * COMPONENTS.md
      * Component linting
  * should _all_ components be linked in apps, or can a component that has some "dedicated" components include those in its `fx.Module`?
-   * maybe everything lists its deps, but then how do you inject testing deps?
- * add Mocks to a compoent and try them out
+   * fx doesn't allow multiple Provides for the same type, so need to handle this in agent flavors
+ * add Mocks to a component and try them out
  * nesting is allowed, right?
  * everything under comp/ or pkg/ or whatever?
+ * actor model conventions
+ * subscription conventions
