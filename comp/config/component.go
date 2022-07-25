@@ -13,6 +13,8 @@ package config
 
 import "go.uber.org/fx"
 
+// team: agent-shared-components
+
 // Component is the component type.
 type Component interface {
 	// Setup sets up the component.  It must be called before any of the other
