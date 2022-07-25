@@ -3,14 +3,14 @@
 // This product includes software developed at Datadog (https://www.datadoghq.com/).
 // Copyright 2016-present Datadog, Inc.
 
-// Package manager implements a component managing logs-agent launchers.  It collects
+// Package launchermgr implements a component managing logs-agent launchers.  It collects
 // the set of loaded launchers during start-up, and allows enumeration and retrieval
 // as necessary.
 //
 // Launchers register themselves with this component.
 //
 // All component methods can be called concurrently.
-package manager
+package launchermgr
 
 import "go.uber.org/fx"
 

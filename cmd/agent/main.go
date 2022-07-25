@@ -1,44 +1,17 @@
+// Unless explicitly stated otherwise all files in this repository are licensed
+// under the Apache License Version 2.0.
+// This product includes software developed at Datadog (https://www.datadoghq.com/).
+// Copyright 2016-present Datadog, Inc.
+
 package main
 
 import (
-	"os"
-
 	"go.uber.org/fx"
-	"go.uber.org/fx/fxevent"
 
-	"github.com/djmitche/dd-agent-comp-experiments/comp/config"
-	"github.com/djmitche/dd-agent-comp-experiments/comp/logs/agent"
+	"github.com/djmitche/dd-agent-comp-experiments/cmd"
+	"github.com/djmitche/dd-agent-comp-experiments/comp/logs"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/logs/launchers/file"
-	"github.com/djmitche/dd-agent-comp-experiments/comp/logs/launchers/manager"
-	"github.com/djmitche/dd-agent-comp-experiments/comp/util/log"
 )
-
-func loggerOptions() fx.Option {
-	return fx.WithLogger(
-		func() fxevent.Logger {
-			// (we'd probably want to hook this into agent logging at trace level)
-			return &fxevent.ConsoleLogger{W: os.Stderr}
-		},
-	)
-}
-
-func sharedOptions(configFilePath string) fx.Option {
-	return fx.Options(
-		log.Module,
-		config.Module,
-		fx.Invoke(func(cfg config.Component) {
-			cfg.Setup(configFilePath)
-		}),
-	)
-}
-
-func logsAgentOptions() fx.Option {
-	return fx.Options(
-		agent.Module,
-		manager.Module,
-		fx.Invoke(func(agent.Component) {}),
-	)
-}
 
 func logsAgentPluginOptions() fx.Option {
 	return fx.Options(
@@ -50,9 +23,8 @@ func logsAgentPluginOptions() fx.Option {
 
 func main() {
 	app := fx.New(
-		loggerOptions(),
-		sharedOptions("/etc/datadog-agent/datadog.yaml"),
-		logsAgentOptions(),
+		cmd.SharedOptions("/etc/datadog-agent/datadog.yaml"),
+		logs.Module,
 		logsAgentPluginOptions(),
 	)
 	app.Run()

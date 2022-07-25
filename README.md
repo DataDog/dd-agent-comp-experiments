@@ -93,6 +93,12 @@ Here `pkg.MockModule` will typically provide a `newMock` constructor which creat
 
 ### Dependencies
 
+### Component Bundles
+
+Many components naturally gather into larger areas of the agent codebase, such as DogStatsD.
+In many cases, these components are not intended for use outside of that area.
+These components should be defined in an `internal/` package, and included in a `Modules` definition in the parent package.
+
 ### Testing
 
 ```go
@@ -124,11 +130,11 @@ func TestMyComponent(t *testing.T) {
 Plugins are things like Launchers, Tailers, Config Providers, Listeners, etc. where there are several implementations that perform the same job in different contexts.
 
 We typically want to include different sets of plugins in different builds, differentiating at build time.
+Just including `somepkg.Module` in an `fx.App` is enough to pull in that module's code, causing binary bloat, so these distinctions must be made at build time.
 For example, a slimmed-down logs agent for limited systems might only support logging TCP inputs, while a full-fledged logs agent includes support for containers, syslog, files, and so on.
 
-Plugins always "plug in" to some "manager", and should depend on that manager and register themselves with it at startup.
+Plugins always "plug in" to some "manager" component (typically named `foomgr`), and should depend on that manager and register themselves with it at startup.
 Then, it is up to apps to depend on the necessary plugins.
-TODO: ^^ this might be weird-looking, since the app never _does_ anything.  Maybe a "register" method?
 
 ## Programming Errors
 
@@ -144,10 +150,11 @@ Try to arrange for such panics to happen consistently, so that such programming 
      * COMPONENTS.md
      * Component linting
      * maybe just put these in `component.go`?
- * should _all_ components be linked in apps, or can a component that has some "dedicated" components include those in its `fx.Module`?
-   * fx doesn't allow multiple Provides for the same type, so need to handle this in agent flavors
  * add Mocks to a component and try them out
  * nesting is allowed, right?
  * everything under comp/ or pkg/ or whatever?
  * actor model conventions
- * subscription conventions
+ * [DONE] subscription conventions
+ * guidelines for non-component stuff
+   * utility libraries
+   * shared types (e.g., LogSource) (PODs?)
