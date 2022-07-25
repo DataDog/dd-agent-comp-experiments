@@ -52,6 +52,8 @@ This ensures that the source file itself is a useful reference, in addition to G
 No other files should have exported items.
 The only interface to the component is through the component interface.
 
+Components should not be nested; that is, no component's Go path should be a prefix of another component's Go path.
+
 ### Implementation
 
 The Component interface is implemented by an unexported type with a sensible name such as `launcher` or `provider`.
@@ -73,7 +75,7 @@ The constructor is passed to `fx.Provide` in the definition of `Module` in `comp
 
 #### Other Fx Types
 
-It's OK to provide other, unexported `fx` types in `pkg.Module`, if that is helpful.
+It's fine to provide other, unexported `fx` types in `pkg.Module`, if that is helpful.
 Because they are unexported, they will be invisible to users of the component.
 
 ### Testing Support

@@ -14,6 +14,8 @@ package launchermgr
 
 import "go.uber.org/fx"
 
+// team: agent-metrics-logs
+
 // Component is the component type.
 type Component interface {
 	// RegisterLaucher registers a launcher with the manager.  This must be called

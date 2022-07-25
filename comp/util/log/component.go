@@ -12,6 +12,8 @@ package log
 
 import "go.uber.org/fx"
 
+// team: agent-shared-components
+
 // Component is the component type.
 type Component interface {
 	// Configure defines the settings for the logger.  This can be called
