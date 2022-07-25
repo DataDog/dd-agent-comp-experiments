@@ -48,11 +48,6 @@ A component is defined in a dedicated package under `comp/`, with the following 
    If using `fx.Module`, the first argument should be the root-relative package path, e.g., `"comp/util/log"`.
    It should have a formulaic doc string like `// Module defines the fx options for this component.`
 
-Any other exported types relevant to the component should also be included in `component.go`.
-This ensures that the source file itself is a useful reference, in addition to Godoc-generated documentation.
-
-No other files should have exported items: the only interface to the component is through the component interface.
-
 Components should not be nested; that is, no component's Go path should be a prefix of another component's Go path.
 
 ### Implementation
@@ -169,6 +164,13 @@ It is also easy to test: start a goroutine, send it some events, and assert on t
 
 The `pkg/util/actor` package supports components that use the actor structure, including connecting them to the `fx` life cycle.
 
+## Health Monitoring
+
+Components which can fail, and especially those using the actor model, should register with `comp/health` to monitor their health.
+In this context, "failure" is a user-visible problem with the component that can occur after startup.
+This may be related to resource exhaustion, user misconfiguration, or an issue in the environment.
+Many components can't fail (or at least, we can't yet imagine how they would fail); these do not need to report to the `comp/health` component.
+
 ## Plugins
 
 Plugins are things like Launchers, Tailers, Config Providers, Listeners, etc. where there are several implementations that perform the same job in different contexts.
@@ -207,9 +209,11 @@ This will also ease testing of components: tests can simply provide a filled-in 
  * [DONE] actor model conventions
  * [DONE] subscription conventions
  * [DONE] guidelines for non-component stuff
+ * [DONE] health reporting
  * add Mocks to a component and try them out
  * selecting among multiple implementations of the same component (e.g., Tagger)
  * CLI / subcommands (`agent run`, etc.)
- * status/health reporting
+ * status output
  * tlm
  * API
+ * use fx.In for complex constructors (maybe with component concrete type?)

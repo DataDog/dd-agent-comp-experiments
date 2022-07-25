@@ -9,6 +9,7 @@ import (
 	"os"
 
 	"github.com/djmitche/dd-agent-comp-experiments/comp/config"
+	"github.com/djmitche/dd-agent-comp-experiments/comp/health"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/util/log"
 	"go.uber.org/fx"
 	"go.uber.org/fx/fxevent"
@@ -19,6 +20,7 @@ func SharedOptions(configFilePath string) fx.Option {
 	return fx.Options(
 		log.Module,
 		config.Module,
+		health.Module,
 		fx.Invoke(func(cfg config.Component) {
 			cfg.Setup(configFilePath)
 		}),
