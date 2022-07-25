@@ -19,6 +19,8 @@ import (
 	"go.uber.org/fx"
 )
 
+// team: agent-metrics-logs
+
 // Component is the component type.
 type Component interface {
 	// Subscribe registers a subscriber for add/remove events.  This must be called

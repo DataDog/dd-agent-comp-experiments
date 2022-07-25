@@ -12,6 +12,8 @@ import (
 	"go.uber.org/fx"
 )
 
+// team: agent-metrics-logs
+
 // Component is the component type.
 type Component interface {
 	// Launcher includes the common Launcher methods here

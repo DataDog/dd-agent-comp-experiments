@@ -9,6 +9,8 @@ This provides a loosely-sketched vision of what we will want to get to with the 
 It is also a chance to try out some "interesting" ideas (such as config reducers) that would be much more difficult to sketch out in a real Agent.
 Maybe some of these are bad ideas, maybe they are things we can do later, or maybe we want to do them first thing.
 
+You can see the set of components in [`COMPONENTS.md`](./COMPONENTS.md).
+
 # Component Guidelines
 
 What follows are draft guidelines for writing components.
@@ -25,7 +27,7 @@ You should be familiar with [`fx`](https://pkg.go.dev/go.uber.org/fx), the tool 
 
 ## Component Definition
 
-A component is defined in a dedicated package, with the following defined in `component.go`:
+A component is defined in a dedicated package under `comp/`, with the following defined in `component.go`:
 
  * Extensive package-level documentation.
    This should define, as precisely as possible, the behavior of the component, acting as a contract on which users of the component may depend.
@@ -49,8 +51,9 @@ A component is defined in a dedicated package, with the following defined in `co
 Any other exported types relevant to the component should also be included in `component.go`.
 This ensures that the source file itself is a useful reference, in addition to Godoc-generated documentation.
 
-No other files should have exported items.
-The only interface to the component is through the component interface.
+No other files should have exported items: the only interface to the component is through the component interface.
+
+Components should not be nested; that is, no component's Go path should be a prefix of another component's Go path.
 
 ### Implementation
 
@@ -73,7 +76,7 @@ The constructor is passed to `fx.Provide` in the definition of `Module` in `comp
 
 #### Other Fx Types
 
-It's OK to provide other, unexported `fx` types in `pkg.Module`, if that is helpful.
+It's fine to provide other, unexported `fx` types in `pkg.Module`, if that is helpful.
 Because they are unexported, they will be invisible to users of the component.
 
 ### Testing Support
@@ -140,9 +143,15 @@ func TestMyComponent(t *testing.T) {
 }
 ```
 
-# Conventions
+### Non-Component Code
 
-## Config Reducers
+Code that is not part of a component can be placed under `pkg/`.
+
+This includes
+ * ["plain old data"](https://en.wikipedia.org/wiki/Passive_data_structure) types; and
+ * Utility types and functions (either in a sub-package of `pkg/util`, or as a top-level `pkg` for more complex implementations),
+
+# Conventions
 
 ## Subscriptions
 
@@ -178,20 +187,27 @@ If an error is returned, it will likely be logged and may not be seen.
 A panic, on the other hand, is very noticeable and carries a stack trace that can help the programmer figure out what they've missed.
 Try to arrange for such panics to happen consistently, so that such programming errors are quick to find.
 
+# Future Plans
+
+## Component Linting
+
+With good detection of components (already used to generate COMPONENTS.md and CODEOWNERS), we can check that the guidelines are followed.
+For example, this check could easily verify that components are not nested, and that every component has a `Component` type and `Module` value.
+
+## Config Reducers
+
+We can use a concept similar to that defined by Redux to simplify the DD configuration used by each component that needs it.
+This would involve a "reducer" that extracts data from Viper (or whatever we switch to) and places it in a component-specific struct.
+Using struct tags and a utility function would allow for a very regular, greppable arrangement of configuration parameters with very little per-component boilerplate.
+This will also ease testing of components: tests can simply provide a filled-in configuration struct, instead of manually setting configuration parameters.
+
 # TODO
 
- * component.yml?
-     * Team ownership
-     * COMPONENTS.md
-     * Component linting
-     * maybe just put these in `component.go`?
- * add Mocks to a component and try them out
+ * [DONE] component.yml?
  * [DONE] actor model conventions
  * [DONE] subscription conventions
- * guidelines for non-component stuff
-   * utility libraries
-   * shared POD types (e.g., LogSource)
- * everything under comp/ or pkg/ or whatever?
+ * [DONE] guidelines for non-component stuff
+ * add Mocks to a component and try them out
  * selecting among multiple implementations of the same component (e.g., Tagger)
  * CLI / subcommands (`agent run`, etc.)
  * status/health reporting
