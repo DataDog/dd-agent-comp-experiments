@@ -8,23 +8,41 @@ package file
 import (
 	"context"
 
-	"github.com/djmitche/dd-agent-comp-experiments/comp/logs/launchers/manager"
+	"github.com/djmitche/dd-agent-comp-experiments/comp/logs/internal/sourcemgr"
+	"github.com/djmitche/dd-agent-comp-experiments/comp/logs/launchers/launchermgr"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/util/log"
+	"github.com/djmitche/dd-agent-comp-experiments/pkg/util/subscriptions"
 	"go.uber.org/fx"
 )
 
 type launcher struct {
-	log log.Component
+	log          log.Component
+	subscription subscriptions.Subscriber[sourcemgr.SourceChange]
 }
 
 func (l *launcher) start(ctx context.Context) error {
 	l.log.Debug("starting file launcher")
+	go l.run()
 	return nil
 }
 
-func newLauncher(lc fx.Lifecycle, log log.Component, mgr manager.Component) Component {
-	l := &launcher{log}
+func (l *launcher) run() {
+	// TODO: stop!
+	for {
+		select {
+		case chg := <-l.subscription.Chan():
+			l.log.Debug("got change", chg)
+		}
+	}
+}
+
+func newLauncher(lc fx.Lifecycle, log log.Component, sourcemgr sourcemgr.Component, mgr launchermgr.Component) (Component, error) {
+	subscription, err := sourcemgr.Subscribe()
+	if err != nil {
+		return nil, err
+	}
+	l := &launcher{log, subscription}
 	mgr.RegisterLauncher("file", l)
 	lc.Append(fx.Hook{OnStart: l.start})
-	return l
+	return l, nil
 }
