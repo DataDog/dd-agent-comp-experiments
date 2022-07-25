@@ -6,9 +6,13 @@
 package main
 
 import (
+	"fmt"
+	"time"
+
 	"go.uber.org/fx"
 
 	"github.com/djmitche/dd-agent-comp-experiments/cmd"
+	"github.com/djmitche/dd-agent-comp-experiments/comp/health"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/logs"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/logs/launchers/file"
 )
@@ -26,6 +30,13 @@ func main() {
 		cmd.SharedOptions("/etc/datadog-agent/datadog.yaml"),
 		logs.Module,
 		logsAgentPluginOptions(),
+		// XXX temporary
+		fx.Invoke(func(health health.Component) {
+			go func() {
+				time.Sleep(time.Second / 2)
+				fmt.Printf("health:%#v\n", health.GetHealth())
+			}()
+		}),
 	)
 	app.Run()
 }

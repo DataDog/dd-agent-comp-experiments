@@ -10,6 +10,13 @@ Click the links for more documentation.
 Package config implements a component to handle agent configuration.  This
 component wraps Viper.
 
+## [comp/health](https://pkg.go.dev/github.com/djmitche/dd-agent-comp-experiments/comp/health)
+
+*Datadog Team*: agent-shared-components
+
+Package health implements a component that monitors the health of other
+components.
+
 ## [comp/logs/agent](https://pkg.go.dev/github.com/djmitche/dd-agent-comp-experiments/comp/logs/agent)
 
 *Datadog Team*: agent-metrics-logs
