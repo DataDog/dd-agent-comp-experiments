@@ -6,16 +6,25 @@
 package file
 
 import (
+	"context"
+
 	"github.com/djmitche/dd-agent-comp-experiments/comp/logs/launchers/manager"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/util/log"
+	"go.uber.org/fx"
 )
 
 type launcher struct {
 	log log.Component
 }
 
-func newLauncher(log log.Component, mgr manager.Component) Component {
+func (l *launcher) start(ctx context.Context) error {
+	l.log.Debug("starting file launcher")
+	return nil
+}
+
+func newLauncher(lc fx.Lifecycle, log log.Component, mgr manager.Component) Component {
 	l := &launcher{log}
 	mgr.RegisterLauncher("file", l)
+	lc.Append(fx.Hook{OnStart: l.start})
 	return l
 }
