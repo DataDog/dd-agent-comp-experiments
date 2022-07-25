@@ -13,35 +13,47 @@ import (
 	"github.com/djmitche/dd-agent-comp-experiments/comp/util/log"
 )
 
-func main() {
-	app := fx.New(
-		// shared
-		log.Module,
-		config.Module("/etc/datadog-agent/datadog.yaml"), // XXX this would come from a CLI arg
+func loggerOptions() fx.Option {
+	return fx.WithLogger(
+		func() fxevent.Logger {
+			// (we'd probably want to hook this into agent logging at trace level)
+			return &fxevent.ConsoleLogger{W: os.Stderr}
+		},
+	)
+}
 
-		// logs-agent
+func sharedOptions(configFilePath string) fx.Option {
+	return fx.Options(
+		log.Module,
+		config.Module,
+		fx.Invoke(func(cfg config.Component) {
+			cfg.Setup(configFilePath)
+		}),
+	)
+}
+
+func logsAgentOptions() fx.Option {
+	return fx.Options(
 		agent.Module,
 		manager.Module,
+		fx.Invoke(func(agent.Component) {}),
+	)
+}
+
+func logsAgentPluginOptions() fx.Option {
+	return fx.Options(
+		// this list would be different for other agent flavors
 		file.Module,
+		fx.Invoke(func(file.Component) {}),
+	)
+}
 
-		// Invoke just has to require the top-level components and plug-ins
-		fx.Invoke(
-			func(
-				// top-level components
-				agent.Component,
-
-				// plugins
-				file.Component,
-			) {
-			}),
-
-		// TODO: This will probably be global to all binaries, so maybe cmd.Module?
-		fx.WithLogger(
-			func() fxevent.Logger {
-				// (we'd probably want to hook this into agent logging at trace level)
-				return &fxevent.ConsoleLogger{W: os.Stderr}
-			},
-		),
+func main() {
+	app := fx.New(
+		loggerOptions(),
+		sharedOptions("/etc/datadog-agent/datadog.yaml"),
+		logsAgentOptions(),
+		logsAgentPluginOptions(),
 	)
 	app.Run()
 }

@@ -43,22 +43,38 @@ A component is defined in a dedicated package, with the following defined in `co
 
  * `pkg.Module` -- an `fx.Option` that can be included in an `fx.App` to make this component available.
    This is sometimes as simple as `var Module = fx.Provide(new)` to inform `fx` about the constructor, but can use `fx.Options` or `fx.Module` as necessary.
+   If using `fx.Module`, the first argument should be the root-relative package path, e.g., `"comp/util/log"`.
    It should have a formulaic doc string like `// Module defines the fx options for this component.`
 
 Any other exported types relevant to the component should also be included in `component.go`.
 This ensures that the source file itself is a useful reference, in addition to Godoc-generated documentation.
 
+No other files should have exported items.
+The only interface to the component is through the component interface.
+
 ### Implementation
 
-The component implementation begins with a constructor, `new`.
-This is unexported because other packages will not call it directly, but via `fx` requirements in other constructors or `fx.Invoke` calls.
+The Component interface is implemented by an unexported type with a sensible name such as `launcher` or `provider`.
+
+#### Constructor
+
+The component type has a constructor with an appropriate, unexported name such as `newProvider`.
 This is an `fx` constructor, so it can refer to other types and expect them to be automatically supplied:
 
 ```golang
-func new(log logpkg.Component, config configpkg.Component) Component { ...  }
+func newProvider(log log.Component, config config.Component) Component { ...  }
 ```
 
+Within the body of the constructor, it may call methods on other components, as long as the component allows calls to those methods during the setup phase.
+
 As an `fx` constructor, it can also take an `fx.Lifetime` argument and set up OnStart and OnStop hooks.
+
+The constructor is passed to `fx.Provide` in the definition of `Module` in `component.go`.
+
+#### Other Fx Types
+
+It's OK to provide other, unexported `fx` types in `pkg.Module`, if that is helpful.
+Because they are unexported, they will be invisible to users of the component.
 
 ### Testing Support
 
@@ -118,6 +134,7 @@ TODO: ^^ this might be weird-looking, since the app never _does_ anything.  Mayb
 
 Programming errors, such as calling a method at an inappropriate time, should be handled with `panic(..)` instead of errors.
 If an error is returned, it will likely be logged and may not be seen.
+A panic, on the other hand, is very noticeable and carries a stack trace that can help the programmer figure out what they've missed.
 Try to arrange for such panics to happen consistently, so that such programming errors are quick to find.
 
 # TODO
@@ -126,6 +143,7 @@ Try to arrange for such panics to happen consistently, so that such programming 
      * Team ownership
      * COMPONENTS.md
      * Component linting
+     * maybe just put these in `component.go`?
  * should _all_ components be linked in apps, or can a component that has some "dedicated" components include those in its `fx.Module`?
    * fx doesn't allow multiple Provides for the same type, so need to handle this in agent flavors
  * add Mocks to a component and try them out

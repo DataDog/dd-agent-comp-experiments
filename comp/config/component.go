@@ -6,15 +6,19 @@
 // Package config implements a component to handle agent configuration.  This
 // component wraps Viper.
 //
-// The component loads configuration when it is initialized, so that other
-// dependent components can use it during their setup phase.  As such, it needs
-// the config file path passed to its Module function.
+// The component's Setup method must be called before any other components which
+// might call is other methods.  This is typically accomplished by calling Setup
+// from an application-level `fx.Invoke`.
 package config
 
 import "go.uber.org/fx"
 
 // Component is the component type.
 type Component interface {
+	// Setup sets up the component.  It must be called before any of the other
+	// methods.
+	Setup(configFilePath string)
+
 	// GetInt gets an integer-typed config parameter value.
 	GetInt(key string) int
 
@@ -26,8 +30,7 @@ type Component interface {
 }
 
 // Module defines the fx options for this component.
-func Module(configFilePath string) fx.Option {
-	return fx.Provide(func() (Component, error) {
-		return newConfig(configFilePath)
-	})
-}
+var Module = fx.Module(
+	"comp/config",
+	fx.Provide(newConfig),
+)
