@@ -6,8 +6,9 @@
 // Package subscriptions provides support for managing subscriptions between components.
 //
 // A subscription is a request from one component to another to be notified of events.
-//
 // Subscriptions are generic over the type of message being delivered.
+//
+// This package is not intended for high-bandwidth messaging.
 package subscriptions
 
 /* XXX Future Improvements

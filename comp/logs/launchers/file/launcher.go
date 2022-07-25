@@ -11,6 +11,7 @@ import (
 	"github.com/djmitche/dd-agent-comp-experiments/comp/logs/internal/sourcemgr"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/logs/launchers/launchermgr"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/util/log"
+	"github.com/djmitche/dd-agent-comp-experiments/pkg/util/actor"
 	"github.com/djmitche/dd-agent-comp-experiments/pkg/util/subscriptions"
 	"go.uber.org/fx"
 )
@@ -18,20 +19,29 @@ import (
 type launcher struct {
 	log          log.Component
 	subscription subscriptions.Subscriber[sourcemgr.SourceChange]
+	actor        actor.Goroutine
 }
 
 func (l *launcher) start(ctx context.Context) error {
-	l.log.Debug("starting file launcher")
-	go l.run()
+	l.log.Debug("Starting file launcher")
+	l.actor.Start(l.run)
 	return nil
 }
 
-func (l *launcher) run() {
-	// TODO: stop!
+func (l *launcher) stop(ctx context.Context) error {
+	l.log.Debug("Stopping file launcher")
+	l.actor.Stop(context.Background())
+	return nil
+}
+
+func (l *launcher) run(ctx context.Context) {
 	for {
 		select {
 		case chg := <-l.subscription.Chan():
 			l.log.Debug("got change", chg)
+			// XXX start a tailer, etc. etc.
+		case <-ctx.Done():
+			return
 		}
 	}
 }
@@ -41,8 +51,11 @@ func newLauncher(lc fx.Lifecycle, log log.Component, sourcemgr sourcemgr.Compone
 	if err != nil {
 		return nil, err
 	}
-	l := &launcher{log, subscription}
+	l := &launcher{
+		log:          log,
+		subscription: subscription,
+	}
 	mgr.RegisterLauncher("file", l)
-	lc.Append(fx.Hook{OnStart: l.start})
+	l.actor.HookLifecycle(lc, l.run)
 	return l, nil
 }
