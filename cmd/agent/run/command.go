@@ -42,7 +42,7 @@ func logsAgentPluginOptions() fx.Option {
 
 func run(_ *cobra.Command, args []string) error {
 	app := fx.New(
-		common.SharedOptions(root.ConfFilePath),
+		common.SharedOptions(root.ConfFilePath, false),
 		logs.Module,
 		logsAgentPluginOptions(),
 		// XXX temporary

@@ -55,6 +55,14 @@ type Component interface {
 	GetHealth() map[string]ComponentHealth
 }
 
+// ModuleParams are the parameters to Module.
+type ModuleParams struct {
+	// If Enabled is false, the component ignores all registration and performs
+	// no monitoring.  This is intended for one-shot processes such as `agent
+	// status`.
+	Enabled bool
+}
+
 // Module defines the fx options for this component.
 var Module = fx.Module(
 	"comp/health",

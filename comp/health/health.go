@@ -22,6 +22,9 @@ type health struct {
 	// started is true once the component has started
 	started bool
 
+	// enabled is true if the component should actually monitor health.
+	enabled bool
+
 	// components maps component package path to that component's current health status
 	components map[string]ComponentHealth
 
@@ -33,12 +36,20 @@ type health struct {
 	log log.Component
 }
 
-func newHealth(lc fx.Lifecycle, log log.Component) Component {
+type dependencies struct {
+	fx.In
+	Lc     fx.Lifecycle
+	Params ModuleParams
+	Log    log.Component
+}
+
+func newHealth(deps dependencies) Component {
 	h := &health{
+		enabled:    deps.Params.Enabled,
 		components: make(map[string]ComponentHealth),
-		log:        log,
+		log:        deps.Log,
 	}
-	lc.Append(fx.Hook{OnStart: h.start})
+	deps.Lc.Append(fx.Hook{OnStart: h.start})
 	return h
 }
 
@@ -51,10 +62,12 @@ func (h *health) RegisterSimple(component string) *SimpleRegistration {
 		panic("Health component has already started")
 	}
 
-	if _, exists := h.components[component]; exists {
-		panic(fmt.Sprintf("Component %s is already registered with the health component", component))
+	if h.enabled {
+		if _, exists := h.components[component]; exists {
+			panic(fmt.Sprintf("Component %s is already registered with the health component", component))
+		}
+		h.components[component] = ComponentHealth{healthy: true}
 	}
-	h.components[component] = ComponentHealth{healthy: true}
 	return &SimpleRegistration{
 		health:    h,
 		component: component,
@@ -70,10 +83,12 @@ func (h *health) RegisterActor(component string, healthDuration time.Duration) *
 		panic("Health component has already started")
 	}
 
-	if _, exists := h.components[component]; exists {
-		panic(fmt.Sprintf("Component %s is already registered with the health component", component))
+	if h.enabled {
+		if _, exists := h.components[component]; exists {
+			panic(fmt.Sprintf("Component %s is already registered with the health component", component))
+		}
+		h.components[component] = ComponentHealth{healthy: true}
 	}
-	h.components[component] = ComponentHealth{healthy: true}
 	reg := &ActorRegistration{
 		SimpleRegistration: SimpleRegistration{
 			health:    h,
@@ -105,10 +120,12 @@ func (h *health) start(ctx context.Context) error {
 	defer h.Unlock()
 
 	h.started = true
-	for _, reg := range h.actorRegistrations {
-		reg.start()
+	if h.enabled {
+		for _, reg := range h.actorRegistrations {
+			reg.start()
+		}
+		h.actorRegistrations = nil
 	}
-	h.actorRegistrations = nil
 	return nil
 }
 
@@ -118,7 +135,7 @@ func (h *health) setHealth(component string, healthy bool, message string) {
 	h.Lock()
 	defer h.Unlock()
 
-	if ch, found := h.components[component]; found {
+	if ch, found := h.components[component]; h.enabled && found {
 		// XXX: we will probably want to do more than just log
 		if healthy && !ch.healthy {
 			h.log.Debug(fmt.Sprintf("Component %s is now healthy", component))

@@ -16,13 +16,17 @@ import (
 )
 
 // SharedOptions defines fx.Options that are shared among all agent flavors.
-func SharedOptions(confFilePath string) fx.Option {
+//
+// The confFilePath is passed to the comp/config component.
+//
+// If oneShot is true, then this is a "one-shot" process and all support for long-term
+// execution, such as health monitoring, will be disabled.
+func SharedOptions(confFilePath string, oneShot bool) fx.Option {
 	return fx.Options(
 		log.Module,
-		fx.Supply(config.ModuleParams{
-			ConfFilePath: confFilePath,
-		}),
+		fx.Supply(config.ModuleParams{ConfFilePath: confFilePath}),
 		config.Module,
+		fx.Supply(health.ModuleParams{Enabled: !oneShot}),
 		health.Module,
 		fx.WithLogger(
 			func() fxevent.Logger {
