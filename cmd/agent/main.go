@@ -8,12 +8,17 @@ package main
 import (
 	"os"
 
+	"github.com/djmitche/dd-agent-comp-experiments/cmd/agent/health"
 	"github.com/djmitche/dd-agent-comp-experiments/cmd/agent/root"
-	_ "github.com/djmitche/dd-agent-comp-experiments/cmd/agent/run"
+	"github.com/djmitche/dd-agent-comp-experiments/cmd/agent/run"
 )
 
 func main() {
-	if err := root.AgentCmd.Execute(); err != nil {
+	cmd := root.MakeCommand(
+		run.Cmd,
+		health.Cmd,
+	)
+	if err := cmd.Execute(); err != nil {
 		os.Exit(-1)
 	}
 }

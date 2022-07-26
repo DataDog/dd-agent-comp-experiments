@@ -14,8 +14,14 @@ import (
 )
 
 var (
+	// ConfFilePath holds the path to the folder containing the configuration
+	// file, to allow overrides from the command line
+	ConfFilePath string
+)
+
+func MakeCommand(subcommands ...*cobra.Command) *cobra.Command {
 	// AgentCmd is the root command
-	AgentCmd = &cobra.Command{
+	agentCmd := &cobra.Command{
 		Use:   fmt.Sprintf("%s [command]", os.Args[0]),
 		Short: "Datadog Agent at your service.",
 		Long: `
@@ -25,11 +31,11 @@ monitoring and performance data.`,
 		SilenceUsage: true,
 	}
 
-	// ConfFilePath holds the path to the folder containing the configuration
-	// file, to allow overrides from the command line
-	ConfFilePath string
-)
+	agentCmd.PersistentFlags().StringVarP(&ConfFilePath, "cfgpath", "c", "", "path to directory containing datadog.yaml")
 
-func init() {
-	AgentCmd.PersistentFlags().StringVarP(&ConfFilePath, "cfgpath", "c", "", "path to directory containing datadog.yaml")
+	for _, sub := range subcommands {
+		agentCmd.AddCommand(sub)
+	}
+
+	return agentCmd
 }

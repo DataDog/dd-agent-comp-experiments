@@ -16,17 +16,13 @@ import (
 )
 
 var (
-	runCmd = &cobra.Command{
+	Cmd = &cobra.Command{
 		Use:   "run",
 		Short: "Run the Agent",
 		Long:  `Runs the agent in the foreground`,
 		RunE:  run,
 	}
 )
-
-func init() {
-	root.AgentCmd.AddCommand(runCmd)
-}
 
 func logsAgentPluginOptions() fx.Option {
 	return fx.Options(

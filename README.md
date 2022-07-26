@@ -298,7 +298,8 @@ This will also ease testing of components: tests can simply provide a filled-in 
  * [DONE] add Mocks to a component and try them out
  * [DONE] selecting among multiple implementations of the same component (e.g., Tagger)
  * [DONE] CLI / subcommands (`agent run`, etc.)
- * API
+ * [DONE] use fx.In for complex constructors (maybe with component concrete type?)
+ * [DONE] API
  * status output
  * tlm
- * use fx.In for complex constructors (maybe with component concrete type?)
+ * more components
