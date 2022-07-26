@@ -69,11 +69,6 @@ As an `fx` constructor, it can also take an `fx.Lifetime` argument and set up On
 
 The constructor is passed to `fx.Provide` in the definition of `Module` in `component.go`.
 
-#### Other Fx Types
-
-It's fine to provide other, unexported `fx` types in `pkg.Module`, if that is helpful.
-Because they are unexported, they will be invisible to users of the component.
-
 ### Testing Support
 
 To support testing, components can optionally provide a mock implementation, with the following in `component.go`.
@@ -84,6 +79,11 @@ To support testing, components can optionally provide a mock implementation, wit
  * `pkg.MockModule` -- an `fx.Option` that can be included in a test `App` to get the component's mock implementation.
 
 Here `pkg.MockModule` will typically provide a `newMock` constructor which creates a struct implementing the `pkg.Mock` interface, with no other dependencies.
+
+#### Other Fx Types
+
+It's fine to provide other, unexported `fx` types in `pkg.Module`, if that is helpful.
+Because they are unexported, they will be invisible to users of the component.
 
 ## Using Components
 
@@ -120,33 +120,44 @@ This single `Modules` can then be included by apps that require that functionali
 
 ### Testing
 
+Testing for a component should use `fxtest` to create the component.
+This focuses testing on the API surface of the component against which other components will be built.
+Per-function unit tests are, of course, also great where appropriate!
+
+Here's an example testing a component with a mocked dependency on `other`:
+
 ```go
 func TestMyComponent(t *testing.T) {
     var comp Component
-    var other otherpkg.Component
+    var other other.Component
     app := fxtest.New(t,
-        Module,
-        otherpkg.MockModule, // use the mock version of otherpkg
-        fx.Populate(&comp),
-        fx.Populate(&other),
+        Module,              // use the real version of this component
+        other.MockModule,    // use the mock version of other
+        fx.Populate(&comp),  // get the instance of this component
+        fx.Populate(&other), // get the (mock) instance of the other component
     )
-    defer app.RequireStart.RequireStop()
 
-    other.(otherpkg.Mock).SetSomeValue(10)                      // Arrange
-    comp.DoTheThing()                                           // Act
-    require.Equal(t, 20, other.(otherpkg.Mock).GetSomeResult()) // Assert
+    // start and, at completion of the test, stop the components
+    defer app.RequireStart().RequireStop()
+
+    // cast `other` to its mock interface to call mock-specific methods on it
+    other.(other.Mock).SetSomeValue(10)                      // Arrange
+    comp.DoTheThing()                                        // Act
+    require.Equal(t, 20, other.(other.Mock).GetSomeResult()) // Assert
 }
 ```
 
-### Non-Component Code
-
-Code that is not part of a component can be placed under `pkg/`.
-
-This includes
- * ["plain old data"](https://en.wikipedia.org/wiki/Passive_data_structure) types; and
- * Utility types and functions (either in a sub-package of `pkg/util`, or as a top-level `pkg` for more complex implementations),
+If the component has a mock implementation, it is a good idea to test that mock implementation as well.
 
 # Conventions
+
+## Package paths
+
+ * `cmd/<appname>/main.go` -- entrypoint for each app
+ * `pkg/<pkgnname>/...` utility types and functions, ["plain old data"](https://en.wikipedia.org/wiki/Passive_data_structure) types
+ * `pkg/util/<utilname>/...` utility packages that are not in the form of a component
+ * `comp/...` components
+ * `comp/<bundlename>/...` component bundles
 
 ## Subscriptions
 
