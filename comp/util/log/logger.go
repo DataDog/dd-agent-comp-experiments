@@ -23,6 +23,7 @@ func newLogger(lc fx.Lifecycle) Component {
 	return c
 }
 
+// Configure implements Component#Configure.
 func (c *logger) Configure(level string) error {
 	if c.level != "" {
 		return errors.New("Do not call Configure() twice, nor after startup")
@@ -42,13 +43,13 @@ func (c *logger) start(context.Context) error {
 	return nil
 }
 
-// Debug implements Logger#Debug.
+// Debug implements Component#Debug.
 func (*logger) Debug(v ...interface{}) {
 	// stand-in, to avoid messing with seelog
 	fmt.Println(v...)
 }
 
-// Flush implements Logger#Flush.
+// Flush implements Component#Flush.
 func (*logger) Flush() {
 	// do nothing
 }

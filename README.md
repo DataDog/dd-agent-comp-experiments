@@ -221,7 +221,7 @@ This will also ease testing of components: tests can simply provide a filled-in 
  * [DONE] subscription conventions
  * [DONE] guidelines for non-component stuff
  * [DONE] health reporting
- * add Mocks to a component and try them out
+ * [DONE] add Mocks to a component and try them out
  * selecting among multiple implementations of the same component (e.g., Tagger)
  * CLI / subcommands (`agent run`, etc.)
  * status output
