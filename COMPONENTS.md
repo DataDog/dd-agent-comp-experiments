@@ -17,6 +17,14 @@ component wraps Viper.
 Package health implements a component that monitors the health of other
 components.
 
+## [comp/ipcapi](https://pkg.go.dev/github.com/djmitche/dd-agent-comp-experiments/comp/ipcapi@v0.0.2)
+
+*Datadog Team*: agent-shared-components
+
+Package ipcapi implements a component to manage the IPC API server.  It
+allows other components to register handlers, and manages startup and shutdown
+of the HTTP server.
+
 ## [comp/logs/agent](https://pkg.go.dev/github.com/djmitche/dd-agent-comp-experiments/comp/logs/agent@v0.0.2)
 
 *Datadog Team*: agent-metrics-logs
