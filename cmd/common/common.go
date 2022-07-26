@@ -16,14 +16,14 @@ import (
 )
 
 // SharedOptions defines fx.Options that are shared among all agent flavors.
-func SharedOptions(configFilePath string) fx.Option {
+func SharedOptions(confFilePath string) fx.Option {
 	return fx.Options(
 		log.Module,
+		fx.Supply(config.ModuleParams{
+			ConfFilePath: confFilePath,
+		}),
 		config.Module,
 		health.Module,
-		fx.Invoke(func(cfg config.Component) {
-			cfg.Setup(configFilePath)
-		}),
 		fx.WithLogger(
 			func() fxevent.Logger {
 				// (we'd probably want to hook this into agent logging at trace level)

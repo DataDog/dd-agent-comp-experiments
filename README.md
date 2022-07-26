@@ -44,30 +44,77 @@ A component is defined in a dedicated package under `comp/`, with the following 
    All interface methods should be exported and thoroughly documented.
 
  * `pkg.Module` -- an `fx.Option` that can be included in an `fx.App` to make this component available.
-   This is sometimes as simple as `var Module = fx.Provide(new)` to inform `fx` about the constructor, but can use `fx.Options` or `fx.Module` as necessary.
-   If using `fx.Module`, the first argument should be the root-relative package path, e.g., `"comp/util/log"`.
+   To improve logging, use `fx.Module(comppath, ..)`, where `comppath` is the root-relative package path, e.g., `"comp/util/log"`.
    It should have a formulaic doc string like `// Module defines the fx options for this component.`
 
 Components should not be nested; that is, no component's Go path should be a prefix of another component's Go path.
 
 ### Implementation
 
-The Component interface is implemented by an unexported type with a sensible name such as `launcher` or `provider`.
+The completed `component.go` looks like this:
 
-#### Constructor
+```go
+// Package foo ... (detailed doc comment for the component)
+package config
 
-The component type has a constructor with an appropriate, unexported name such as `newProvider`.
-This is an `fx` constructor, so it can refer to other types and expect them to be automatically supplied:
+// team: some-team-name
 
-```golang
-func newProvider(log log.Component, config config.Component) Component { ...  }
+// Component is the component type.
+type Component interface {
+	// Foo is ... (detailed doc comment)
+	Foo(key string) string
+}
+
+// Module defines the fx options for this component.
+var Module = fx.Module(
+    "comp/foo", // (package path of the component)
+    fx.Provide(newFoo),
+)
 ```
 
-Within the body of the constructor, it may call methods on other components, as long as the component allows calls to those methods during the setup phase.
+The Component interface is implemented in another file by an unexported type with a sensible name such as `launcher` or `provider`.
 
+```go
+package config
+
+type foo {
+    foos []string
+}
+
+// Foo implements Component#Foo.
+func (f *foo) Foo(key string) string { ... }
+
+func newFoo(log log.Component, config config.Component) Component { ...  }
+```
+
+The constructor `newFoo` is an `fx` constructor, so it can refer to other types and expect them to be automatically supplied.
+It can return either `Component` if it is infallible, or `(Component, error)` if it could fail.
+Failure will crash the agent with a suitable message.
 As an `fx` constructor, it can also take an `fx.Lifetime` argument and set up OnStart and OnStop hooks.
 
-The constructor is passed to `fx.Provide` in the definition of `Module` in `component.go`.
+Within the body of the constructor, it may call methods on other components, as long as that component allows calls to the methods during the setup phase.
+
+### Parameterized Components
+
+Some components require parameters before they are instantiated.
+For example, `comp/config` requires the path to the configuration file so that it can be ready to answer config requests as soon as it is instantiated.
+Other components may wish to provide different implementations depending on these parameters; for example, `comp/health` need not monitor anything if not in a running agent.
+
+To support this, components can define a `pkg.ModuleParams` type and require that it be supplied by the app.
+
+```go
+// ModuleParams are the parameters to Module.
+type ModuleParams struct {
+	// ConfFilePath is the path to the configuration file.
+	ConfFilePath string
+}
+```
+
+..and require that type in the constructor:
+
+```go
+func newFoo(params ModuleParams, log log.Component, config config.Component) Component { ...  }
+```
 
 ### Testing Support
 
@@ -78,7 +125,22 @@ To support testing, components can optionally provide a mock implementation, wit
 
  * `pkg.MockModule` -- an `fx.Option` that can be included in a test `App` to get the component's mock implementation.
 
-Here `pkg.MockModule` will typically provide a `newMock` constructor which creates a struct implementing the `pkg.Mock` interface, with no other dependencies.
+```go
+type Mock interface {
+    // Component methods are included in Mock.
+    Component
+
+    // AddedFoos returns the foos added by AddFoo calls on the mock implementation.
+    AddedFoos() []Foo
+}
+
+var MockModule = fx.Module(
+    "comp/foo",
+    fx.Provide(newMockFoo),
+)
+```
+
+The `newMockFoo` constructor should create an implementation of the Mock interface.
 
 #### Other Fx Types
 
@@ -95,7 +157,19 @@ Each "flavor" of agent is defined in a different sub-package of `cmd/`.
 Apps are formulaic and should not contain any complex logic.
 Their job is to parse command-line options, set up an `fx` App, and run it.
 
-### Dependencies
+For parameterized components, the app must also supply the parameters:
+
+```go
+app = fx.New(
+    foo.Module,
+    fx.Supply(foo.ModuleParams{
+        MaxFoos: 13,
+    }),
+    ...
+)
+```
+
+### Component Dependencies
 
 Component dependencies are automatically determined from the arguments to a component constructor.
 For example, a component that depends on the log component will have a `logs.Component` in its argument list:
@@ -115,8 +189,8 @@ func newThing(..., log log.Component, ...) Component {
 
 Many components naturally gather into larger areas of the agent codebase, such as DogStatsD.
 In many cases, these components are not intended for use outside of that area.
-These components should be defined in an `internal/` package, and included in a `Modules` definition in the parent package.
-This single `Modules` can then be included by apps that require that functionality.
+These components should be defined in an `internal/` package, and included in a `Module` definition in the parent package.
+This single `Module` can then be included by apps that require that functionality.
 
 ### Testing
 
