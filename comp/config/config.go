@@ -5,37 +5,52 @@
 
 package config
 
+import (
+	"strings"
+
+	"github.com/spf13/viper"
+)
+
 // config implements the Component.
-//
-// XXX: In a real agent, this would use Viper much like pkg/config.
 type config struct {
-	path   string
-	values map[string]interface{}
+	viper *viper.Viper
 }
 
 func newConfig(params ModuleParams) (Component, error) {
+	v := viper.New()
+	v.SetConfigName("datadog")
+	v.SetEnvPrefix("DD_")
+	v.SetConfigType("yaml")
+	if params.ConfFilePath != "" {
+		v.AddConfigPath(params.ConfFilePath)
+		if strings.HasSuffix(params.ConfFilePath, ".yaml") {
+			v.SetConfigFile(params.ConfFilePath)
+		}
+	}
+	v.AddConfigPath("/etc/datadog-agent")
+
+	err := v.ReadInConfig()
+	if err != nil {
+		return nil, err
+	}
+
 	// for testing, this is good enough
 	return &config{
-		path: params.ConfFilePath,
-		values: map[string]interface{}{
-			"logs_config.container_collect_all":     true,
-			"logs_config.docker_container_use_file": true,
-			"logs_config.k8s_container_use_file":    true,
-		},
+		viper: v,
 	}, nil
 }
 
 // GetInt implements Component#GetInt.
 func (c *config) GetInt(key string) int {
-	return c.values[key].(int)
+	return c.viper.GetInt(key)
 }
 
 // GetBool implements Component#GetBool.
 func (c *config) GetBool(key string) bool {
-	return c.values[key].(bool)
+	return c.viper.GetBool(key)
 }
 
 // GetString implements Component#GetString.
 func (c *config) GetString(key string) string {
-	return c.values[key].(string)
+	return c.viper.GetString(key)
 }
