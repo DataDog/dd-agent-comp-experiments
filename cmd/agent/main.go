@@ -6,37 +6,14 @@
 package main
 
 import (
-	"fmt"
-	"time"
+	"os"
 
-	"go.uber.org/fx"
-
-	"github.com/djmitche/dd-agent-comp-experiments/cmd"
-	"github.com/djmitche/dd-agent-comp-experiments/comp/health"
-	"github.com/djmitche/dd-agent-comp-experiments/comp/logs"
-	"github.com/djmitche/dd-agent-comp-experiments/comp/logs/launchers/file"
+	"github.com/djmitche/dd-agent-comp-experiments/cmd/agent/root"
+	_ "github.com/djmitche/dd-agent-comp-experiments/cmd/agent/run"
 )
 
-func logsAgentPluginOptions() fx.Option {
-	return fx.Options(
-		// this list would be different for other agent flavors
-		file.Module,
-		fx.Invoke(func(file.Component) {}),
-	)
-}
-
 func main() {
-	app := fx.New(
-		cmd.SharedOptions("/etc/datadog-agent/datadog.yaml"),
-		logs.Module,
-		logsAgentPluginOptions(),
-		// XXX temporary
-		fx.Invoke(func(health health.Component) {
-			go func() {
-				time.Sleep(time.Second / 2)
-				fmt.Printf("health:%#v\n", health.GetHealth())
-			}()
-		}),
-	)
-	app.Run()
+	if err := root.AgentCmd.Execute(); err != nil {
+		os.Exit(-1)
+	}
 }
