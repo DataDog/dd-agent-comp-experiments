@@ -7,10 +7,13 @@ package health
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"net/http"
 	"sync"
 	"time"
 
+	"github.com/djmitche/dd-agent-comp-experiments/comp/ipcapi"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/util/log"
 	"go.uber.org/fx"
 )
@@ -22,8 +25,8 @@ type health struct {
 	// started is true once the component has started
 	started bool
 
-	// enabled is true if the component should actually monitor health.
-	enabled bool
+	// disabled indicates that the component should do nothing.
+	disabled bool
 
 	// components maps component package path to that component's current health status
 	components map[string]ComponentHealth
@@ -39,17 +42,19 @@ type health struct {
 type dependencies struct {
 	fx.In
 	Lc     fx.Lifecycle
-	Params ModuleParams
+	Params ModuleParams `optional:"true"`
 	Log    log.Component
+	IpcAPI ipcapi.Component
 }
 
 func newHealth(deps dependencies) Component {
 	h := &health{
-		enabled:    deps.Params.Enabled,
+		disabled:   deps.Params.Disabled,
 		components: make(map[string]ComponentHealth),
 		log:        deps.Log,
 	}
 	deps.Lc.Append(fx.Hook{OnStart: h.start})
+	deps.IpcAPI.Register("/agent/health", h.ipcHandler)
 	return h
 }
 
@@ -62,11 +67,11 @@ func (h *health) RegisterSimple(component string) *SimpleRegistration {
 		panic("Health component has already started")
 	}
 
-	if h.enabled {
+	if !h.disabled {
 		if _, exists := h.components[component]; exists {
 			panic(fmt.Sprintf("Component %s is already registered with the health component", component))
 		}
-		h.components[component] = ComponentHealth{healthy: true}
+		h.components[component] = ComponentHealth{Healthy: true}
 	}
 	return &SimpleRegistration{
 		health:    h,
@@ -83,11 +88,11 @@ func (h *health) RegisterActor(component string, healthDuration time.Duration) *
 		panic("Health component has already started")
 	}
 
-	if h.enabled {
+	if !h.disabled {
 		if _, exists := h.components[component]; exists {
 			panic(fmt.Sprintf("Component %s is already registered with the health component", component))
 		}
-		h.components[component] = ComponentHealth{healthy: true}
+		h.components[component] = ComponentHealth{Healthy: true}
 	}
 	reg := &ActorRegistration{
 		SimpleRegistration: SimpleRegistration{
@@ -120,7 +125,7 @@ func (h *health) start(ctx context.Context) error {
 	defer h.Unlock()
 
 	h.started = true
-	if h.enabled {
+	if !h.disabled {
 		for _, reg := range h.actorRegistrations {
 			reg.start()
 		}
@@ -129,28 +134,34 @@ func (h *health) start(ctx context.Context) error {
 	return nil
 }
 
+// ipcHandler serves the /agent/health endpoint
+func (h *health) ipcHandler(w http.ResponseWriter, _ *http.Request) {
+	w.Header()["Content-Type"] = []string{"application/json; charset=UTF-8"}
+	json.NewEncoder(w).Encode(h.GetHealth())
+}
+
 // setHealth sets the health of a specific component.  It is called from the
 // XxxRegistration types.
 func (h *health) setHealth(component string, healthy bool, message string) {
 	h.Lock()
 	defer h.Unlock()
 
-	if ch, found := h.components[component]; h.enabled && found {
+	if ch, found := h.components[component]; found && !h.disabled {
 		// XXX: we will probably want to do more than just log
-		if healthy && !ch.healthy {
+		if healthy && !ch.Healthy {
 			h.log.Debug(fmt.Sprintf("Component %s is now healthy", component))
 		}
-		if !healthy && ch.healthy {
+		if !healthy && ch.Healthy {
 			h.log.Debug(fmt.Sprintf("Component %s is now unhealthy: %s", component, message))
 		}
 		h.components[component] = ComponentHealth{
-			healthy: healthy,
-			message: message,
+			Healthy: healthy,
+			Message: message,
 		}
 	}
 }
 
 type ComponentHealth struct {
-	healthy bool
-	message string
+	Healthy bool
+	Message string
 }

@@ -25,11 +25,11 @@ func TestSimple(t *testing.T) {
 	reg := h.RegisterSimple("comp/thing")
 	defer app.RequireStart().RequireStop()
 
-	require.Equal(t, ComponentHealth{healthy: true}, h.GetHealth()["comp/thing"])
+	require.Equal(t, ComponentHealth{Healthy: true}, h.GetHealth()["comp/thing"])
 	reg.SetUnhealthy("uhoh")
-	require.Equal(t, ComponentHealth{healthy: false, message: "uhoh"}, h.GetHealth()["comp/thing"])
+	require.Equal(t, ComponentHealth{Healthy: false, Message: "uhoh"}, h.GetHealth()["comp/thing"])
 	reg.SetHealthy()
-	require.Equal(t, ComponentHealth{healthy: true}, h.GetHealth()["comp/thing"])
+	require.Equal(t, ComponentHealth{Healthy: true}, h.GetHealth()["comp/thing"])
 }
 
 func TestActor(t *testing.T) {
@@ -45,25 +45,25 @@ func TestActor(t *testing.T) {
 	for i := 0; i < 3; i++ {
 		// signal health
 		<-reg.Chan()
-		require.Equal(t, ComponentHealth{healthy: true}, h.GetHealth()["comp/thing"])
+		require.Equal(t, ComponentHealth{Healthy: true}, h.GetHealth()["comp/thing"])
 	}
 
 	// fail to check the messages..
 	time.Sleep(10 * time.Millisecond)
 	require.Equal(t,
-		ComponentHealth{healthy: false, message: "health check timed out"},
+		ComponentHealth{Healthy: false, Message: "health check timed out"},
 		h.GetHealth()["comp/thing"])
 
 	// have to read at least two messages in time to be considered healthy again..
 	for i := 0; i < 2; i++ {
 		<-reg.Chan()
 	}
-	require.Equal(t, ComponentHealth{healthy: true}, h.GetHealth()["comp/thing"])
+	require.Equal(t, ComponentHealth{Healthy: true}, h.GetHealth()["comp/thing"])
 
 	// stop monitoring
 	reg.Stop()
 
 	// fail to check the messages..
 	time.Sleep(5 * time.Millisecond)
-	require.Equal(t, ComponentHealth{healthy: true}, h.GetHealth()["comp/thing"])
+	require.Equal(t, ComponentHealth{Healthy: true}, h.GetHealth()["comp/thing"])
 }

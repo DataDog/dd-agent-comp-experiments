@@ -10,6 +10,7 @@ import (
 
 	"github.com/djmitche/dd-agent-comp-experiments/comp/config"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/health"
+	"github.com/djmitche/dd-agent-comp-experiments/comp/ipcapi"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/util/log"
 	"go.uber.org/fx"
 	"go.uber.org/fx/fxevent"
@@ -26,8 +27,11 @@ func SharedOptions(confFilePath string, oneShot bool) fx.Option {
 		log.Module,
 		fx.Supply(config.ModuleParams{ConfFilePath: confFilePath}),
 		config.Module,
-		fx.Supply(health.ModuleParams{Enabled: !oneShot}),
+		fx.Supply(health.ModuleParams{Disabled: oneShot}),
 		health.Module,
+		fx.Supply(ipcapi.ModuleParams{Disabled: oneShot}),
+		ipcapi.Module,
+
 		fx.WithLogger(
 			func() fxevent.Logger {
 				// (we'd probably want to hook this into agent logging at trace level)

@@ -7,12 +7,8 @@
 package run
 
 import (
-	"fmt"
-	"time"
-
 	"github.com/djmitche/dd-agent-comp-experiments/cmd/agent/root"
 	"github.com/djmitche/dd-agent-comp-experiments/cmd/common"
-	"github.com/djmitche/dd-agent-comp-experiments/comp/health"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/logs"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/logs/launchers/file"
 	"github.com/spf13/cobra"
@@ -45,13 +41,6 @@ func run(_ *cobra.Command, args []string) error {
 		common.SharedOptions(root.ConfFilePath, false),
 		logs.Module,
 		logsAgentPluginOptions(),
-		// XXX temporary
-		fx.Invoke(func(health health.Component) {
-			go func() {
-				time.Sleep(time.Second / 2)
-				fmt.Printf("health:%#v\n", health.GetHealth())
-			}()
-		}),
 	)
 	app.Run()
 	return app.Err()

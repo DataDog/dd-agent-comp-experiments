@@ -57,10 +57,10 @@ type Component interface {
 
 // ModuleParams are the parameters to Module.
 type ModuleParams struct {
-	// If Enabled is false, the component ignores all registration and performs
-	// no monitoring.  This is intended for one-shot processes such as `agent
-	// status`.
-	Enabled bool
+	// Disabled indicates that the component should ignore all registration and
+	// perform no monitoring.  This is intended for one-shot processes such as
+	// `agent status`.
+	Disabled bool
 }
 
 // Module defines the fx options for this component.
