@@ -8,7 +8,6 @@ package sourcemgr
 import (
 	"context"
 	"sync"
-	"time"
 
 	"github.com/djmitche/dd-agent-comp-experiments/pkg/util/subscriptions"
 	"go.uber.org/fx"
@@ -38,11 +37,6 @@ func (sm *sourceMgr) start(ctx context.Context) error {
 	sm.Lock()
 	defer sm.Unlock()
 	sm.started = true
-	// XXX temporary!!
-	go func() {
-		time.Sleep(1 * time.Second)
-		sm.AddSource(&LogSource{Name: "testy"})
-	}()
 	return nil
 }
 
