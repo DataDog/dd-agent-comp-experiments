@@ -59,7 +59,7 @@ def make_components_md(components):
     yield 'Click the links for more documentation.'
     yield ''
     for c in components:
-        yield f'## [{c.path}](https://pkg.go.dev/{pkg_root}{c.path})'
+        yield f'## [{c.path}](https://pkg.go.dev/{pkg_root}{c.path}@v0.0.2)'
         yield ''
         yield f'*Datadog Team*: {c.team}'
         yield ''
