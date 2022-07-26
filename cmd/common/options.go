@@ -24,18 +24,28 @@ import (
 // execution, such as health monitoring, will be disabled.
 func SharedOptions(confFilePath string, oneShot bool) fx.Option {
 	return fx.Options(
+		fx.Supply(log.ModuleParams{Console: !oneShot}),
 		log.Module,
+
 		fx.Supply(config.ModuleParams{ConfFilePath: confFilePath}),
 		config.Module,
+
 		fx.Supply(health.ModuleParams{Disabled: oneShot}),
 		health.Module,
+
 		fx.Supply(ipcapi.ModuleParams{Disabled: oneShot}),
 		ipcapi.Module,
 
+		// Include Fx's detailed logging to stderr only if TRACE_FX is set.
+		// This logging is verbose, and occurs mostly during early application
+		// startup, before the log component is ready to handle logs.
 		fx.WithLogger(
 			func() fxevent.Logger {
-				// (we'd probably want to hook this into agent logging at trace level)
-				return &fxevent.ConsoleLogger{W: os.Stderr}
+				if os.Getenv("TRACE_FX") == "" {
+					return fxevent.NopLogger
+				} else {
+					return &fxevent.ConsoleLogger{W: os.Stderr}
+				}
 			},
 		),
 	)

@@ -38,6 +38,5 @@ func run(_ *cobra.Command, args []string) error {
 		logs.Module,
 		logsAgentPluginOptions(),
 	)
-	app.Run()
-	return app.Err()
+	return common.RunApp(app)
 }

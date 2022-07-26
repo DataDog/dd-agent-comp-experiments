@@ -41,8 +41,7 @@ func command(_ *cobra.Command, args []string) error {
 		common.SharedOptions(root.ConfFilePath, true),
 		common.OneShot(health),
 	)
-	app.Run()
-	return app.Err()
+	return common.RunApp(app)
 }
 
 func health(config config.Component) error {

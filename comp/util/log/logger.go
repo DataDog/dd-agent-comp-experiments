@@ -14,11 +14,14 @@ import (
 )
 
 type logger struct {
-	level string
+	console bool
+	level   string
 }
 
-func newLogger(lc fx.Lifecycle) Component {
-	c := &logger{}
+func newLogger(lc fx.Lifecycle, params ModuleParams) Component {
+	c := &logger{
+		console: params.Console,
+	}
 	lc.Append(fx.Hook{OnStart: c.start})
 	return c
 }
@@ -44,9 +47,11 @@ func (c *logger) start(context.Context) error {
 }
 
 // Debug implements Component#Debug.
-func (*logger) Debug(v ...interface{}) {
+func (l *logger) Debug(v ...interface{}) {
 	// stand-in, to avoid messing with seelog
-	fmt.Println(v...)
+	if l.console {
+		fmt.Println(v...)
+	}
 }
 
 // Flush implements Component#Flush.

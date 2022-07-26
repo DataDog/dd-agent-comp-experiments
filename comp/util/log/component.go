@@ -8,6 +8,9 @@
 // The log methods can be called at any point in the component's lifecycle, but
 // will be buffered until the component starts and only written after that
 // time.
+//
+// This component has special support for acting as an Fx logger, including
+// capturing log messages emitted before the component itself is initialized.
 package log
 
 import (
@@ -39,7 +42,8 @@ type Mock interface {
 	Component
 
 	// SetT sets the testing instance to which log messages should be copied.
-	// If this is not called, log messages are not written anywhere.
+	// If this is not called and ModuleParams#Console is false, log messages
+	// are not written anywhere.
 	SetT(*testing.T)
 
 	// StartCapture begins capturing log messages.  All log messages are
@@ -55,8 +59,20 @@ type Mock interface {
 	EndCapture()
 }
 
+// ModuleParams are the parameters to Module.
+type ModuleParams struct {
+	// Console determines whether log messages should be output to the console.
+	Console bool
+}
+
 // Module defines the fx options for this component.
-var Module fx.Option = fx.Provide(newLogger)
+var Module fx.Option = fx.Module(
+	"comp/util/log",
+	fx.Provide(newLogger),
+)
 
 // MockModule defines the fx options for the mock component.
-var MockModule fx.Option = fx.Provide(newMockLogger)
+var MockModule fx.Option = fx.Module(
+	"comp/util/log",
+	fx.Provide(newMockLogger),
+)

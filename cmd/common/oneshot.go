@@ -7,12 +7,16 @@ package common
 
 import "go.uber.org/fx"
 
+func shutdown(sd fx.Shutdowner) {
+	sd.Shutdown()
+}
+
 // OneShot is an fx.Option that calls the given function, using fx.Invoke to
 // load its arguments, and causes the app to shut down when the function
 // returns.  It's used for one-shot agent subcommands like `agent status`.
 func OneShot(f interface{}) fx.Option {
 	return fx.Options(
 		fx.Invoke(f),
-		fx.Invoke(func(sd fx.Shutdowner) { sd.Shutdown() }),
+		fx.Invoke(shutdown),
 	)
 }
