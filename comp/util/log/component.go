@@ -10,7 +10,11 @@
 // time.
 package log
 
-import "go.uber.org/fx"
+import (
+	"testing"
+
+	"go.uber.org/fx"
+)
 
 // team: agent-shared-components
 
@@ -30,5 +34,29 @@ type Component interface {
 	// ..more methods, obviously :)
 }
 
+// Mock is the mocked component type.
+type Mock interface {
+	Component
+
+	// SetT sets the testing instance to which log messages should be copied.
+	// If this is not called, log messages are not written anywhere.
+	SetT(*testing.T)
+
+	// StartCapture begins capturing log messages.  All log messages are
+	// captured, regardless of level.
+	StartCapture()
+
+	// Captured returns the log messages captured so far.  The returned slice
+	// is a copy and will not be modified after return
+	Captured() []string
+
+	// EndCapture ends capturing log messages and discards buffered log
+	// messages.  It's not required to call this.
+	EndCapture()
+}
+
 // Module defines the fx options for this component.
 var Module fx.Option = fx.Provide(newLogger)
+
+// MockModule defines the fx options for the mock component.
+var MockModule fx.Option = fx.Provide(newMockLogger)
