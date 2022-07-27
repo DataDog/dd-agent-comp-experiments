@@ -3,9 +3,13 @@
 // This product includes software developed at Datadog (https://www.datadoghq.com/).
 // Copyright 2016-present Datadog, Inc.
 
-// Package ipcapi implements a component to manage the IPC API server.  It
-// allows other components to register handlers, and manages startup and shutdown
-// of the HTTP server.
+// Package ipcapi implements a component to manage the IPC API server and act
+// as a client.
+//
+// It allows other components to register handlers, and manages
+// startup and shutdown of the HTTP server.
+//
+// It also supports simple GET requests to the server.
 //
 // The Mock version of this component allows registration but does not actually
 // start a server, and does not require ModuleParams.
@@ -26,6 +30,9 @@ import (
 type Component interface {
 	// Register registers a handler at an HTTP path.
 	Register(path string, handler http.HandlerFunc)
+
+	// GetJSON gets the body of the response, as JSON
+	GetJSON(path string, v any) error
 }
 
 // Mock implements mock-specific methods.
@@ -44,7 +51,7 @@ type ModuleParams struct {
 
 var Module = fx.Module(
 	"comp/ipcapi",
-	fx.Provide(newServer),
+	fx.Provide(newIpcAPI),
 )
 
 var MockModule = fx.Module(

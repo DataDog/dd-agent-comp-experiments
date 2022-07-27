@@ -9,6 +9,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/djmitche/dd-agent-comp-experiments/comp/config"
+	"github.com/djmitche/dd-agent-comp-experiments/comp/flare"
+	"github.com/djmitche/dd-agent-comp-experiments/comp/ipcapi"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/util/log"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/fx"
@@ -19,7 +22,12 @@ func TestSimple(t *testing.T) {
 	var h Component
 	app := fxtest.New(t,
 		Module,
+		fx.Supply(config.ModuleParams{}),
+		config.Module,
+		fx.Supply(log.ModuleParams{}),
 		log.Module,
+		flare.Module,
+		ipcapi.Module,
 		fx.Populate(&h),
 	)
 	reg := h.RegisterSimple("comp/thing")
@@ -36,7 +44,12 @@ func TestActor(t *testing.T) {
 	var h Component
 	app := fxtest.New(t,
 		Module,
+		fx.Supply(config.ModuleParams{}),
+		config.Module,
+		fx.Supply(log.ModuleParams{}),
 		log.Module,
+		flare.Module,
+		ipcapi.Module,
 		fx.Populate(&h),
 	)
 	reg := h.RegisterActor("comp/thing", time.Millisecond)

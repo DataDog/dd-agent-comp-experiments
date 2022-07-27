@@ -9,6 +9,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/djmitche/dd-agent-comp-experiments/comp/config"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/ipcapi"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/fx"
@@ -19,6 +20,8 @@ func TestFlareMechanics(t *testing.T) {
 	var flare Component
 	app := fxtest.New(t,
 		Module,
+		fx.Supply(config.ModuleParams{}),
+		config.Module,
 		ipcapi.MockModule,
 		fx.Populate(&flare),
 	)

@@ -29,13 +29,13 @@ type flare struct {
 	// callbacks contains all registered callbacks (as would be given to Register)
 	callbacks []func(string) error
 
-	// config is the config component
-	config config.Component
+	// ipcapi is used in CreateFlareRemote
+	ipcapi ipcapi.Component
 }
 
 func newFlare(config config.Component, ipcapi ipcapi.Component) Component {
 	f := &flare{
-		config: config,
+		ipcapi: ipcapi,
 	}
 	ipcapi.Register("/agent/flare", f.ipcHandler)
 
@@ -126,36 +126,13 @@ func (f *flare) CreateFlare() (string, error) {
 
 // CreateFlareRemote implements Component#CreateFlareRemote.
 func (f *flare) CreateFlareRemote() (string, error) {
-	port := f.config.GetInt("cmd_port")
-	url := fmt.Sprintf("http://127.0.0.1:%d/agent/flare", port)
-	res, err := http.Get(url)
-	if err != nil {
-		return "", fmt.Errorf("Error contacting Agent: %s", err)
-	}
-
-	if res.Body != nil {
-		defer res.Body.Close()
-	}
-
-	if res.StatusCode != 200 && res.StatusCode != 500 {
-		return "", fmt.Errorf("Error contacting Agent: %s", res.Status)
-	}
-
-	body, err := ioutil.ReadAll(res.Body)
+	var content map[string]string
+	err := f.ipcapi.GetJSON("/agent/flare", &content)
 	if err != nil {
 		return "", err
 	}
-
-	var content map[string]string
-	err = json.Unmarshal(body, &content)
-
-	if res.StatusCode == 500 && err == nil {
-		if msg, found := content["error"]; found {
-			return "", fmt.Errorf("Error from Agent: %s", msg)
-		}
-	}
-	if err != nil {
-		return "", fmt.Errorf("Error decoding Agent response: %s", err)
+	if msg, found := content["error"]; found {
+		return "", fmt.Errorf("Error from Agent: %s", msg)
 	}
 
 	if filename, found := content["filename"]; found {

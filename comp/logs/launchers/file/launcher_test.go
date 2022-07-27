@@ -10,7 +10,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/djmitche/dd-agent-comp-experiments/comp/config"
+	"github.com/djmitche/dd-agent-comp-experiments/comp/flare"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/health"
+	"github.com/djmitche/dd-agent-comp-experiments/comp/ipcapi"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/logs/internal/sourcemgr"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/logs/launchers/launchermgr"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/util/log"
@@ -26,9 +29,14 @@ func TestMyComponent(t *testing.T) {
 	app := fxtest.New(t,
 		Module,
 		health.Module,
+		fx.Supply(config.ModuleParams{}),
+		config.Module,
+		fx.Supply(log.ModuleParams{}),
 		log.MockModule,
 		sourcemgr.Module,
 		launchermgr.Module,
+		flare.Module,
+		ipcapi.Module,
 		fx.Populate(&comp),
 		fx.Populate(&smgr),
 		fx.Populate(&l),

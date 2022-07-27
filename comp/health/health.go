@@ -9,13 +9,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"strings"
 	"sync"
 	"time"
 
-	"github.com/djmitche/dd-agent-comp-experiments/comp/config"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/flare"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/ipcapi"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/util/log"
@@ -42,8 +40,8 @@ type health struct {
 	// log supports logging about changes in health status
 	log log.Component
 
-	// config is the config component
-	config config.Component
+	// ipcapi is used in GetHealthRemote
+	ipcapi ipcapi.Component
 }
 
 type dependencies struct {
@@ -52,7 +50,6 @@ type dependencies struct {
 	Params ModuleParams `optional:"true"`
 	Log    log.Component
 	Flare  flare.Component
-	Config config.Component
 	IpcAPI ipcapi.Component
 }
 
@@ -61,7 +58,7 @@ func newHealth(deps dependencies) Component {
 		disabled:   deps.Params.Disabled,
 		components: make(map[string]ComponentHealth),
 		log:        deps.Log,
-		config:     deps.Config,
+		ipcapi:     deps.IpcAPI,
 	}
 	deps.Lc.Append(fx.Hook{OnStart: h.start})
 	deps.IpcAPI.Register("/agent/health", h.ipcHandler)
@@ -132,31 +129,10 @@ func (h *health) GetHealth() map[string]ComponentHealth {
 
 // GetHealthRemote implements Component#GetHealthRemote.
 func (h *health) GetHealthRemote() (map[string]ComponentHealth, error) {
-	port := h.config.GetInt("cmd_port")
-	url := fmt.Sprintf("http://127.0.0.1:%d/agent/health", port)
-	res, err := http.Get(url)
-	if err != nil {
-		return nil, fmt.Errorf("Error contacting Agent: %s", err)
-	}
-
-	if res.Body != nil {
-		defer res.Body.Close()
-	}
-
-	if res.StatusCode != 200 {
-		return nil, fmt.Errorf("Error contacting Agent: %s", res.Status)
-	}
-
-	body, err := ioutil.ReadAll(res.Body)
+	var content map[string]ComponentHealth
+	err := h.ipcapi.GetJSON("/agent/health", &content)
 	if err != nil {
 		return nil, err
-	}
-
-	var content map[string]ComponentHealth
-	err = json.Unmarshal(body, &content)
-
-	if err != nil {
-		return nil, fmt.Errorf("Error decoding Agent response: %s", err)
 	}
 
 	return content, nil
