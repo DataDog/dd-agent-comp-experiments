@@ -18,11 +18,18 @@ type logger struct {
 	level   string
 }
 
-func newLogger(lc fx.Lifecycle, params ModuleParams) Component {
+type dependencies struct {
+	fx.In
+
+	Lc     fx.Lifecycle
+	Params ModuleParams `optional:"true"`
+}
+
+func newLogger(deps dependencies) Component {
 	c := &logger{
-		console: params.Console,
+		console: deps.Params.Console,
 	}
-	lc.Append(fx.Hook{OnStart: c.start})
+	deps.Lc.Append(fx.Hook{OnStart: c.start})
 	return c
 }
 

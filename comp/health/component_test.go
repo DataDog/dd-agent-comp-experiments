@@ -22,9 +22,7 @@ func TestSimple(t *testing.T) {
 	var h Component
 	app := fxtest.New(t,
 		Module,
-		fx.Supply(config.ModuleParams{}),
 		config.Module,
-		fx.Supply(log.ModuleParams{}),
 		log.Module,
 		flare.Module,
 		ipcapi.Module,
@@ -44,9 +42,7 @@ func TestActor(t *testing.T) {
 	var h Component
 	app := fxtest.New(t,
 		Module,
-		fx.Supply(config.ModuleParams{}),
 		config.Module,
-		fx.Supply(log.ModuleParams{}),
 		log.Module,
 		flare.Module,
 		ipcapi.Module,

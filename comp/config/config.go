@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/spf13/viper"
+	"go.uber.org/fx"
 )
 
 // config implements the Component.
@@ -16,15 +17,21 @@ type config struct {
 	viper *viper.Viper
 }
 
-func newConfig(params ModuleParams) (Component, error) {
+type dependencies struct {
+	fx.In
+
+	Params ModuleParams `optional:"true"`
+}
+
+func newConfig(deps dependencies) (Component, error) {
 	v := viper.New()
 	v.SetConfigName("datadog")
 	v.SetEnvPrefix("DD_")
 	v.SetConfigType("yaml")
-	if params.ConfFilePath != "" {
-		v.AddConfigPath(params.ConfFilePath)
-		if strings.HasSuffix(params.ConfFilePath, ".yaml") {
-			v.SetConfigFile(params.ConfFilePath)
+	if deps.Params.ConfFilePath != "" {
+		v.AddConfigPath(deps.Params.ConfFilePath)
+		if strings.HasSuffix(deps.Params.ConfFilePath, ".yaml") {
+			v.SetConfigFile(deps.Params.ConfFilePath)
 		}
 	}
 	v.AddConfigPath("/etc/datadog-agent")

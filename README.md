@@ -84,13 +84,23 @@ type foo {
 // Foo implements Component#Foo.
 func (f *foo) Foo(key string) string { ... }
 
-func newFoo(log log.Component, config config.Component) Component { ...  }
+type dependencies struct {
+    fx.In
+
+    Log log.Component
+    Config config.Component
+    // ...
+}
+
+func newFoo(deps dependencies) Component { ...  }
 ```
 
 The constructor `newFoo` is an `fx` constructor, so it can refer to other types and expect them to be automatically supplied.
-It can return either `Component` if it is infallible, or `(Component, error)` if it could fail.
+For very simple constructors, listing the dependencies inline is OK, but most will want to use the `dependencies` pattern shown above.
+As an `fx` constructor, it can also take an `fx.Lifetime` argument and set up OnStart or OnStop hooks.
+
+The constructor can return either `Component` if it is infallible, or `(Component, error)` if it could fail.
 Failure will crash the agent with a suitable message.
-As an `fx` constructor, it can also take an `fx.Lifetime` argument and set up OnStart and OnStop hooks.
 
 Within the body of the constructor, it may call methods on other components, as long as that component allows calls to the methods during the setup phase.
 
@@ -100,7 +110,7 @@ Some components require parameters before they are instantiated.
 For example, `comp/config` requires the path to the configuration file so that it can be ready to answer config requests as soon as it is instantiated.
 Other components may wish to provide different implementations depending on these parameters; for example, `comp/health` need not monitor anything if not in a running agent.
 
-To support this, components can define a `pkg.ModuleParams` type and require that it be supplied by the app.
+To support this, components can define a `pkg.ModuleParams` type and expect that it be supplied by the app.
 
 ```go
 // ModuleParams are the parameters to Module.
@@ -110,11 +120,19 @@ type ModuleParams struct {
 }
 ```
 
-..and require that type in the constructor:
+..and accept that type in the constructor, but optionally:
 
 ```go
-func newFoo(params ModuleParams, log log.Component, config config.Component) Component { ...  }
+type dependenices {
+    fx.In
+
+    // ...
+    Params ModuleParams `optional:"true"`
+}
+func newFoo(deps dependencies) { ...  }
 ```
+
+The dependency should be optional to more easily support tests for other components depending on this one, which will typically want default behaviors.
 
 ### Testing Support
 

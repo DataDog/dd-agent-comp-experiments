@@ -20,7 +20,6 @@ func TestFlareMechanics(t *testing.T) {
 	var flare Component
 	app := fxtest.New(t,
 		Module,
-		fx.Supply(config.ModuleParams{}),
 		config.Module,
 		ipcapi.MockModule,
 		fx.Populate(&flare),
