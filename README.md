@@ -288,6 +288,13 @@ This would involve a "reducer" that extracts data from Viper (or whatever we swi
 Using struct tags and a utility function would allow for a very regular, greppable arrangement of configuration parameters with very little per-component boilerplate.
 This will also ease testing of components: tests can simply provide a filled-in configuration struct, instead of manually setting configuration parameters.
 
+# Open Questions
+
+## Self-Referential APIs
+
+A few parts of the agent -- status, health, flare -- have nontrivial implementations both on the server side and client side of the IPC API.
+Should the client side be implemented in an app (e.g., in `cmd/agent/flare`) or in the same component (`comp/flare`) or in a different component?
+
 # TODO
 
  * [DONE] component.yml?
@@ -301,5 +308,18 @@ This will also ease testing of components: tests can simply provide a filled-in 
  * [DONE] use fx.In for complex constructors (maybe with component concrete type?)
  * [DONE] API
  * status output
- * tlm
+ * tlm / expvars
+ * more tests
+   * some kind of external test (`./test/`?)
  * more components
+   * tagger
+   * wlm
+   * AD + plugins
+   * Check runners
+   * DSD parts
+   * Remaining Logs-Agent parts
+   * Some other agents??
+   * Serializer
+   * Forwarder
+   * Flares
+ * Subprocesses?
