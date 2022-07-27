@@ -10,6 +10,12 @@ Click the links for more documentation.
 Package config implements a component to handle agent configuration.  This
 component wraps Viper.
 
+## [comp/flare](https://pkg.go.dev/github.com/djmitche/dd-agent-comp-experiments/comp/flare@v0.0.2)
+
+*Datadog Team*: agent-shared-components
+
+Package flare implements a component creates flares for submission to support.
+
 ## [comp/health](https://pkg.go.dev/github.com/djmitche/dd-agent-comp-experiments/comp/health@v0.0.2)
 
 *Datadog Team*: agent-shared-components
@@ -21,9 +27,8 @@ components.
 
 *Datadog Team*: agent-shared-components
 
-Package ipcapi implements a component to manage the IPC API server.  It
-allows other components to register handlers, and manages startup and shutdown
-of the HTTP server.
+Package ipcapi implements a component to manage the IPC API server and act
+as a client.
 
 ## [comp/logs/agent](https://pkg.go.dev/github.com/djmitche/dd-agent-comp-experiments/comp/logs/agent@v0.0.2)
 
