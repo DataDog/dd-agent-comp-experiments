@@ -11,6 +11,13 @@ Maybe some of these are bad ideas, maybe they are things we can do later, or may
 
 You can see the set of components in [`COMPONENTS.md`](./COMPONENTS.md).
 
+# Building
+
+To build, run `inv build`.
+This will build all binaries in the root of the repository.
+
+To regenerate files in the repo, run `inv generate`.
+
 # Component Guidelines
 
 What follows are draft guidelines for writing components.
@@ -318,10 +325,10 @@ This will also ease testing of components: tests can simply provide a filled-in 
 
 # Open Questions
 
-## Self-Referential APIs
+## Subprocesses
 
-A few parts of the agent -- status, health, flare -- have nontrivial implementations both on the server side and client side of the IPC API.
-Should the client side be implemented in an app (e.g., in `cmd/agent/flare`) or in the same component (`comp/flare`) or in a different component?
+We want to support running some "things" (we should have a term for this!) as subprocesses, as is currently done for trace-agent, system-probe, process-agent, and security-agent.
+Should these be different binaries (as they are now), or the same binary with different arguments?
 
 # TODO
 

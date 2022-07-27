@@ -84,3 +84,13 @@ def generate(ctx):
 
     with open(".github/CODEOWNERS", "w") as f:
         f.write('\n'.join(make_codeowners(components)))
+
+
+@task
+def build(ctx):
+    binaries = [
+        ('trace-agent', './cmd/traceagent'),
+        ('agent', './cmd/agent'),
+    ]
+    for (binary, pkg) in binaries:
+        ctx.run(f"go build -o {binary} {pkg}")
