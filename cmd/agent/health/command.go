@@ -7,14 +7,11 @@
 package health
 
 import (
-	"encoding/json"
 	"fmt"
-	"io/ioutil"
-	"net/http"
 
 	"github.com/djmitche/dd-agent-comp-experiments/cmd/agent/root"
 	"github.com/djmitche/dd-agent-comp-experiments/cmd/common"
-	"github.com/djmitche/dd-agent-comp-experiments/comp/config"
+	"github.com/djmitche/dd-agent-comp-experiments/comp/health"
 	"github.com/spf13/cobra"
 	"go.uber.org/fx"
 )
@@ -30,39 +27,23 @@ var (
 func command(_ *cobra.Command, args []string) error {
 	app := fx.New(
 		common.SharedOptions(root.ConfFilePath, true),
-		common.OneShot(health),
+		common.OneShot(healthCmd),
 	)
 	return common.RunApp(app)
 }
 
-func health(config config.Component) error {
-	port := config.GetInt("cmd_port")
-	url := fmt.Sprintf("http://127.0.0.1:%d/agent/health", port)
-	res, err := http.Get(url)
+func healthCmd(health health.Component) error {
+	resp, err := health.GetHealthRemote()
 	if err != nil {
 		return err
 	}
 
-	if res.Body != nil {
-		defer res.Body.Close()
-	}
-	body, err := ioutil.ReadAll(res.Body)
-	if err != nil {
-		return err
-	}
-
-	health := map[string]map[string]interface{}{}
-	err = json.Unmarshal(body, &health)
-	if err != nil {
-		return err
-	}
-
-	for component, h := range health {
+	for component, h := range resp {
 		fmt.Printf("%s: ", component)
-		if h["Healthy"].(bool) {
+		if h.Healthy {
 			fmt.Printf("OK\n")
 		} else {
-			fmt.Printf("UNHEALTHY (%s)\n", h["Message"].(string))
+			fmt.Printf("UNHEALTHY (%s)\n", h.Message)
 		}
 	}
 

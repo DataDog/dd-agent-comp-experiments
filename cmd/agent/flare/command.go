@@ -11,7 +11,6 @@ import (
 
 	"github.com/djmitche/dd-agent-comp-experiments/cmd/agent/root"
 	"github.com/djmitche/dd-agent-comp-experiments/cmd/common"
-	"github.com/djmitche/dd-agent-comp-experiments/comp/config"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/flare"
 	"github.com/spf13/cobra"
 	"go.uber.org/fx"
@@ -33,8 +32,8 @@ func command(_ *cobra.Command, args []string) error {
 	return common.RunApp(app)
 }
 
-func flareCmd(flare flare.Component, config config.Component) error {
-	archiveFile, err := flare.CreateFlareRemote(config)
+func flareCmd(flare flare.Component) error {
+	archiveFile, err := flare.CreateFlareRemote()
 	if err != nil {
 		fmt.Printf("Could not contact agent: %s\n", err)
 		fmt.Printf("Proceeding with local flare.\n")

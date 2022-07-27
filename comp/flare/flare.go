@@ -28,10 +28,15 @@ type flare struct {
 
 	// callbacks contains all registered callbacks (as would be given to Register)
 	callbacks []func(string) error
+
+	// config is the config component
+	config config.Component
 }
 
 func newFlare(config config.Component, ipcapi ipcapi.Component) Component {
-	f := &flare{}
+	f := &flare{
+		config: config,
+	}
 	ipcapi.Register("/agent/flare", f.ipcHandler)
 
 	// Register a few handlers for information provided by modules on which this
@@ -47,7 +52,7 @@ func newFlare(config config.Component, ipcapi ipcapi.Component) Component {
 }
 
 func newMock(ipcapi ipcapi.Component) Component {
-	// mock is just like the real thing, but doesn't use ipcapi.
+	// mock is just like the real thing, but doesn't use ipcapi or config.
 	return &flare{}
 }
 
@@ -120,8 +125,8 @@ func (f *flare) CreateFlare() (string, error) {
 }
 
 // CreateFlareRemote implements Component#CreateFlareRemote.
-func (f *flare) CreateFlareRemote(config config.Component) (string, error) {
-	port := config.GetInt("cmd_port")
+func (f *flare) CreateFlareRemote() (string, error) {
+	port := f.config.GetInt("cmd_port")
 	url := fmt.Sprintf("http://127.0.0.1:%d/agent/flare", port)
 	res, err := http.Get(url)
 	if err != nil {

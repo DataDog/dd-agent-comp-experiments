@@ -249,6 +249,16 @@ It is also easy to test: start a goroutine, send it some events, and assert on t
 
 The `pkg/util/actor` package supports components that use the actor structure, including connecting them to the `fx` life cycle.
 
+## IPC API Commands
+
+Several commands, such as `agent status` or `agent config`, call the running Agent's IPC API and format the result.
+Components implementing this pattern should generally have two similar methods, such as `GetStatus` and `GetStatusRemote`.
+The first method gathers the data locally, and the second requests the same data via the IPC API.
+The component should register with `comp/ipcapi` to provide the result of the first method over the IPC API.
+
+This arrangement locates both the client and server sides of the IPC API in one module.
+The command implementation (under `cmd/`) then simply calls `GetStatusRemote` and formats the result for display.
+
 ## Health Monitoring
 
 Components which can fail, and especially those using the actor model, should register with `comp/health` to monitor their health.
@@ -321,5 +331,5 @@ Should the client side be implemented in an app (e.g., in `cmd/agent/flare`) or 
    * Some other agents??
    * Serializer
    * Forwarder
-   * Flares
+   * [DONE] Flares
  * Subprocesses?

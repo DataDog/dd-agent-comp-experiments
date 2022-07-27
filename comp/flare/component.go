@@ -24,7 +24,6 @@ package flare
 import (
 	"testing"
 
-	"github.com/djmitche/dd-agent-comp-experiments/comp/config"
 	"go.uber.org/fx"
 )
 
@@ -50,9 +49,8 @@ type Component interface {
 	CreateFlare() (string, error)
 
 	// CreateFlareRemote calls the running Agent's IPC API to instruct it to
-	// generate a flare remotely.  This requires the config component in order
-	// to determine the appropriate port.
-	CreateFlareRemote(config config.Component) (string, error)
+	// generate a flare remotely.
+	CreateFlareRemote() (string, error)
 }
 
 // Mock implements mock-specific methods.
