@@ -7,6 +7,9 @@
 // allows other components to register handlers, and manages startup and shutdown
 // of the HTTP server.
 //
+// The Mock version of this component allows registration but does not actually
+// start a server, and does not require ModuleParams.
+//
 // XXX In a real agent, this would support TLS and gRPC and Auth and timeouts
 // and stuff; see cmd/agent/api.
 package ipcapi
@@ -25,6 +28,13 @@ type Component interface {
 	Register(path string, handler http.HandlerFunc)
 }
 
+// Mock implements mock-specific methods.
+type Mock interface {
+	Component
+
+	// TODO: Get(path) ..
+}
+
 type ModuleParams struct {
 	// Disabled indicates that the component should ignore all registration and
 	// perform no monitoring.  This is intended for one-shot processes such as
@@ -35,4 +45,9 @@ type ModuleParams struct {
 var Module = fx.Module(
 	"comp/ipcapi",
 	fx.Provide(newServer),
+)
+
+var MockModule = fx.Module(
+	"comp/ipcapi",
+	fx.Provide(newMock),
 )

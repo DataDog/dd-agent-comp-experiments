@@ -46,6 +46,15 @@ func newServer(deps dependencies) Component {
 	return s
 }
 
+func newMock() Component {
+	s := &server{
+		disabled: true,
+		port:     0,
+		router:   mux.NewRouter(),
+	}
+	return s
+}
+
 // Register implements Component#Register.
 func (s *server) Register(path string, handler http.HandlerFunc) {
 	if s.server != nil {
