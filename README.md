@@ -344,6 +344,7 @@ Should these be different binaries (as they are now), or the same binary with di
  * [DONE] API
  * status output
  * tlm / expvars
+ * startup for bundles? the hidden Invoke() of a constructor that does nothing is weird.
  * more tests
    * some kind of external test (`./test/`?)
  * more components

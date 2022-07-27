@@ -25,16 +25,29 @@ type launcher struct {
 	health       *health.ActorRegistration
 }
 
-func (l *launcher) start(ctx context.Context) error {
-	l.log.Debug("Starting file launcher")
-	l.actor.Start(l.run)
-	return nil
+type dependencies struct {
+	fx.In
+
+	Lc          fx.Lifecycle
+	Log         log.Component
+	Sourcemgr   sourcemgr.Component
+	LauncherMgr launchermgr.Component
+	Health      health.Component
 }
 
-func (l *launcher) stop(ctx context.Context) error {
-	l.log.Debug("Stopping file launcher")
-	l.actor.Stop(context.Background())
-	return nil
+func newLauncher(deps dependencies) (Component, error) {
+	subscription, err := deps.Sourcemgr.Subscribe()
+	if err != nil {
+		return nil, err
+	}
+	l := &launcher{
+		log:          deps.Log,
+		subscription: subscription,
+		health:       deps.Health.RegisterActor("comp/logs/launchers/file", 1*time.Second),
+	}
+	deps.LauncherMgr.RegisterLauncher("file", l)
+	l.actor.HookLifecycle(deps.Lc, l.run)
+	return l, nil
 }
 
 func (l *launcher) run(ctx context.Context) {
@@ -50,25 +63,4 @@ func (l *launcher) run(ctx context.Context) {
 			return
 		}
 	}
-}
-
-func newLauncher(
-	lc fx.Lifecycle,
-	log log.Component,
-	sourcemgr sourcemgr.Component,
-	mgr launchermgr.Component,
-	health health.Component,
-) (Component, error) {
-	subscription, err := sourcemgr.Subscribe()
-	if err != nil {
-		return nil, err
-	}
-	l := &launcher{
-		log:          log,
-		subscription: subscription,
-		health:       health.RegisterActor("comp/logs/launchers/file", 1*time.Second),
-	}
-	mgr.RegisterLauncher("file", l)
-	l.actor.HookLifecycle(lc, l.run)
-	return l, nil
 }

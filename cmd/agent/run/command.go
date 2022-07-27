@@ -11,6 +11,7 @@ import (
 	"github.com/djmitche/dd-agent-comp-experiments/cmd/common"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/logs"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/logs/launchers/file"
+	"github.com/djmitche/dd-agent-comp-experiments/comp/trace"
 	"github.com/spf13/cobra"
 	"go.uber.org/fx"
 )
@@ -36,6 +37,7 @@ func run(_ *cobra.Command, args []string) error {
 	app := fx.New(
 		common.SharedOptions(root.ConfFilePath, false),
 		logs.Module,
+		trace.Module,
 		logsAgentPluginOptions(),
 	)
 	return common.RunApp(app)
