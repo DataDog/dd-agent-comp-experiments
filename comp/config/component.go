@@ -26,6 +26,9 @@ type Component interface {
 
 	// GetInt gets a string-typed config parameter value.
 	GetString(key string) string
+
+	// WriteConfig writes the config to the designated file.
+	WriteConfig(filename string) error
 }
 
 // ModuleParams are the parameters to Module.

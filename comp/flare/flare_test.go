@@ -6,6 +6,7 @@
 package flare
 
 import (
+	"os"
 	"testing"
 
 	"github.com/djmitche/dd-agent-comp-experiments/comp/ipcapi"
@@ -33,6 +34,10 @@ func TestFlareMechanics(t *testing.T) {
 
 	// XXX unzip archive file and verify..
 	require.NotEqual(t, "", archiveFile)
+
+	// this will create a temporary file without t.TempDir, so we must clean it
+	// up manually
+	os.RemoveAll(archiveFile)
 }
 
 func TestMock(t *testing.T) {

@@ -7,6 +7,7 @@ package flare
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -16,6 +17,7 @@ import (
 	"sync"
 	"testing"
 
+	"github.com/djmitche/dd-agent-comp-experiments/comp/config"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/ipcapi"
 	"github.com/mholt/archiver"
 )
@@ -28,15 +30,18 @@ type flare struct {
 	callbacks []func(string) error
 }
 
-func newFlare(ipcapi ipcapi.Component) Component {
+func newFlare(config config.Component, ipcapi ipcapi.Component) Component {
 	f := &flare{}
 	ipcapi.Register("/agent/flare", f.ipcHandler)
 
-	// XXX: there's a possible dependency cycle here if comp/util/log were to
-	// Register its own callback to record agent logs, because this component
-	// depends on comp/ipcapi which depends on comp/util/log.  The easiest way
-	// to break that cycle is likely for this component to register its own
-	// handler for agent logs.
+	// Register a few handlers for information provided by modules on which this
+	// one depends.
+	f.Register(func(flareDir string) error {
+		return config.WriteConfig(filepath.Join(flareDir, "config.yaml"))
+	})
+
+	// XXX: we would have similar dependency cycles with anything this component
+	// depends on, which means most of the "basic" components like comp/util/log.
 
 	return f
 }
@@ -88,7 +93,9 @@ func (f *flare) CreateFlare() (string, error) {
 		return "", err
 	}
 
-	flareDir := filepath.Join(rootDir, "hostname") // TODO: figure out hostname
+	// XXX: finding the hostname may be another circular dependency, if the
+	// (as-yet-unwritten) hostname component depends on this component.
+	flareDir := filepath.Join(rootDir, "hostname")
 
 	err = os.MkdirAll(flareDir, 0o700)
 	if err != nil {
@@ -113,8 +120,43 @@ func (f *flare) CreateFlare() (string, error) {
 }
 
 // CreateFlareRemote implements Component#CreateFlareRemote.
-func (f *flare) CreateFlareRemote() (string, error) {
-	panic("TODO")
+func (f *flare) CreateFlareRemote(config config.Component) (string, error) {
+	port := config.GetInt("cmd_port")
+	url := fmt.Sprintf("http://127.0.0.1:%d/agent/flare", port)
+	res, err := http.Get(url)
+	if err != nil {
+		return "", fmt.Errorf("Error contacting Agent: %s", err)
+	}
+
+	if res.Body != nil {
+		defer res.Body.Close()
+	}
+
+	if res.StatusCode != 200 && res.StatusCode != 500 {
+		return "", fmt.Errorf("Error contacting Agent: %s", res.Status)
+	}
+
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return "", err
+	}
+
+	var content map[string]string
+	err = json.Unmarshal(body, &content)
+
+	if res.StatusCode == 500 && err == nil {
+		if msg, found := content["error"]; found {
+			return "", fmt.Errorf("Error from Agent: %s", msg)
+		}
+	}
+	if err != nil {
+		return "", fmt.Errorf("Error decoding Agent response: %s", err)
+	}
+
+	if filename, found := content["filename"]; found {
+		return filename, nil
+	}
+	return "", errors.New("No filename received from Agent")
 }
 
 // GetFlareFile implements Mock#GetFlareFile.

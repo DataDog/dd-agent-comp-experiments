@@ -34,10 +34,11 @@ func newConfig(params ModuleParams) (Component, error) {
 		return nil, err
 	}
 
-	// for testing, this is good enough
-	return &config{
+	c := &config{
 		viper: v,
-	}, nil
+	}
+
+	return c, nil
 }
 
 // GetInt implements Component#GetInt.
@@ -53,4 +54,9 @@ func (c *config) GetBool(key string) bool {
 // GetString implements Component#GetString.
 func (c *config) GetString(key string) string {
 	return c.viper.GetString(key)
+}
+
+// WriteConfig implements Component#WriteConfig.
+func (c *config) WriteConfig(filename string) error {
+	return c.viper.SafeWriteConfigAs(filename)
 }

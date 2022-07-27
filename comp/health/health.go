@@ -10,9 +10,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 	"sync"
 	"time"
 
+	"github.com/djmitche/dd-agent-comp-experiments/comp/flare"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/ipcapi"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/util/log"
 	"go.uber.org/fx"
@@ -44,6 +46,7 @@ type dependencies struct {
 	Lc     fx.Lifecycle
 	Params ModuleParams `optional:"true"`
 	Log    log.Component
+	Flare  flare.Component
 	IpcAPI ipcapi.Component
 }
 
@@ -55,6 +58,7 @@ func newHealth(deps dependencies) Component {
 	}
 	deps.Lc.Append(fx.Hook{OnStart: h.start})
 	deps.IpcAPI.Register("/agent/health", h.ipcHandler)
+	deps.Flare.RegisterFile("health.json", h.flareFile)
 	return h
 }
 
@@ -138,6 +142,13 @@ func (h *health) start(ctx context.Context) error {
 func (h *health) ipcHandler(w http.ResponseWriter, _ *http.Request) {
 	w.Header()["Content-Type"] = []string{"application/json; charset=UTF-8"}
 	json.NewEncoder(w).Encode(h.GetHealth())
+}
+
+// flareFile creates the health.json file for Agent flares.
+func (h *health) flareFile() (string, error) {
+	var bldr strings.Builder
+	json.NewEncoder(&bldr).Encode(h.GetHealth())
+	return bldr.String(), nil
 }
 
 // setHealth sets the health of a specific component.  It is called from the

@@ -15,7 +15,6 @@ import (
 	"github.com/djmitche/dd-agent-comp-experiments/cmd/agent/root"
 	"github.com/djmitche/dd-agent-comp-experiments/cmd/common"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/config"
-	"github.com/djmitche/dd-agent-comp-experiments/comp/logs/launchers/file"
 	"github.com/spf13/cobra"
 	"go.uber.org/fx"
 )
@@ -27,14 +26,6 @@ var (
 		RunE:  command,
 	}
 )
-
-func logsAgentPluginOptions() fx.Option {
-	return fx.Options(
-		// this list would be different for other agent flavors
-		file.Module,
-		fx.Invoke(func(file.Component) {}),
-	)
-}
 
 func command(_ *cobra.Command, args []string) error {
 	app := fx.New(

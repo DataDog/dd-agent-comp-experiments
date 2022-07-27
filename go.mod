@@ -8,6 +8,14 @@ require (
 )
 
 require (
+	github.com/dsnet/compress v0.0.2-0.20210315054119-f66993602bf5 // indirect
+	github.com/golang/snappy v0.0.4 // indirect
+	github.com/nwaples/rardecode v1.1.0 // indirect
+	github.com/ulikunitz/xz v0.5.9 // indirect
+	github.com/xi2/xz v0.0.0-20171230120015-48954b6210f8 // indirect
+)
+
+require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/fsnotify/fsnotify v1.5.4 // indirect
 	github.com/gorilla/mux v1.8.0
@@ -15,7 +23,6 @@ require (
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/magiconair/properties v1.8.6 // indirect
 	github.com/mholt/archiver v3.1.1+incompatible
-	github.com/mholt/archiver/v3 v3.5.1 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/pelletier/go-toml v1.9.5 // indirect
 	github.com/pelletier/go-toml/v2 v2.0.1 // indirect

@@ -9,6 +9,7 @@ import (
 	"os"
 
 	"github.com/djmitche/dd-agent-comp-experiments/comp/config"
+	"github.com/djmitche/dd-agent-comp-experiments/comp/flare"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/health"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/ipcapi"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/util/log"
@@ -35,6 +36,8 @@ func SharedOptions(confFilePath string, oneShot bool) fx.Option {
 
 		fx.Supply(ipcapi.ModuleParams{Disabled: oneShot}),
 		ipcapi.Module,
+
+		flare.Module,
 
 		// Include Fx's detailed logging to stderr only if TRACE_FX is set.
 		// This logging is verbose, and occurs mostly during early application

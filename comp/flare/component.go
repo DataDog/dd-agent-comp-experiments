@@ -18,9 +18,13 @@
 // methods would be called during the setup phase.
 package flare
 
+// NOTE: it might be nice to users to generate a "README.md" describing each file in
+// the flare, based on docs passed to the flare.Register* methods.
+
 import (
 	"testing"
 
+	"github.com/djmitche/dd-agent-comp-experiments/comp/config"
 	"go.uber.org/fx"
 )
 
@@ -46,8 +50,9 @@ type Component interface {
 	CreateFlare() (string, error)
 
 	// CreateFlareRemote calls the running Agent's IPC API to instruct it to
-	// generate a flare remotely.
-	CreateFlareRemote() (string, error)
+	// generate a flare remotely.  This requires the config component in order
+	// to determine the appropriate port.
+	CreateFlareRemote(config config.Component) (string, error)
 }
 
 // Mock implements mock-specific methods.

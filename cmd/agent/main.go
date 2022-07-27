@@ -8,6 +8,7 @@ package main
 import (
 	"os"
 
+	"github.com/djmitche/dd-agent-comp-experiments/cmd/agent/flare"
 	"github.com/djmitche/dd-agent-comp-experiments/cmd/agent/health"
 	"github.com/djmitche/dd-agent-comp-experiments/cmd/agent/root"
 	"github.com/djmitche/dd-agent-comp-experiments/cmd/agent/run"
@@ -17,6 +18,7 @@ func main() {
 	cmd := root.MakeCommand(
 		run.Cmd,
 		health.Cmd,
+		flare.Cmd,
 	)
 	if err := cmd.Execute(); err != nil {
 		os.Exit(-1)
