@@ -61,6 +61,32 @@ Package launchermgr implements a component managing logs-agent launchers.  It co
 the set of loaded launchers during start-up, and allows enumeration and retrieval
 as necessary.
 
+## [comp/trace/agent](https://pkg.go.dev/github.com/djmitche/dd-agent-comp-experiments/comp/trace/agent@v0.0.2)
+
+*Datadog Team*: trace-agent
+
+Package agent implements a component representing the trace agent.
+
+## [comp/trace/internal/httpreceiver](https://pkg.go.dev/github.com/djmitche/dd-agent-comp-experiments/comp/trace/internal/httpreceiver@v0.0.2)
+
+*Datadog Team*: trace-agent
+
+Package httpreceiver listens for incoming spans via HTTP and submits them to
+the APM agent pipeline.
+
+## [comp/trace/internal/processor](https://pkg.go.dev/github.com/djmitche/dd-agent-comp-experiments/comp/trace/internal/processor@v0.0.2)
+
+*Datadog Team*: trace-agent
+
+Package processor handles processing spans for the trace agent.
+
+## [comp/trace/internal/tracewriter](https://pkg.go.dev/github.com/djmitche/dd-agent-comp-experiments/comp/trace/internal/tracewriter@v0.0.2)
+
+*Datadog Team*: trace-agent
+
+Package tracewriter buffers traces and APM events, flushing them to the
+Datadog API.
+
 ## [comp/util/log](https://pkg.go.dev/github.com/djmitche/dd-agent-comp-experiments/comp/util/log@v0.0.2)
 
 *Datadog Team*: agent-shared-components
