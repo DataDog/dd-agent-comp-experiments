@@ -7,6 +7,7 @@ comp/logs/agent @DataDog/agent-metrics-logs
 comp/logs/internal/sourcemgr @DataDog/agent-metrics-logs
 comp/logs/launchers/file @DataDog/agent-metrics-logs
 comp/logs/launchers/launchermgr @DataDog/agent-metrics-logs
+comp/status @DataDog/agent-shared-components
 comp/trace/agent @DataDog/trace-agent
 comp/trace/internal/httpreceiver @DataDog/trace-agent
 comp/trace/internal/processor @DataDog/trace-agent

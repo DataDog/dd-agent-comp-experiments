@@ -61,6 +61,12 @@ Package launchermgr implements a component managing logs-agent launchers.  It co
 the set of loaded launchers during start-up, and allows enumeration and retrieval
 as necessary.
 
+## [comp/status](https://pkg.go.dev/github.com/djmitche/dd-agent-comp-experiments/comp/status@v0.0.2)
+
+*Datadog Team*: agent-shared-components
+
+Package status implements the functionality behind `agent status`.
+
 ## [comp/trace/agent](https://pkg.go.dev/github.com/djmitche/dd-agent-comp-experiments/comp/trace/agent@v0.0.2)
 
 *Datadog Team*: trace-agent
