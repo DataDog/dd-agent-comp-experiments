@@ -8,7 +8,9 @@ package trace
 
 import (
 	"github.com/djmitche/dd-agent-comp-experiments/comp/trace/agent"
+	"github.com/djmitche/dd-agent-comp-experiments/comp/trace/internal/httpreceiver"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/trace/internal/processor"
+	"github.com/djmitche/dd-agent-comp-experiments/comp/trace/internal/tracewriter"
 	"go.uber.org/fx"
 )
 
@@ -17,6 +19,8 @@ var Module fx.Option = fx.Module(
 	"comp/trace",
 	agent.Module,
 	processor.Module,
+	tracewriter.Module,
+	httpreceiver.Module,
 
 	// load and start the top-level agent component
 	fx.Invoke(func(agent.Component) {}),

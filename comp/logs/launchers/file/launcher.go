@@ -58,7 +58,6 @@ func (l *launcher) run(ctx context.Context) {
 			l.log.Debug("got change", chg)
 			// XXX start a tailer, etc. etc.
 		case <-l.health.Chan():
-			return
 		case <-ctx.Done():
 			return
 		}

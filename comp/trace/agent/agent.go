@@ -7,38 +7,24 @@
 package agent
 
 import (
-	"fmt"
-	"time"
-
-	"github.com/djmitche/dd-agent-comp-experiments/comp/trace/internal/processor"
-	"github.com/djmitche/dd-agent-comp-experiments/pkg/trace/api"
+	"github.com/djmitche/dd-agent-comp-experiments/comp/trace/internal/httpreceiver"
 	"go.uber.org/fx"
 )
 
 type agent struct {
-	processor processor.Component
 }
 
 type dependencies struct {
 	fx.In
 
-	Processor processor.Component
+	HTTPReceiver httpreceiver.Component // required just to load the component
 }
 
 func newAgent(deps dependencies) Component {
-	a := &agent{
-		processor: deps.Processor,
-	}
+	a := &agent{}
 
-	// XXX temporary
-	go func() {
-		tkr := time.NewTicker(500 * time.Millisecond)
-		for {
-			<-tkr.C
-			fmt.Printf("send\n")
-			deps.Processor.PayloadChan() <- new(api.Payload)
-		}
-	}()
+	// TODO: this will likely carry a reference to Receiver, Processor, and so
+	// on to handle requests for Status, stats, etc.
 
 	return a
 }
