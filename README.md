@@ -352,7 +352,7 @@ If component users were encouraged to use `fx.Replace(foo.ModuleParams{ Xyz: "sp
  * [DONE] CLI / subcommands (`agent run`, etc.)
  * [DONE] use fx.In for complex constructors (maybe with component concrete type?)
  * [DONE] API
- * status output
+ * [DONE] status output
  * tlm / expvars
  * startup for bundles? the hidden Invoke() of a constructor that does nothing is weird.
  * more tests
