@@ -12,6 +12,7 @@ import (
 	"github.com/djmitche/dd-agent-comp-experiments/comp/flare"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/health"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/ipcapi"
+	"github.com/djmitche/dd-agent-comp-experiments/comp/status"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/util/log"
 	"go.uber.org/fx"
 	"go.uber.org/fx/fxevent"
@@ -38,6 +39,7 @@ func SharedOptions(confFilePath string, oneShot bool) fx.Option {
 		ipcapi.Module,
 
 		flare.Module,
+		status.Module,
 
 		// Include Fx's detailed logging to stderr only if TRACE_FX is set.
 		// This logging is verbose, and occurs mostly during early application

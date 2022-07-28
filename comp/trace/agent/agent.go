@@ -7,24 +7,64 @@
 package agent
 
 import (
+	"context"
+	"fmt"
+	"strings"
+
+	"github.com/djmitche/dd-agent-comp-experiments/comp/status"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/trace/internal/httpreceiver"
+	"github.com/djmitche/dd-agent-comp-experiments/comp/util/log"
 	"go.uber.org/fx"
 )
 
 type agent struct {
+	log log.Component
 }
 
 type dependencies struct {
 	fx.In
 
+	Lc           fx.Lifecycle
 	HTTPReceiver httpreceiver.Component // required just to load the component
+	Status       status.Component
+	Log          log.Component
 }
 
 func newAgent(deps dependencies) Component {
-	a := &agent{}
-
 	// TODO: this will likely carry a reference to Receiver, Processor, and so
 	// on to handle requests for Status, stats, etc.
+	a := &agent{
+		log: deps.Log,
+	}
+
+	deps.Status.RegisterSection("trace-agent", 3, a.status)
+
+	deps.Lc.Append(fx.Hook{
+		OnStart: a.start,
+		OnStop:  a.stop,
+	})
 
 	return a
+}
+
+func (a *agent) start(context.Context) error {
+	a.log.Debug("Starting trace-agent")
+	return nil
+}
+
+func (a *agent) stop(context.Context) error {
+	a.log.Debug("Stopping trace-agent")
+	return nil
+}
+
+func (a *agent) status() string {
+	var bldr strings.Builder
+
+	fmt.Fprintf(&bldr, "===========\n")
+	fmt.Fprintf(&bldr, "Trace Agent\n")
+	fmt.Fprintf(&bldr, "===========\n")
+	fmt.Fprintf(&bldr, "\n")
+	fmt.Fprintf(&bldr, "STATUS: Doin' just fine, thanks!\n")
+
+	return bldr.String()
 }

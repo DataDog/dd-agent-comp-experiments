@@ -12,6 +12,7 @@ import (
 	"github.com/djmitche/dd-agent-comp-experiments/cmd/agent/health"
 	"github.com/djmitche/dd-agent-comp-experiments/cmd/agent/root"
 	"github.com/djmitche/dd-agent-comp-experiments/cmd/agent/run"
+	"github.com/djmitche/dd-agent-comp-experiments/cmd/agent/status"
 )
 
 func main() {
@@ -19,6 +20,7 @@ func main() {
 		run.Cmd,
 		health.Cmd,
 		flare.Cmd,
+		status.Cmd,
 	)
 	if err := cmd.Execute(); err != nil {
 		os.Exit(-1)

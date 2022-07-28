@@ -7,9 +7,12 @@ package agent
 
 import (
 	"context"
+	"fmt"
+	"strings"
 
 	"go.uber.org/fx"
 
+	"github.com/djmitche/dd-agent-comp-experiments/comp/status"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/util/log"
 )
 
@@ -18,25 +21,49 @@ type agent struct {
 	log log.Component
 }
 
-func newAgent(lc fx.Lifecycle, cfg *config, log log.Component) Component {
-	c := &agent{
-		cfg: cfg,
-		log: log,
+type dependencies struct {
+	fx.In
+
+	Lc     fx.Lifecycle
+	Cfg    *config
+	Log    log.Component
+	Status status.Component
+}
+
+func newAgent(deps dependencies) Component {
+	a := &agent{
+		cfg: deps.Cfg,
+		log: deps.Log,
 	}
-	lc.Append(fx.Hook{
-		OnStart: c.start,
-		OnStop:  c.stop,
+
+	deps.Status.RegisterSection("logs-agent", 4, a.status)
+
+	deps.Lc.Append(fx.Hook{
+		OnStart: a.start,
+		OnStop:  a.stop,
 	})
-	return c
+
+	return a
 }
 
-func (c *agent) start(context.Context) error {
-	c.log.Debug("Starting logs-agent")
-	c.log.Debug("CCA setting:", c.cfg.containerCollectAll)
+func (a *agent) start(context.Context) error {
+	a.log.Debug("Starting logs-agent")
 	return nil
 }
 
-func (c *agent) stop(context.Context) error {
-	c.log.Debug("Stopping logs-agent")
+func (a *agent) stop(context.Context) error {
+	a.log.Debug("Stopping logs-agent")
 	return nil
+}
+
+func (a *agent) status() string {
+	var bldr strings.Builder
+
+	fmt.Fprintf(&bldr, "==========\n")
+	fmt.Fprintf(&bldr, "Logs Agent\n")
+	fmt.Fprintf(&bldr, "==========\n")
+	fmt.Fprintf(&bldr, "\n")
+	fmt.Fprintf(&bldr, "STATUS: A-OK!\n")
+
+	return bldr.String()
 }
