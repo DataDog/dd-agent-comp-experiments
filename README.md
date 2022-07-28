@@ -330,6 +330,16 @@ This will also ease testing of components: tests can simply provide a filled-in 
 We want to support running some "things" (we should have a term for this!) as subprocesses, as is currently done for trace-agent, system-probe, process-agent, and security-agent.
 Should these be different binaries (as they are now), or the same binary with different arguments?
 
+## Representing Phases with Types
+
+Olivier Gaça suggests that we could avoid warnings in comments to only call certain methods before/after startup by using distinct types to represent the component before and after startup.
+
+## ModuleParams Defaults
+
+Currently, the guide recommends that `ModuleParams` be optional and that its zero value be meaningful.
+But this may result in a lot of `if params.Xyz == "" { params.Xyz = "real default" }`, which could be annoying and ugly.
+If component users were encouraged to use `fx.Replace(foo.ModuleParams{ Xyz: "specific value" })` to specify parameters, then the component's module could use `fx.Supply(ModuleParams{ Xyz: "real default", ... }` to supply nonzero defaults.
+
 # TODO
 
  * [DONE] component.yml?
@@ -359,3 +369,8 @@ Should these be different binaries (as they are now), or the same binary with di
    * Forwarder
    * [DONE] Flares
  * Subprocesses?
+
+## TODO When Implemeting
+
+ * Docs PR for Fx:
+   * Better "guide" for usage of specific features
