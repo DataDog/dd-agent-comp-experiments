@@ -22,6 +22,10 @@ type Goroutine struct {
 	// it has stopped.
 	started bool
 
+	// enabled, if not nil, points to a boolean determining whether this
+	// component is enabled.  If not, then start won't start anything.
+	enabled *bool
+
 	// cancel cancels the context passed to the `run` function, used to signal
 	// that it should stop
 	cancel context.CancelFunc
@@ -47,9 +51,19 @@ func (gr *Goroutine) HookLifecycle(lc fx.Lifecycle, run RunFunc) {
 	})
 }
 
+// EnableFlag instructs the goroutine to start only if the pointed-to boolean
+// is true.  If this is not called, then the actor starts unconditionally.
+func (gr *Goroutine) EnableFlag(enabled *bool) {
+	gr.enabled = enabled
+}
+
 // Start starts run in a goroutine, setting up to stop it by cancelling the context
 // it receives.
 func (gr *Goroutine) Start(run RunFunc) {
+	if gr.enabled != nil && !*gr.enabled {
+		return
+	}
+
 	if gr.started {
 		panic("Goroutine has already been started")
 	}
@@ -65,6 +79,10 @@ func (gr *Goroutine) Start(run RunFunc) {
 // is cancelled, before returning.  Returns the error from context if it is
 // cancelled.
 func (gr *Goroutine) Stop(ctx context.Context) error {
+	if gr.enabled != nil && !*gr.enabled {
+		return nil
+	}
+
 	if !gr.started {
 		panic("Goroutine has not been started")
 	}

@@ -15,6 +15,9 @@ import (
 
 // Component is the component type.
 type Component interface {
+	// Enable enables startup of this component.  If not enabled, the component
+	// will not start.
+	Enable()
 }
 
 // Module defines the fx options for this component.

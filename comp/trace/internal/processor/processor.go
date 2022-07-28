@@ -22,6 +22,9 @@ import (
 //
 // TODO: actually use workers (perhaps with some general support in pkg/util/chanworkers)
 type processor struct {
+	// enabled is true if this component is enabled
+	enabled bool
+
 	// payloadChan is the channel where this component gets the payloads
 	// to process
 	payloadChan chan *api.Payload
@@ -34,7 +37,7 @@ type processor struct {
 	actor actor.Goroutine
 
 	// health supports monitoring this component
-	health *health.ActorRegistration
+	health health.Component
 }
 
 type dependencies struct {
@@ -50,19 +53,27 @@ func newProcessor(deps dependencies) Component {
 	p := &processor{
 		payloadChan:     make(chan *api.Payload, width),
 		traceWriterChan: deps.TraceWriter.PayloadChan(),
-		health:          deps.Health.RegisterActor("comp/trace/internal/processor", 1*time.Second),
+		health:          deps.Health,
 	}
 	p.actor.HookLifecycle(deps.Lc, p.run)
+	p.actor.EnableFlag(&p.enabled)
 	return p
 }
 
+// Enable implements Component#Enable.
+func (p *processor) Enable() {
+	p.enabled = true
+}
+
+// PayloadChan implements Component#PayloadChan.
 func (p *processor) PayloadChan() chan<- *api.Payload {
 	return p.payloadChan
 }
 
 // run implements the component's core loop
 func (p *processor) run(ctx context.Context) {
-	defer p.health.Stop()
+	health := p.health.RegisterActor("comp/trace/internal/processor", 1*time.Second)
+
 	for {
 		select {
 		case payload := <-p.payloadChan:
@@ -73,8 +84,9 @@ func (p *processor) run(ctx context.Context) {
 			// facilitate testing, but otherwise not add a lot of value.
 
 			p.traceWriterChan <- payload
-		case <-p.health.Chan():
+		case <-health.Chan():
 		case <-ctx.Done():
+			health.Stop()
 			return
 		}
 	}

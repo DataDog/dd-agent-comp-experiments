@@ -18,6 +18,9 @@ import (
 )
 
 type receiver struct {
+	// enabled is true if this component is enabled
+	enabled bool
+
 	// port is the port on which the server is running.
 	port int
 
@@ -45,8 +48,17 @@ func newReceiver(deps dependencies) Component {
 	return r
 }
 
+// Enable implements Component#Enable.
+func (r *receiver) Enable() {
+	r.enabled = true
+}
+
 // start starts the http server.
 func (r *receiver) start(ctx context.Context) error {
+	if !r.enabled {
+		return nil
+	}
+
 	r.server = &http.Server{
 		Addr:    fmt.Sprintf("127.0.0.1:%d", r.port),
 		Handler: http.HandlerFunc(r.handler),
@@ -79,6 +91,10 @@ func (r *receiver) handler(w http.ResponseWriter, req *http.Request) {
 
 // stop stops the http server.
 func (r *receiver) stop(ctx context.Context) error {
+	if !r.enabled {
+		return nil
+	}
+
 	if r.server != nil {
 		defer func() { r.server = nil }()
 		err := r.server.Shutdown(ctx)

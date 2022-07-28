@@ -16,13 +16,12 @@ import (
 // Module defines the fx options for the logs agent.
 //
 // It includes all "core" logs-agent components, but does not include launchers.  Applications
-// must include the desired launchers itself.
+// must include the desired launchers directly in their `fx.App`.
+//
+// To enable the logs agent, call `agent.Enable()` in an `fx.Invoke(..)`.
 var Module fx.Option = fx.Module(
 	"comp/logs",
 	agent.Module,
 	launchermgr.Module,
 	sourcemgr.Module,
-
-	// load and start the top-level agent component
-	fx.Invoke(func(agent.Component) {}),
 )

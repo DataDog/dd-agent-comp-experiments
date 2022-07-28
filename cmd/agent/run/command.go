@@ -9,9 +9,12 @@ package run
 import (
 	"github.com/djmitche/dd-agent-comp-experiments/cmd/agent/root"
 	"github.com/djmitche/dd-agent-comp-experiments/cmd/common"
+	"github.com/djmitche/dd-agent-comp-experiments/comp/config"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/logs"
+	logsagent "github.com/djmitche/dd-agent-comp-experiments/comp/logs/agent"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/logs/launchers/file"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/trace"
+	traceagent "github.com/djmitche/dd-agent-comp-experiments/comp/trace/agent"
 	"github.com/spf13/cobra"
 	"go.uber.org/fx"
 )
@@ -39,6 +42,16 @@ func run(_ *cobra.Command, args []string) error {
 		logs.Module,
 		trace.Module,
 		logsAgentPluginOptions(),
+		fx.Invoke(func(config config.Component, agent logsagent.Component) {
+			if config.GetBool("logs_enabled") {
+				agent.Enable()
+			}
+		}),
+		fx.Invoke(func(config config.Component, agent traceagent.Component) {
+			if config.GetBool("apm_config.enabled") {
+				agent.Enable()
+			}
+		}),
 	)
 	return common.RunApp(app)
 }

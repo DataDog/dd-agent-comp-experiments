@@ -9,7 +9,9 @@ package run
 import (
 	"github.com/djmitche/dd-agent-comp-experiments/cmd/agent/root"
 	"github.com/djmitche/dd-agent-comp-experiments/cmd/common"
+	"github.com/djmitche/dd-agent-comp-experiments/comp/config"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/trace"
+	"github.com/djmitche/dd-agent-comp-experiments/comp/trace/agent"
 	"github.com/spf13/cobra"
 	"go.uber.org/fx"
 )
@@ -27,6 +29,12 @@ func run(_ *cobra.Command, args []string) error {
 	app := fx.New(
 		common.SharedOptions(root.ConfFilePath, false),
 		trace.Module,
+		fx.Invoke(func(config config.Component, agent agent.Component) {
+			// enable the trace-agent unconditionally in this binary,
+			// regardless of apm_config.enabled (XXX we don't have to do this
+			// -- just demonstrating that it's possible)
+			agent.Enable()
+		}),
 	)
 	return common.RunApp(app)
 }

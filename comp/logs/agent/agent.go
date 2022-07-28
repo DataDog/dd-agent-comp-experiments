@@ -17,8 +17,9 @@ import (
 )
 
 type agent struct {
-	cfg *config
-	log log.Component
+	enabled bool
+	cfg     *config
+	log     log.Component
 }
 
 type dependencies struct {
@@ -46,13 +47,23 @@ func newAgent(deps dependencies) Component {
 	return a
 }
 
+// Enable implements Component#Enable.
+func (a *agent) Enable() {
+	a.enabled = true
+	// TODO: enable subcomponents of this agent
+}
+
 func (a *agent) start(context.Context) error {
-	a.log.Debug("Starting logs-agent")
+	if a.enabled {
+		a.log.Debug("Starting logs-agent")
+	}
 	return nil
 }
 
 func (a *agent) stop(context.Context) error {
-	a.log.Debug("Stopping logs-agent")
+	if a.enabled {
+		a.log.Debug("Stopping logs-agent")
+	}
 	return nil
 }
 
@@ -63,6 +74,11 @@ func (a *agent) status() string {
 	fmt.Fprintf(&bldr, "Logs Agent\n")
 	fmt.Fprintf(&bldr, "==========\n")
 	fmt.Fprintf(&bldr, "\n")
+	if !a.enabled {
+		fmt.Fprintf(&bldr, "disabled\n")
+		return bldr.String()
+	}
+
 	fmt.Fprintf(&bldr, "STATUS: A-OK!\n")
 
 	return bldr.String()

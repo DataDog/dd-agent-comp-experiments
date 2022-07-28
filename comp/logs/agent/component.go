@@ -15,7 +15,11 @@ import (
 // team: agent-metrics-logs
 
 // Component is the component type.
-type Component interface{}
+type Component interface {
+	// Enable enables startup of this agent.  If not enabled, the agent will
+	// not start.
+	Enable()
+}
 
 // Module defines the fx options for this component.
 var Module fx.Option = fx.Module(

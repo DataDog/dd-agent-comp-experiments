@@ -15,13 +15,12 @@ import (
 )
 
 // Module defines the fx options for the trace agent.
+//
+// To enable the trace agent, call `agent.Enable()` in an `fx.Invoke(..)`.
 var Module fx.Option = fx.Module(
 	"comp/trace",
 	agent.Module,
 	processor.Module,
 	tracewriter.Module,
 	httpreceiver.Module,
-
-	// load and start the top-level agent component
-	fx.Invoke(func(agent.Component) {}),
 )

@@ -17,6 +17,10 @@ import (
 
 // Component is the component type.
 type Component interface {
+	// Enable enables startup of this component.  If not enabled, the component will
+	// not start.
+	Enable()
+
 	// PayloadChan returns the channel to which receiver components should direct Payloads.
 	PayloadChan() chan<- *api.Payload
 }

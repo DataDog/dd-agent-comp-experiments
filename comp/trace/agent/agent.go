@@ -13,28 +13,33 @@ import (
 
 	"github.com/djmitche/dd-agent-comp-experiments/comp/status"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/trace/internal/httpreceiver"
+	"github.com/djmitche/dd-agent-comp-experiments/comp/trace/internal/processor"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/util/log"
 	"go.uber.org/fx"
 )
 
 type agent struct {
-	log log.Component
+	enabled      bool
+	httpReceiver httpreceiver.Component
+	processor    processor.Component
+	log          log.Component
 }
 
 type dependencies struct {
 	fx.In
 
 	Lc           fx.Lifecycle
-	HTTPReceiver httpreceiver.Component // required just to load the component
+	HTTPReceiver httpreceiver.Component
+	Processor    processor.Component
 	Status       status.Component
 	Log          log.Component
 }
 
 func newAgent(deps dependencies) Component {
-	// TODO: this will likely carry a reference to Receiver, Processor, and so
-	// on to handle requests for Status, stats, etc.
 	a := &agent{
-		log: deps.Log,
+		httpReceiver: deps.HTTPReceiver,
+		processor:    deps.Processor,
+		log:          deps.Log,
 	}
 
 	deps.Status.RegisterSection("trace-agent", 3, a.status)
@@ -47,13 +52,24 @@ func newAgent(deps dependencies) Component {
 	return a
 }
 
+// Enable implements Component#Enable.
+func (a *agent) Enable() {
+	a.enabled = true
+	a.httpReceiver.Enable()
+	a.processor.Enable()
+}
+
 func (a *agent) start(context.Context) error {
-	a.log.Debug("Starting trace-agent")
+	if a.enabled {
+		a.log.Debug("Starting trace-agent")
+	}
 	return nil
 }
 
 func (a *agent) stop(context.Context) error {
-	a.log.Debug("Stopping trace-agent")
+	if a.enabled {
+		a.log.Debug("Stopping trace-agent")
+	}
 	return nil
 }
 
@@ -64,6 +80,11 @@ func (a *agent) status() string {
 	fmt.Fprintf(&bldr, "Trace Agent\n")
 	fmt.Fprintf(&bldr, "===========\n")
 	fmt.Fprintf(&bldr, "\n")
+	if !a.enabled {
+		fmt.Fprintf(&bldr, "disabled\n")
+		return bldr.String()
+	}
+
 	fmt.Fprintf(&bldr, "STATUS: Doin' just fine, thanks!\n")
 
 	return bldr.String()
