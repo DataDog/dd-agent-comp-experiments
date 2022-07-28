@@ -18,22 +18,30 @@ import (
 
 var (
 	Cmd = &cobra.Command{
-		Use:   "status",
-		Short: "Get the running Agent's status",
+		Use:   "status [section]",
+		Short: "Get the running Agent's status, optionally showing only a single section",
 		RunE:  command,
+		Args:  cobra.MaximumNArgs(1),
 	}
 )
 
 func command(_ *cobra.Command, args []string) error {
+	var section string
+	if len(args) > 0 {
+		section = args[0]
+	}
+
 	app := fx.New(
 		common.SharedOptions(root.ConfFilePath, true),
-		common.OneShot(statusCmd),
+		common.OneShot(func(status status.Component) error {
+			return statusCmd(status, section)
+		}),
 	)
 	return common.RunApp(app)
 }
 
-func statusCmd(status status.Component) error {
-	statusStr, err := status.GetStatusRemote("")
+func statusCmd(status status.Component, section string) error {
+	statusStr, err := status.GetStatusRemote(section)
 	if err != nil {
 		return err
 	}

@@ -84,9 +84,12 @@ func (s *status) GetStatus(section string) string {
 // GetStatusRemote implements Component#GetStatusRemote.
 func (s *status) GetStatusRemote(section string) (string, error) {
 	var content map[string]string
-	// TODO: support getting just one section
+	path := "/agent/status"
+	if section != "" {
+		path = fmt.Sprintf("%s?section=%s", path, section)
+	}
 
-	err := s.ipcapi.GetJSON("/agent/status", &content)
+	err := s.ipcapi.GetJSON(path, &content)
 	if err != nil {
 		return "", err
 	}
@@ -95,9 +98,16 @@ func (s *status) GetStatusRemote(section string) (string, error) {
 }
 
 // ipcHandler serves the /agent/status endpoint
-func (s *status) ipcHandler(w http.ResponseWriter, _ *http.Request) {
+func (s *status) ipcHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header()["Content-Type"] = []string{"application/json; charset=UTF-8"}
-	json.NewEncoder(w).Encode(map[string]string{"status": s.GetStatus("")})
+
+	var section string
+	sections, ok := r.URL.Query()["section"]
+	if ok && len(sections) == 1 {
+		section = sections[0]
+	}
+
+	json.NewEncoder(w).Encode(map[string]string{"status": s.GetStatus(section)})
 }
 
 // flareFile creates the agent-status.txt file for flares.
