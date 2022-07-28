@@ -15,15 +15,13 @@
 // using the [actor model](https://en.wikipedia.org/wiki/Actor_model), where the
 // component is considered unhealthy if it is not polling for events frequently.
 //
-// The health component is ready for registration as soon as it is initialized, and
-// registration must be completed before the health component starts.
+// The health component is ready for registration as soon as it is initialized.
+// Registration can occur at any time, but typically occurs before components have started.
 //
 // All of the component's methods can be called concurrently.
 package health
 
 import (
-	"time"
-
 	"go.uber.org/fx"
 )
 
@@ -31,24 +29,12 @@ import (
 
 // Component is the component type.
 type Component interface {
-	// RegisterSimple registers a component for "simple" monitoring.  It is assumed
-	// to be healthy initially, and that status can be updated with methods on the
+	// Register registers a component for monitoring.  It is assumed to be
+	// healthy initially, and that status can be updated with methods on the
 	// returned value.
 	//
 	// Component is the component's package path (e.g., `comp/health`).
-	RegisterSimple(component string) *SimpleRegistration
-
-	// RegisterActor register a component for "actor" monitoring.  Once the app
-	// starts, the actor must read from the channel in the returned value
-	// within the given duration, or it will be considered unhealthy.
-	//
-	// To use: call `RegisterActor` in the component constructor, and store the
-	// resulting registration.  At the beginning of the actor's run function,
-	// defer a call to reg.Stop().  Within the actor's run loop, read from
-	// reg.Chan().
-	//
-	// Component is the component's package path (e.g., `comp/health`).
-	RegisterActor(component string, healthDuration time.Duration) *ActorRegistration
+	Register(component string) *Registration
 
 	// GetHealth gets a map containing the health of all components.  This map is a copy
 	// and will not be altered after return.

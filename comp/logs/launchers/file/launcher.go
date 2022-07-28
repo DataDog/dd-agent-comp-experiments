@@ -22,7 +22,7 @@ type launcher struct {
 	log          log.Component
 	subscription subscriptions.Subscriber[sourcemgr.SourceChange]
 	actor        actor.Goroutine
-	health       *health.ActorRegistration
+	health       *health.Registration
 }
 
 type dependencies struct {
@@ -43,7 +43,7 @@ func newLauncher(deps dependencies) (Component, error) {
 	l := &launcher{
 		log:          deps.Log,
 		subscription: subscription,
-		health:       deps.Health.RegisterActor("comp/logs/launchers/file", 1*time.Second),
+		health:       deps.Health.Register("comp/logs/launchers/file"),
 	}
 	deps.LauncherMgr.RegisterLauncher("file", l)
 	l.actor.HookLifecycle(deps.Lc, l.run)
@@ -51,14 +51,15 @@ func newLauncher(deps dependencies) (Component, error) {
 }
 
 func (l *launcher) run(ctx context.Context) {
-	defer l.health.Stop()
+	monitor, stopMonitor := l.health.LivenessMonitor(time.Second)
 	for {
 		select {
 		case chg := <-l.subscription.Chan():
 			l.log.Debug("got change", chg)
 			// XXX start a tailer, etc. etc.
-		case <-l.health.Chan():
+		case <-monitor:
 		case <-ctx.Done():
+			stopMonitor()
 			return
 		}
 	}

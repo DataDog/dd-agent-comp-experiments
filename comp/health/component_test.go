@@ -28,7 +28,7 @@ func TestSimple(t *testing.T) {
 		ipcapi.Module,
 		fx.Populate(&h),
 	)
-	reg := h.RegisterSimple("comp/thing")
+	reg := h.Register("comp/thing")
 	defer app.RequireStart().RequireStop()
 
 	require.Equal(t, ComponentHealth{Healthy: true}, h.GetHealth()["comp/thing"])
@@ -38,7 +38,7 @@ func TestSimple(t *testing.T) {
 	require.Equal(t, ComponentHealth{Healthy: true}, h.GetHealth()["comp/thing"])
 }
 
-func TestActor(t *testing.T) {
+func TestLiveness(t *testing.T) {
 	var h Component
 	app := fxtest.New(t,
 		Module,
@@ -48,12 +48,14 @@ func TestActor(t *testing.T) {
 		ipcapi.Module,
 		fx.Populate(&h),
 	)
-	reg := h.RegisterActor("comp/thing", time.Millisecond)
+	reg := h.Register("comp/thing")
 	defer app.RequireStart().RequireStop()
+
+	ch, stop := reg.LivenessMonitor(time.Millisecond)
 
 	for i := 0; i < 3; i++ {
 		// signal health
-		<-reg.Chan()
+		<-ch
 		require.Equal(t, ComponentHealth{Healthy: true}, h.GetHealth()["comp/thing"])
 	}
 
@@ -65,12 +67,12 @@ func TestActor(t *testing.T) {
 
 	// have to read at least two messages in time to be considered healthy again..
 	for i := 0; i < 2; i++ {
-		<-reg.Chan()
+		<-ch
 	}
 	require.Equal(t, ComponentHealth{Healthy: true}, h.GetHealth()["comp/thing"])
 
 	// stop monitoring
-	reg.Stop()
+	stop()
 
 	// fail to check the messages..
 	time.Sleep(5 * time.Millisecond)
