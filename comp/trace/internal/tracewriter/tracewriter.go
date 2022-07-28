@@ -21,7 +21,7 @@ type traceWriter struct {
 
 	actor  actor.Goroutine
 	log    log.Component
-	health *health.ActorRegistration
+	health *health.Registration
 }
 
 type dependencies struct {
@@ -35,7 +35,7 @@ type dependencies struct {
 func newTraceWriter(deps dependencies) Component {
 	t := &traceWriter{
 		in:     make(chan *api.Payload, 1000),
-		health: deps.Health.RegisterActor("comp/trace/internal/tracewriter", 1*time.Second),
+		health: deps.Health.Register("comp/trace/internal/tracewriter"),
 		log:    deps.Log,
 	}
 	t.actor.HookLifecycle(deps.Lc, t.run)
@@ -47,13 +47,14 @@ func (t *traceWriter) PayloadChan() chan<- *api.Payload {
 }
 
 func (t *traceWriter) run(ctx context.Context) {
-	defer t.health.Stop()
+	monitor, stopMonitor := t.health.LivenessMonitor(time.Second)
 	for {
 		select {
 		case payload := <-t.in:
 			t.log.Debug("sending payload", payload)
-		case <-t.health.Chan():
+		case <-monitor:
 		case <-ctx.Done():
+			stopMonitor()
 			return
 		}
 	}

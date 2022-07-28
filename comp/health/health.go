@@ -6,13 +6,11 @@
 package health
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"strings"
 	"sync"
-	"time"
 
 	"github.com/djmitche/dd-agent-comp-experiments/comp/flare"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/ipcapi"
@@ -24,18 +22,11 @@ type health struct {
 	// Mutex covers all fields, including all componentHealth values
 	sync.Mutex
 
-	// started is true once the component has started
-	started bool
-
 	// disabled indicates that the component should do nothing.
 	disabled bool
 
 	// components maps component package path to that component's current health status
 	components map[string]ComponentHealth
-
-	// actorRegistrations stores the set of actorRegistration instances that must
-	// be started when the component starts.
-	actorRegistrations []*ActorRegistration
 
 	// log supports logging about changes in health status
 	log log.Component
@@ -60,20 +51,15 @@ func newHealth(deps dependencies) Component {
 		log:        deps.Log,
 		ipcapi:     deps.IpcAPI,
 	}
-	deps.Lc.Append(fx.Hook{OnStart: h.start})
 	deps.IpcAPI.Register("/agent/health", h.ipcHandler)
 	deps.Flare.RegisterFile("health.json", h.flareFile)
 	return h
 }
 
 // RegisterSimple implements Component#RegisterSimple.
-func (h *health) RegisterSimple(component string) *SimpleRegistration {
+func (h *health) Register(component string) *Registration {
 	h.Lock()
 	defer h.Unlock()
-
-	if h.started {
-		panic("Health component has already started")
-	}
 
 	if !h.disabled {
 		if _, exists := h.components[component]; exists {
@@ -81,38 +67,10 @@ func (h *health) RegisterSimple(component string) *SimpleRegistration {
 		}
 		h.components[component] = ComponentHealth{Healthy: true}
 	}
-	return &SimpleRegistration{
+	return &Registration{
 		health:    h,
 		component: component,
 	}
-}
-
-// RegisterActor implements Component#RegisterActor.
-func (h *health) RegisterActor(component string, healthDuration time.Duration) *ActorRegistration {
-	h.Lock()
-	defer h.Unlock()
-
-	if h.started {
-		panic("Health component has already started")
-	}
-
-	if !h.disabled {
-		if _, exists := h.components[component]; exists {
-			panic(fmt.Sprintf("Component %s is already registered with the health component", component))
-		}
-		h.components[component] = ComponentHealth{Healthy: true}
-	}
-	reg := &ActorRegistration{
-		SimpleRegistration: SimpleRegistration{
-			health:    h,
-			component: component,
-		},
-		duration:   healthDuration,
-		healthChan: make(chan struct{}, 1), // capacity=1 to allow one tick to elapse before failing
-		stopped:    make(chan struct{}),
-	}
-	h.actorRegistrations = append(h.actorRegistrations, reg)
-	return reg
 }
 
 // GetHealth implements Component#GetHealth.
@@ -136,21 +94,6 @@ func (h *health) GetHealthRemote() (map[string]ComponentHealth, error) {
 	}
 
 	return content, nil
-}
-
-// start starts all actor registrations.
-func (h *health) start(ctx context.Context) error {
-	h.Lock()
-	defer h.Unlock()
-
-	h.started = true
-	if !h.disabled {
-		for _, reg := range h.actorRegistrations {
-			reg.start()
-		}
-		h.actorRegistrations = nil
-	}
-	return nil
 }
 
 // ipcHandler serves the /agent/health endpoint

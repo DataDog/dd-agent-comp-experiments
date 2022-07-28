@@ -37,7 +37,7 @@ type processor struct {
 	actor actor.Goroutine
 
 	// health supports monitoring this component
-	health health.Component
+	health *health.Registration
 }
 
 type dependencies struct {
@@ -53,7 +53,7 @@ func newProcessor(deps dependencies) Component {
 	p := &processor{
 		payloadChan:     make(chan *api.Payload, width),
 		traceWriterChan: deps.TraceWriter.PayloadChan(),
-		health:          deps.Health,
+		health:          deps.Health.Register("comp/trace/internal/processor"),
 	}
 	p.actor.HookLifecycle(deps.Lc, p.run)
 	p.actor.EnableFlag(&p.enabled)
@@ -72,8 +72,7 @@ func (p *processor) PayloadChan() chan<- *api.Payload {
 
 // run implements the component's core loop
 func (p *processor) run(ctx context.Context) {
-	health := p.health.RegisterActor("comp/trace/internal/processor", 1*time.Second)
-
+	monitor, stopMonitor := p.health.LivenessMonitor(time.Second)
 	for {
 		select {
 		case payload := <-p.payloadChan:
@@ -84,9 +83,9 @@ func (p *processor) run(ctx context.Context) {
 			// facilitate testing, but otherwise not add a lot of value.
 
 			p.traceWriterChan <- payload
-		case <-health.Chan():
+		case <-monitor:
 		case <-ctx.Done():
-			health.Stop()
+			stopMonitor()
 			return
 		}
 	}
