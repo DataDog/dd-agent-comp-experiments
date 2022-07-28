@@ -340,6 +340,26 @@ Currently, the guide recommends that `ModuleParams` be optional and that its zer
 But this may result in a lot of `if params.Xyz == "" { params.Xyz = "real default" }`, which could be annoying and ugly.
 If component users were encouraged to use `fx.Replace(foo.ModuleParams{ Xyz: "specific value" })` to specify parameters, then the component's module could use `fx.Supply(ModuleParams{ Xyz: "real default", ... }` to supply nonzero defaults.
 
+## Enabling / Disabling Component Bundles
+
+Consider configs like `logs_enabled` or `apm_config.enabled` -- when these are false, it means that several components that are already instantiated should not actually start.
+One options here is to thread a bunch of `Enable` methods through these components.
+Then an app would call
+```go
+fx.Invoke(func(config config.Component, agent logsagent.Component) {
+    if config.GetBool("logs_enabled") {
+        logsagent.Enable()
+    }
+})
+```
+
+and the logs agent's Enable method would call the Enable method on its internal components (schedulers, etc. -- anything that does something active).
+This approach is verbose -- writing `Enable` methods everywhere, adding an `enable bool` field, and then checking that field all over the place.
+It also complicates things like health monitoring, status, and ipcapi -- those all require registration during startup, _before_ it's known whether the component is enabled.
+So we'll need a way for all of those to handle disabled components.
+
+See [#2](https://github.com/djmitche/dd-agent-comp-experiments/pull/2) for an attempt at solving this (which fails because the Health registration comes after start).
+
 # TODO
 
  * [DONE] component.yml?
