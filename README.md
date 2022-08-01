@@ -421,6 +421,7 @@ See [#2](https://github.com/djmitche/dd-agent-comp-experiments/pull/2) for an at
  * [DONE] use fx.In for complex constructors (maybe with component concrete type?)
  * [DONE] API
  * [DONE] status output
+ * update pkg/util/subscriptions to interact nicely with plugin registrations
  * tlm / expvars
  * startup for bundles? the hidden Invoke() of a constructor that does nothing is weird.
    * Doc how to handle enabling / disabling -- maybe this is per-bundle?
