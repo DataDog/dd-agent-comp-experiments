@@ -3,13 +3,11 @@
 // This product includes software developed at Datadog (https://www.datadoghq.com/).
 // Copyright 2016-present Datadog, Inc.
 
-package ipcapi
+package ipcserver
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 
 	"github.com/djmitche/dd-agent-comp-experiments/comp/config"
@@ -17,7 +15,7 @@ import (
 	"go.uber.org/fx"
 )
 
-type ipcapi struct {
+type server struct {
 	// disabled indicates that the component should do nothing.
 	disabled bool
 
@@ -36,11 +34,11 @@ type dependencies struct {
 	Lc     fx.Lifecycle
 	Params ModuleParams `optional:"true"`
 	Config config.Component
-	Routes []*Route
+	Routes []*Route `group:"ipcserver"`
 }
 
-func newIpcAPI(deps dependencies) Component {
-	a := &ipcapi{
+func newServer(deps dependencies) Component {
+	a := &server{
 		disabled: deps.Params.Disabled,
 		port:     deps.Config.GetInt("cmd_port"),
 		router:   mux.NewRouter(),
@@ -55,7 +53,7 @@ func newIpcAPI(deps dependencies) Component {
 }
 
 func newMock() Component {
-	a := &ipcapi{
+	a := &server{
 		disabled: true,
 		port:     0,
 		router:   mux.NewRouter(),
@@ -63,39 +61,8 @@ func newMock() Component {
 	return a
 }
 
-// GetJSON implements Component#GetJSON.
-func (a *ipcapi) GetJSON(path string, v any) error {
-	url := fmt.Sprintf("http://127.0.0.1:%d%s", a.port, path)
-	res, err := http.Get(url)
-	if err != nil {
-		return fmt.Errorf("Error contacting Agent: %s", err)
-	}
-
-	if res.Body != nil {
-		defer res.Body.Close()
-	}
-
-	if res.StatusCode != 200 {
-		return fmt.Errorf("Error contacting Agent: %s", res.Status)
-	}
-
-	body, err := ioutil.ReadAll(res.Body)
-	if err != nil {
-		return err
-	}
-
-	err = json.Unmarshal(body, v)
-
-	if err != nil {
-		return fmt.Errorf("Error decoding Agent response: %s", err)
-	}
-
-	return nil
-
-}
-
 // start starts the http server, if not disabled.
-func (a *ipcapi) start(ctx context.Context) error {
+func (a *server) start(ctx context.Context) error {
 	if a.disabled {
 		return nil
 	}
@@ -109,7 +76,7 @@ func (a *ipcapi) start(ctx context.Context) error {
 }
 
 // stop stops the http server, if not disabled.
-func (a *ipcapi) stop(ctx context.Context) error {
+func (a *server) stop(ctx context.Context) error {
 	if a.disabled {
 		return nil
 	}

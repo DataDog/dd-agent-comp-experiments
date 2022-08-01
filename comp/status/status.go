@@ -7,14 +7,14 @@ package status
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/http"
 	"strings"
 	"sync"
 
 	"github.com/djmitche/dd-agent-comp-experiments/comp/flare"
-	"github.com/djmitche/dd-agent-comp-experiments/comp/ipcapi"
+	"github.com/djmitche/dd-agent-comp-experiments/comp/ipc/ipcclient"
+	"github.com/djmitche/dd-agent-comp-experiments/comp/ipc/ipcserver"
 	"go.uber.org/fx"
 )
 
@@ -24,31 +24,36 @@ type status struct {
 
 	// components maps component package path to that component's current status
 	sections []*Registration
+
+	// ipcclient is used to fetch status remotely
+	ipcclient ipcclient.Component
 }
 
 type dependencies struct {
 	fx.In
 
 	Lc            fx.Lifecycle
-	Registrations []*Registration `group:"status"`
+	IPCClient     ipcclient.Component `optional:"true"` // can be omitted in 'agent run'
+	Registrations []*Registration     `group:"status"`
 }
 
 type provides struct {
 	fx.Out
 
 	Component
-	FlareReg    *flare.Registration `group:"flare"`
-	IpcAPIRoute *ipcapi.Route       `group:"ipcapi"`
+	FlareReg *flare.Registration `group:"flare"`
+	IPCRoute *ipcserver.Route    `group:"ipcserver"`
 }
 
 func newStatus(deps dependencies) provides {
 	s := &status{
-		sections: deps.Registrations,
+		sections:  deps.Registrations,
+		ipcclient: deps.IPCClient,
 	}
 	return provides{
-		Component:   s,
-		FlareReg:    flare.FileRegistration("agent-status.json", s.flareFile),
-		IpcAPIRoute: ipcapi.NewRoute("/agent/status", s.ipcHandler),
+		Component: s,
+		FlareReg:  flare.FileRegistration("agent-status.json", s.flareFile),
+		IPCRoute:  ipcserver.NewRoute("/agent/status", s.ipcHandler),
 	}
 }
 
@@ -75,21 +80,18 @@ func (s *status) GetStatus(section string) string {
 
 // GetStatusRemote implements Component#GetStatusRemote.
 func (s *status) GetStatusRemote(section string) (string, error) {
-	return "", errors.New("TODO")
-	/*
-		var content map[string]string
-		path := "/agent/status"
-		if section != "" {
-			path = fmt.Sprintf("%s?section=%s", path, section)
-		}
+	var content map[string]string
+	path := "/agent/status"
+	if section != "" {
+		path = fmt.Sprintf("%s?section=%s", path, section)
+	}
 
-		err := s.ipcapi.GetJSON(path, &content)
-		if err != nil {
-			return "", err
-		}
+	err := s.ipcclient.GetJSON(path, &content)
+	if err != nil {
+		return "", err
+	}
 
-		return content["status"], nil
-	*/
+	return content["status"], nil
 }
 
 // ipcHandler serves the /agent/status endpoint

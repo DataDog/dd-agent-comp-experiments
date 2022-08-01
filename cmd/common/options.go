@@ -11,7 +11,8 @@ import (
 	"github.com/djmitche/dd-agent-comp-experiments/comp/config"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/flare"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/health"
-	"github.com/djmitche/dd-agent-comp-experiments/comp/ipcapi"
+	"github.com/djmitche/dd-agent-comp-experiments/comp/ipc/ipcclient"
+	"github.com/djmitche/dd-agent-comp-experiments/comp/ipc/ipcserver"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/status"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/util/log"
 	"go.uber.org/fx"
@@ -25,28 +26,46 @@ import (
 // If oneShot is true, then this is a "one-shot" process and all support for long-term
 // execution, such as health monitoring, will be disabled.
 func SharedOptions(confFilePath string, oneShot bool) fx.Option {
-	var flareInst flare.Component
-	return fx.Options(
+	options := []fx.Option{}
+
+	options = append(options,
 		fx.Supply(log.ModuleParams{Console: !oneShot}),
-		log.Module,
+		log.Module)
 
+	options = append(options,
 		fx.Supply(config.ModuleParams{ConfFilePath: confFilePath}),
-		config.Module,
+		config.Module)
 
+	options = append(options,
 		fx.Supply(health.ModuleParams{Disabled: oneShot}),
-		health.Module,
+		health.Module)
 
-		fx.Supply(ipcapi.ModuleParams{Disabled: oneShot}),
-		ipcapi.Module,
+	var ipcInst ipcserver.Component
+	options = append(options,
+		fx.Supply(ipcserver.ModuleParams{Disabled: oneShot}),
+		fx.Populate(&ipcInst), // instantiate ipc server, even if nothing depends on it
+		ipcserver.Module)
 
+	var flareInst flare.Component
+	options = append(options,
 		fx.Populate(&flareInst), // instantiate flare, even if nothing depends on it
-		flare.Module,
+		flare.Module)
 
-		status.Module,
+	var statusInst status.Component
+	options = append(options,
+		fx.Populate(&statusInst), // instantiate status, even if nothing depends on it
+		status.Module)
 
-		// Include Fx's detailed logging to stderr only if TRACE_FX is set.
-		// This logging is verbose, and occurs mostly during early application
-		// startup, before the log component is ready to handle logs.
+	// oneShot processes typically use the ipc client, while 'run' processes do not.
+	if oneShot {
+		options = append(options,
+			ipcclient.Module)
+	}
+
+	// Include Fx's detailed logging to stderr only if TRACE_FX is set.
+	// This logging is verbose, and occurs mostly during early application
+	// startup, before the log component is ready to handle logs.
+	options = append(options,
 		fx.WithLogger(
 			func() fxevent.Logger {
 				if os.Getenv("TRACE_FX") == "" {
@@ -57,4 +76,6 @@ func SharedOptions(confFilePath string, oneShot bool) fx.Option {
 			},
 		),
 	)
+
+	return fx.Options(options...)
 }

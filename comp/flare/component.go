@@ -8,7 +8,7 @@
 // The data from this component is provided by other components, by providing a
 // flare.Registration instance in value-group "flare".
 //
-// This component registers itself with the ipcapi component, and supports either
+// This component registers itself with the ipcserver component, and supports either
 // generating a flare locally (CreateFlare) or calling the API to direct the running
 // Agent to create a flare (CreateFlareRemote).  Creating a flare locally in a
 // process that is not running a full Agent will still generate a flare, but that

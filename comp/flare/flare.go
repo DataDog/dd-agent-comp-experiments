@@ -8,6 +8,7 @@ package flare
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -17,7 +18,8 @@ import (
 	"testing"
 
 	"github.com/djmitche/dd-agent-comp-experiments/comp/config"
-	"github.com/djmitche/dd-agent-comp-experiments/comp/ipcapi"
+	"github.com/djmitche/dd-agent-comp-experiments/comp/ipc/ipcclient"
+	"github.com/djmitche/dd-agent-comp-experiments/comp/ipc/ipcserver"
 	"github.com/mholt/archiver"
 	"go.uber.org/fx"
 )
@@ -28,31 +30,35 @@ type flare struct {
 
 	// registrations contains all registrations by other components
 	registrations []*Registration
+
+	// ipcclient is used to fetch flares remotely
+	ipcclient ipcclient.Component
 }
 
 type dependencies struct {
 	fx.In
 
-	Registrations []*Registration `group:"flare"`
-
-	Config config.Component
+	Config        config.Component
+	IPCClient     ipcclient.Component `optional:"true"` // can be omitted in 'agent run'
+	Registrations []*Registration     `group:"flare"`
 }
 
 type provides struct {
 	fx.Out
 
 	Component
-	IpcAPIRoute *ipcapi.Route `group:"ipcapi"`
+	IPCRoute *ipcserver.Route `group:"ipcserver"`
 }
 
 func newFlare(deps dependencies) provides {
 	f := &flare{
 		registrations: deps.Registrations,
+		ipcclient:     deps.IPCClient,
 	}
 
 	return provides{
-		Component:   f,
-		IpcAPIRoute: ipcapi.NewRoute("/agent/flare", f.ipcHandler),
+		Component: f,
+		IPCRoute:  ipcserver.NewRoute("/agent/flare", f.ipcHandler),
 	}
 }
 
@@ -63,7 +69,7 @@ type mockDependencies struct {
 }
 
 func newMock(deps mockDependencies) Component {
-	// mock is just like the real thing, but doesn't use ipcapi or config.
+	// mock is just like the real thing, but doesn't use ipcserver or config.
 	return &flare{
 		registrations: deps.Registrations,
 	}
@@ -107,22 +113,19 @@ func (f *flare) CreateFlare() (string, error) {
 
 // CreateFlareRemote implements Component#CreateFlareRemote.
 func (f *flare) CreateFlareRemote() (string, error) {
-	return "", errors.New("TODO")
-	/*
-		var content map[string]string
-		err := f.ipcapi.GetJSON("/agent/flare", &content)
-		if err != nil {
-			return "", err
-		}
-		if msg, found := content["error"]; found {
-			return "", fmt.Errorf("Error from Agent: %s", msg)
-		}
+	var content map[string]string
+	err := f.ipcclient.GetJSON("/agent/flare", &content)
+	if err != nil {
+		return "", err
+	}
+	if msg, found := content["error"]; found {
+		return "", fmt.Errorf("Error from Agent: %s", msg)
+	}
 
-		if filename, found := content["filename"]; found {
-			return filename, nil
-		}
-		return "", errors.New("No filename received from Agent")
-	*/
+	if filename, found := content["filename"]; found {
+		return filename, nil
+	}
+	return "", errors.New("No filename received from Agent")
 }
 
 // GetFlareFile implements Mock#GetFlareFile.

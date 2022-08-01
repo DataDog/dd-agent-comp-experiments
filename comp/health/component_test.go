@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/djmitche/dd-agent-comp-experiments/comp/config"
-	"github.com/djmitche/dd-agent-comp-experiments/comp/ipcapi"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/util/log"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/fx"
@@ -29,7 +28,6 @@ func TestSimple(t *testing.T) {
 		Module,
 		config.Module,
 		log.Module,
-		ipcapi.Module,
 		fx.Provide(func() provides {
 			return provides{
 				Registration: reg,
@@ -58,7 +56,6 @@ func TestLiveness(t *testing.T) {
 		Module,
 		config.Module,
 		log.Module,
-		ipcapi.Module,
 		fx.Provide(func() provides {
 			return provides{
 				Registration: reg,

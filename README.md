@@ -279,7 +279,7 @@ The `pkg/util/actor` package supports components that use the actor structure, i
 Several commands, such as `agent status` or `agent config`, call the running Agent's IPC API and format the result.
 Components implementing this pattern should generally have two similar methods, such as `GetStatus` and `GetStatusRemote`.
 The first method gathers the data locally, and the second requests the same data via the IPC API.
-The component should register with `comp/ipcapi` to provide the result of the first method over the IPC API.
+The component should plugin to `comp/ipc/ipcserver` to provide the result of the first method over the IPC API.
 
 This arrangement locates both the client and server sides of the IPC API in one module.
 The command implementation (under `cmd/`) then simply calls `GetStatusRemote` and formats the result for display.
@@ -391,7 +391,7 @@ fx.Invoke(func(config config.Component, agent logsagent.Component) {
 
 and the logs agent's Enable method would call the Enable method on its internal components (schedulers, etc. -- anything that does something active).
 This approach is verbose -- writing `Enable` methods everywhere, adding an `enable bool` field, and then checking that field all over the place.
-It also complicates things like health monitoring, status, and ipcapi -- those all require registration during startup, _before_ it's known whether the component is enabled.
+It also complicates things like health monitoring, status, and ipcserver -- those all require registration during startup, _before_ it's known whether the component is enabled.
 So we'll need a way for all of those to handle disabled components.
 
 See [#2](https://github.com/djmitche/dd-agent-comp-experiments/pull/2) for an attempt at solving this (which fails because the Health registration comes after start).

@@ -12,7 +12,6 @@ import (
 	"testing"
 
 	"github.com/djmitche/dd-agent-comp-experiments/comp/config"
-	"github.com/djmitche/dd-agent-comp-experiments/comp/ipcapi"
 	"github.com/mholt/archiver"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/fx"
@@ -32,7 +31,6 @@ func TestFlareMechanics(t *testing.T) {
 	app := fxtest.New(t,
 		Module,
 		config.Module,
-		ipcapi.MockModule,
 		fx.Provide(func() provides {
 			return provides{
 				Registration: FileRegistration("greeting.txt", func() (string, error) {

@@ -7,14 +7,14 @@ package health
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/http"
 	"strings"
 	"sync"
 
 	flare "github.com/djmitche/dd-agent-comp-experiments/comp/flare"
-	"github.com/djmitche/dd-agent-comp-experiments/comp/ipcapi"
+	"github.com/djmitche/dd-agent-comp-experiments/comp/ipc/ipcclient"
+	"github.com/djmitche/dd-agent-comp-experiments/comp/ipc/ipcserver"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/util/log"
 	"go.uber.org/fx"
 )
@@ -31,14 +31,18 @@ type health struct {
 
 	// log supports logging about changes in health status
 	log log.Component
+
+	// ipcclient is used to get health remotely
+	ipcclient ipcclient.Component
 }
 
 type dependencies struct {
 	fx.In
 
-	Lc     fx.Lifecycle
-	Params ModuleParams `optional:"true"`
-	Log    log.Component
+	Lc        fx.Lifecycle
+	Params    ModuleParams `optional:"true"`
+	Log       log.Component
+	IPCClient ipcclient.Component `optional:"true"` // can be omitted in 'agent run'
 
 	Registrations []*Registration `group:"health"`
 }
@@ -47,8 +51,8 @@ type provides struct {
 	fx.Out
 
 	Component
-	FlareReg    *flare.Registration `group:"flare"`
-	IpcAPIRoute *ipcapi.Route       `group:"ipcapi"`
+	FlareReg *flare.Registration `group:"flare"`
+	IPCRoute *ipcserver.Route    `group:"ipcserver"`
 }
 
 func newHealth(deps dependencies) provides {
@@ -56,6 +60,7 @@ func newHealth(deps dependencies) provides {
 		disabled:   deps.Params.Disabled,
 		components: make(map[string]ComponentHealth),
 		log:        deps.Log,
+		ipcclient:  deps.IPCClient,
 	}
 
 	// provide each registration with a pointer to the new component, and
@@ -67,9 +72,9 @@ func newHealth(deps dependencies) provides {
 	}
 
 	return provides{
-		Component:   h,
-		FlareReg:    flare.FileRegistration("health.json", h.flareFile),
-		IpcAPIRoute: ipcapi.NewRoute("/agent/health", h.ipcHandler),
+		Component: h,
+		FlareReg:  flare.FileRegistration("health.json", h.flareFile),
+		IPCRoute:  ipcserver.NewRoute("/agent/health", h.ipcHandler),
 	}
 }
 
@@ -87,16 +92,13 @@ func (h *health) GetHealth() map[string]ComponentHealth {
 
 // GetHealthRemote implements Component#GetHealthRemote.
 func (h *health) GetHealthRemote() (map[string]ComponentHealth, error) {
-	return nil, errors.New("TODO")
-	/*
-		var content map[string]ComponentHealth
-		err := h.ipcapi.GetJSON("/agent/health", &content)
-		if err != nil {
-			return nil, err
-		}
+	var content map[string]ComponentHealth
+	err := h.ipcclient.GetJSON("/agent/health", &content)
+	if err != nil {
+		return nil, err
+	}
 
-		return content, nil
-	*/
+	return content, nil
 }
 
 // ipcHandler serves the /agent/health endpoint

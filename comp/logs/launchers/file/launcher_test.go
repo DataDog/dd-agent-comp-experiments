@@ -12,7 +12,6 @@ import (
 
 	"github.com/djmitche/dd-agent-comp-experiments/comp/config"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/health"
-	"github.com/djmitche/dd-agent-comp-experiments/comp/ipcapi"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/logs/internal/sourcemgr"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/logs/launchers/launchermgr"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/util/log"
@@ -32,7 +31,6 @@ func TestMyComponent(t *testing.T) {
 		log.MockModule,
 		sourcemgr.Module,
 		launchermgr.Module,
-		ipcapi.Module,
 		fx.Populate(&comp),
 		fx.Populate(&smgr),
 		fx.Populate(&l),

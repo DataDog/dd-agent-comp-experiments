@@ -3,20 +3,18 @@
 // This product includes software developed at Datadog (https://www.datadoghq.com/).
 // Copyright 2016-present Datadog, Inc.
 
-// Package ipcapi implements a component to manage the IPC API server and act
+// Package ipcserver implements a component to manage the IPC API server and act
 // as a client.
 //
 // The handlers in the HTTP server are supplied by other components, by providing a
-// ipcapi.Route instance in value-group "ipcapi".
-//
-// It also supports simple GET requests to the server.
+// ipcserver.Route instance in value-group "ipcserver".
 //
 // The Mock version of this component allows registration but does not actually
 // start a server, and does not require ModuleParams.
 //
 // XXX In a real agent, this would support TLS and gRPC and Auth and timeouts
 // and stuff; see cmd/agent/api.
-package ipcapi
+package ipcserver
 
 import (
 	"net/http"
@@ -28,8 +26,6 @@ import (
 
 // Component is the component type.
 type Component interface {
-	// GetJSON gets the body of the response, as JSON
-	GetJSON(path string, v any) error
 }
 
 // Mock implements mock-specific methods.
@@ -62,11 +58,11 @@ type ModuleParams struct {
 }
 
 var Module = fx.Module(
-	"comp/ipcapi",
-	fx.Provide(newIpcAPI),
+	"comp/ipc/ipcserver",
+	fx.Provide(newServer),
 )
 
 var MockModule = fx.Module(
-	"comp/ipcapi",
+	"comp/ipc/ipcserver",
 	fx.Provide(newMock),
 )
