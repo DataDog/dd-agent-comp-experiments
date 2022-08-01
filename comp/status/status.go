@@ -7,6 +7,7 @@ package status
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"strings"
@@ -23,16 +24,12 @@ type status struct {
 
 	// components maps component package path to that component's current status
 	sections []*Registration
-
-	// ipcapi is used to serve the status to remote instances.
-	ipcapi ipcapi.Component
 }
 
 type dependencies struct {
 	fx.In
 
 	Lc            fx.Lifecycle
-	IpcAPI        ipcapi.Component
 	Registrations []*Registration `group:"status"`
 }
 
@@ -40,18 +37,18 @@ type provides struct {
 	fx.Out
 
 	Component
-	FlareReg *flare.Registration `group:"flare"`
+	FlareReg    *flare.Registration `group:"flare"`
+	IpcAPIRoute *ipcapi.Route       `group:"ipcapi"`
 }
 
 func newStatus(deps dependencies) provides {
 	s := &status{
-		ipcapi:   deps.IpcAPI,
 		sections: deps.Registrations,
 	}
-	deps.IpcAPI.Register("/agent/status", s.ipcHandler)
 	return provides{
-		Component: s,
-		FlareReg:  flare.FileRegistration("agent-status.json", s.flareFile),
+		Component:   s,
+		FlareReg:    flare.FileRegistration("agent-status.json", s.flareFile),
+		IpcAPIRoute: ipcapi.NewRoute("/agent/status", s.ipcHandler),
 	}
 }
 
@@ -78,18 +75,21 @@ func (s *status) GetStatus(section string) string {
 
 // GetStatusRemote implements Component#GetStatusRemote.
 func (s *status) GetStatusRemote(section string) (string, error) {
-	var content map[string]string
-	path := "/agent/status"
-	if section != "" {
-		path = fmt.Sprintf("%s?section=%s", path, section)
-	}
+	return "", errors.New("TODO")
+	/*
+		var content map[string]string
+		path := "/agent/status"
+		if section != "" {
+			path = fmt.Sprintf("%s?section=%s", path, section)
+		}
 
-	err := s.ipcapi.GetJSON(path, &content)
-	if err != nil {
-		return "", err
-	}
+		err := s.ipcapi.GetJSON(path, &content)
+		if err != nil {
+			return "", err
+		}
 
-	return content["status"], nil
+		return content["status"], nil
+	*/
 }
 
 // ipcHandler serves the /agent/status endpoint

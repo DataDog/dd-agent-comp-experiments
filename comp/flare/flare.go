@@ -8,7 +8,6 @@ package flare
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -29,9 +28,6 @@ type flare struct {
 
 	// registrations contains all registrations by other components
 	registrations []*Registration
-
-	// ipcapi is used in CreateFlareRemote
-	ipcapi ipcapi.Component
 }
 
 type dependencies struct {
@@ -40,25 +36,24 @@ type dependencies struct {
 	Registrations []*Registration `group:"flare"`
 
 	Config config.Component
-	IpcAPI ipcapi.Component
 }
 
-func newFlare(deps dependencies) Component {
+type provides struct {
+	fx.Out
+
+	Component
+	IpcAPIRoute *ipcapi.Route `group:"ipcapi"`
+}
+
+func newFlare(deps dependencies) provides {
 	f := &flare{
 		registrations: deps.Registrations,
-		ipcapi:        deps.IpcAPI,
 	}
-	deps.IpcAPI.Register("/agent/flare", f.ipcHandler)
 
-	/*
-		// Register a few handlers for information provided by modules on which this
-		// one depends.
-		f.Register(func(flareDir string) error {
-			return config.WriteConfig(filepath.Join(flareDir, "config.yaml"))
-		})
-	*/
-
-	return f
+	return provides{
+		Component:   f,
+		IpcAPIRoute: ipcapi.NewRoute("/agent/flare", f.ipcHandler),
+	}
 }
 
 type mockDependencies struct {
@@ -112,19 +107,22 @@ func (f *flare) CreateFlare() (string, error) {
 
 // CreateFlareRemote implements Component#CreateFlareRemote.
 func (f *flare) CreateFlareRemote() (string, error) {
-	var content map[string]string
-	err := f.ipcapi.GetJSON("/agent/flare", &content)
-	if err != nil {
-		return "", err
-	}
-	if msg, found := content["error"]; found {
-		return "", fmt.Errorf("Error from Agent: %s", msg)
-	}
+	return "", errors.New("TODO")
+	/*
+		var content map[string]string
+		err := f.ipcapi.GetJSON("/agent/flare", &content)
+		if err != nil {
+			return "", err
+		}
+		if msg, found := content["error"]; found {
+			return "", fmt.Errorf("Error from Agent: %s", msg)
+		}
 
-	if filename, found := content["filename"]; found {
-		return filename, nil
-	}
-	return "", errors.New("No filename received from Agent")
+		if filename, found := content["filename"]; found {
+			return filename, nil
+		}
+		return "", errors.New("No filename received from Agent")
+	*/
 }
 
 // GetFlareFile implements Mock#GetFlareFile.

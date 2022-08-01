@@ -6,8 +6,8 @@
 // Package ipcapi implements a component to manage the IPC API server and act
 // as a client.
 //
-// It allows other components to register handlers, and manages
-// startup and shutdown of the HTTP server.
+// The handlers in the HTTP server are supplied by other components, by providing a
+// ipcapi.Route instance in value-group "ipcapi".
 //
 // It also supports simple GET requests to the server.
 //
@@ -28,9 +28,6 @@ import (
 
 // Component is the component type.
 type Component interface {
-	// Register registers a handler at an HTTP path.
-	Register(path string, handler http.HandlerFunc)
-
 	// GetJSON gets the body of the response, as JSON
 	GetJSON(path string, v any) error
 }
@@ -40,6 +37,21 @@ type Mock interface {
 	Component
 
 	// TODO: Get(path) ..
+}
+
+// Route is provided by other components in order to indicate routes that
+// should be served via the IPC API.
+type Route struct {
+	// path is the path at which this handler should be registered
+	path string
+
+	// handler is the handler for this path.
+	handler http.HandlerFunc
+}
+
+// NewRoute creates a new Route instance for the named component.
+func NewRoute(path string, handler http.HandlerFunc) *Route {
+	return &Route{path, handler}
 }
 
 type ModuleParams struct {

@@ -36,6 +36,7 @@ type dependencies struct {
 	Lc     fx.Lifecycle
 	Params ModuleParams `optional:"true"`
 	Config config.Component
+	Routes []*Route
 }
 
 func newIpcAPI(deps dependencies) Component {
@@ -44,6 +45,11 @@ func newIpcAPI(deps dependencies) Component {
 		port:     deps.Config.GetInt("cmd_port"),
 		router:   mux.NewRouter(),
 	}
+
+	for _, r := range deps.Routes {
+		a.router.HandleFunc(r.path, r.handler)
+	}
+
 	deps.Lc.Append(fx.Hook{OnStart: a.start, OnStop: a.stop})
 	return a
 }
@@ -55,19 +61,6 @@ func newMock() Component {
 		router:   mux.NewRouter(),
 	}
 	return a
-}
-
-// Register implements Component#Register.
-func (a *ipcapi) Register(path string, handler http.HandlerFunc) {
-	if a.server != nil {
-		panic("ipcapi component has already started")
-	}
-
-	if a.disabled {
-		return
-	}
-
-	a.router.HandleFunc(path, handler)
 }
 
 // GetJSON implements Component#GetJSON.

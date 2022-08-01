@@ -7,6 +7,7 @@ package health
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"strings"
@@ -30,9 +31,6 @@ type health struct {
 
 	// log supports logging about changes in health status
 	log log.Component
-
-	// ipcapi is used in GetHealthRemote
-	ipcapi ipcapi.Component
 }
 
 type dependencies struct {
@@ -41,7 +39,6 @@ type dependencies struct {
 	Lc     fx.Lifecycle
 	Params ModuleParams `optional:"true"`
 	Log    log.Component
-	IpcAPI ipcapi.Component
 
 	Registrations []*Registration `group:"health"`
 }
@@ -50,7 +47,8 @@ type provides struct {
 	fx.Out
 
 	Component
-	FlareReg *flare.Registration `group:"flare"`
+	FlareReg    *flare.Registration `group:"flare"`
+	IpcAPIRoute *ipcapi.Route       `group:"ipcapi"`
 }
 
 func newHealth(deps dependencies) provides {
@@ -58,7 +56,6 @@ func newHealth(deps dependencies) provides {
 		disabled:   deps.Params.Disabled,
 		components: make(map[string]ComponentHealth),
 		log:        deps.Log,
-		ipcapi:     deps.IpcAPI,
 	}
 
 	// provide each registration with a pointer to the new component, and
@@ -69,10 +66,10 @@ func newHealth(deps dependencies) provides {
 		h.components[reg.component] = ComponentHealth{Healthy: true}
 	}
 
-	deps.IpcAPI.Register("/agent/health", h.ipcHandler)
 	return provides{
-		Component: h,
-		FlareReg:  flare.FileRegistration("health.json", h.flareFile),
+		Component:   h,
+		FlareReg:    flare.FileRegistration("health.json", h.flareFile),
+		IpcAPIRoute: ipcapi.NewRoute("/agent/health", h.ipcHandler),
 	}
 }
 
@@ -90,13 +87,16 @@ func (h *health) GetHealth() map[string]ComponentHealth {
 
 // GetHealthRemote implements Component#GetHealthRemote.
 func (h *health) GetHealthRemote() (map[string]ComponentHealth, error) {
-	var content map[string]ComponentHealth
-	err := h.ipcapi.GetJSON("/agent/health", &content)
-	if err != nil {
-		return nil, err
-	}
+	return nil, errors.New("TODO")
+	/*
+		var content map[string]ComponentHealth
+		err := h.ipcapi.GetJSON("/agent/health", &content)
+		if err != nil {
+			return nil, err
+		}
 
-	return content, nil
+		return content, nil
+	*/
 }
 
 // ipcHandler serves the /agent/health endpoint
