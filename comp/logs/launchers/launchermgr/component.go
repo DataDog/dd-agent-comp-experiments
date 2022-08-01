@@ -16,6 +16,8 @@ import "go.uber.org/fx"
 
 // team: agent-metrics-logs
 
+const componentName = "comp/logs/launchers/manager"
+
 // Component is the component type.
 type Component interface {
 	// RegisterLaucher registers a launcher with the manager.  This must be called
@@ -39,6 +41,6 @@ type Launcher interface {
 
 // Module defines the fx options for this component.
 var Module fx.Option = fx.Module(
-	"comp/logs/launchers/manager",
+	componentName,
 	fx.Provide(newManager),
 )

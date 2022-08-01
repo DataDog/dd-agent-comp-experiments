@@ -56,7 +56,7 @@ func newProcessor(deps dependencies) provides {
 	p := &processor{
 		payloadChan:     make(chan *api.Payload, width),
 		traceWriterChan: deps.TraceWriter.PayloadChan(),
-		health:          health.NewRegistration("comp/trace/internal/processor"),
+		health:          health.NewRegistration(componentName),
 	}
 	p.actor.HookLifecycle(deps.Lc, p.run)
 	return provides{

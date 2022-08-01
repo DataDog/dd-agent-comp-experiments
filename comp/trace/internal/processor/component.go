@@ -15,6 +15,8 @@ import (
 
 // team: trace-agent
 
+const componentName = "comp/trace/internal/processor"
+
 // Component is the component type.
 type Component interface {
 	// PayloadChan returns the channel to which receiver components should direct Payloads.
@@ -23,6 +25,6 @@ type Component interface {
 
 // Module defines the fx options for this component.
 var Module fx.Option = fx.Module(
-	"comp/trace/internal/processor",
+	componentName,
 	fx.Provide(newProcessor),
 )

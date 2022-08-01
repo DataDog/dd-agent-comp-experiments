@@ -14,6 +14,8 @@ import (
 
 // team: agent-metrics-logs
 
+const componentName = "comp/logs/launchers/file"
+
 // Component is the component type.
 type Component interface {
 	// Launcher includes the common Launcher methods here
@@ -22,6 +24,6 @@ type Component interface {
 
 // Module defines the fx options for this component.
 var Module fx.Option = fx.Module(
-	"comp/logs/launchers/file",
+	componentName,
 	fx.Provide(newLauncher),
 )

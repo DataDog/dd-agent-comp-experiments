@@ -21,6 +21,8 @@ import (
 
 // team: agent-shared-components
 
+const componentName = "comp/util/log"
+
 // Component is the component type.
 type Component interface {
 	// Configure defines the settings for the logger.  This can be called
@@ -67,12 +69,12 @@ type ModuleParams struct {
 
 // Module defines the fx options for this component.
 var Module fx.Option = fx.Module(
-	"comp/util/log",
+	componentName,
 	fx.Provide(newLogger),
 )
 
 // MockModule defines the fx options for the mock component.
 var MockModule fx.Option = fx.Module(
-	"comp/util/log",
+	componentName,
 	fx.Provide(newMockLogger),
 )

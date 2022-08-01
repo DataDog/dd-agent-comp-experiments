@@ -37,8 +37,10 @@ type ModuleParams struct {
 	ConfFilePath string
 }
 
+const componentName = "comp/config"
+
 // Module defines the fx options for this component.
 var Module = fx.Module(
-	"comp/config",
+	componentName,
 	fx.Provide(newConfig),
 )

@@ -14,6 +14,8 @@ import (
 
 // team: trace-agent
 
+const componentName = "comp/trace/internal/tracewriter"
+
 // Component is the component type.
 type Component interface {
 	// PayloadChan returns the channel to which components should direct
@@ -23,6 +25,6 @@ type Component interface {
 
 // Module defines the fx options for this component.
 var Module fx.Option = fx.Module(
-	"comp/trace/internal/tracewriter",
+	componentName,
 	fx.Provide(newTraceWriter),
 )

@@ -27,6 +27,8 @@ import (
 
 // team: agent-shared-components
 
+const componentName = "comp/health"
+
 // Component is the component type.
 type Component interface {
 	// GetHealth gets a map containing the health of all components.  This map is a copy
@@ -66,6 +68,6 @@ type ModuleParams struct {
 
 // Module defines the fx options for this component.
 var Module = fx.Module(
-	"comp/health",
+	componentName,
 	fx.Provide(newHealth),
 )

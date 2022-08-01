@@ -30,6 +30,8 @@ import (
 
 // team: agent-shared-components
 
+const componentName = "comp/flare"
+
 // Component is the component type.
 type Component interface {
 	// CreateFlare creates a new flare locally and returns the path to the
@@ -58,12 +60,12 @@ var FileRegistration = reg.FileRegistration
 
 // Module defines the fx options for this component.
 var Module = fx.Module(
-	"comp/flare",
+	componentName,
 	fx.Provide(newFlare),
 )
 
 // MockModule defines the fx options for the mock component.
 var MockModule = fx.Module(
-	"comp/flare",
+	componentName,
 	fx.Provide(newMock),
 )

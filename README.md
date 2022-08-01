@@ -66,6 +66,8 @@ package config
 
 // team: some-team-name
 
+const componentname = "comp/foo" // ... (should match Go package name)
+
 // Component is the component type.
 type Component interface {
 	// Foo is ... (detailed doc comment)
@@ -74,7 +76,7 @@ type Component interface {
 
 // Module defines the fx options for this component.
 var Module = fx.Module(
-    "comp/foo", // (package path of the component)
+    componentName,
     fx.Provide(newFoo),
 )
 ```
@@ -99,15 +101,22 @@ type dependencies struct {
     // ...
 }
 
-func newFoo(deps dependencies) Component { ...  }
+type provides struct {
+    fx.Out
+
+    Component
+}
+
+func newFoo(deps dependencies) provides { ...  }
 ```
 
 The constructor `newFoo` is an `fx` constructor, so it can refer to other types and expect them to be automatically supplied.
 For very simple constructors, listing the dependencies inline is OK, but most will want to use the `dependencies` pattern shown above.
 As an `fx` constructor, it can also take an `fx.Lifetime` argument and set up OnStart or OnStop hooks.
 
-The constructor can return either `Component` if it is infallible, or `(Component, error)` if it could fail.
+The constructor can return either `provides` if it is infallible, or `(provides, error)` if it could fail.
 Failure will crash the agent with a suitable message.
+For simple constructors that return only the Component type, omitting the `provides` struct and just returning `Component` is perfectly fine.
 
 Within the body of the constructor, it may call methods on other components, as long as that component allows calls to the methods during the setup phase.
 
@@ -425,9 +434,7 @@ See [#2](https://github.com/djmitche/dd-agent-comp-experiments/pull/2) for an at
    * Forwarder
    * [DONE] Flares
  * Subprocesses?
- * Split ipc server/client into separate packages
  * Doc how to handle enabling / disabling -- maybe this is per-bundle?
- * var componentName .. in component.go
 
 ## TODO When Implemeting
 

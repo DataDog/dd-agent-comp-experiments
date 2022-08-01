@@ -24,6 +24,8 @@ import (
 
 // team: agent-shared-components
 
+const componentName = "comp/ipc/ipcserver"
+
 // Component is the component type.
 type Component interface {
 }
@@ -58,11 +60,11 @@ type ModuleParams struct {
 }
 
 var Module = fx.Module(
-	"comp/ipc/ipcserver",
+	componentName,
 	fx.Provide(newServer),
 )
 
 var MockModule = fx.Module(
-	"comp/ipc/ipcserver",
+	componentName,
 	fx.Provide(newMock),
 )

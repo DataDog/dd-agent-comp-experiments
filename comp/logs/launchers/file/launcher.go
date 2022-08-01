@@ -49,7 +49,7 @@ func newLauncher(deps dependencies) (provides, error) {
 	l := &launcher{
 		log:          deps.Log,
 		subscription: subscription,
-		health:       health.NewRegistration("comp/logs/launchers/file"),
+		health:       health.NewRegistration(componentName),
 	}
 	deps.LauncherMgr.RegisterLauncher("file", l)
 	l.actor.HookLifecycle(deps.Lc, l.run)

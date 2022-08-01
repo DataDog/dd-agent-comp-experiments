@@ -21,6 +21,8 @@ import (
 
 // team: agent-metrics-logs
 
+const componentName = "comp/logs/internal/sourcemgr"
+
 // Component is the component type.
 type Component interface {
 	// Subscribe registers a subscriber for add/remove events.  This must be called
@@ -50,6 +52,6 @@ type SourceChange struct {
 
 // Module defines the fx options for this component.
 var Module fx.Option = fx.Module(
-	"comp/logs/internal/sourcemgr",
+	componentName,
 	fx.Provide(newSourceMgr),
 )

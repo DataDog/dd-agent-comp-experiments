@@ -12,6 +12,8 @@ import (
 
 // team: agent-shared-components
 
+const componentName = "comp/ipc/ipcclient"
+
 // Component is the component type.
 type Component interface {
 	// GetJSON gets the body of the server response from the given path, as JSON
@@ -19,6 +21,6 @@ type Component interface {
 }
 
 var Module = fx.Module(
-	"comp/ipc/ipcclient",
+	componentName,
 	fx.Provide(newClient),
 )

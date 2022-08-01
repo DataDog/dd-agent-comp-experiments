@@ -17,6 +17,8 @@ import (
 
 // team: agent-shared-components
 
+const componentName = "comp/status"
+
 // Component is the component type.
 type Component interface {
 	// GetStatus gets the agent status.  If the section parameter is not empty, then
@@ -47,6 +49,6 @@ func NewRegistration(section string, order int, cb func() string) *Registration 
 
 // Module defines the fx options for this component.
 var Module = fx.Module(
-	"comp/status",
+	componentName,
 	fx.Provide(newStatus),
 )

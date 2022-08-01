@@ -14,12 +14,14 @@ import (
 
 // team: agent-metrics-logs
 
+const componentName = "comp/logs/agent"
+
 // Component is the component type.
 type Component interface{}
 
 // Module defines the fx options for this component.
 var Module fx.Option = fx.Module(
-	"comp/logs/agent",
+	componentName,
 	fx.Provide(newConfig),
 	fx.Provide(newAgent),
 )

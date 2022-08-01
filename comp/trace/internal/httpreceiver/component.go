@@ -13,12 +13,14 @@ import (
 
 // team: trace-agent
 
+const componentName = "comp/trace/internal/httpreceiver"
+
 // Component is the component type.
 type Component interface {
 }
 
 // Module defines the fx options for this component.
 var Module fx.Option = fx.Module(
-	"comp/trace/internal/httpreceiver",
+	componentName,
 	fx.Provide(newReceiver),
 )

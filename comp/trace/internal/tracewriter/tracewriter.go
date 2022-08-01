@@ -42,7 +42,7 @@ func newTraceWriter(deps dependencies) provides {
 	t := &traceWriter{
 		in:     make(chan *api.Payload, 1000),
 		log:    deps.Log,
-		health: health.NewRegistration("comp/trace/internal/tracewriter"),
+		health: health.NewRegistration(componentName),
 	}
 	t.actor.HookLifecycle(deps.Lc, t.run)
 	return provides{
