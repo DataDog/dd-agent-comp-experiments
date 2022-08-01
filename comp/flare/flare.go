@@ -28,7 +28,7 @@ type flare struct {
 	sync.Mutex
 
 	// registrations contains all registrations by other components
-	registrations []Registration
+	registrations []*Registration
 
 	// ipcapi is used in CreateFlareRemote
 	ipcapi ipcapi.Component
@@ -37,7 +37,7 @@ type flare struct {
 type dependencies struct {
 	fx.In
 
-	Registrations []Registration `group:"flare"`
+	Registrations []*Registration `group:"flare"`
 
 	Config config.Component
 	IpcAPI ipcapi.Component
@@ -64,7 +64,7 @@ func newFlare(deps dependencies) Component {
 type mockDependencies struct {
 	fx.In
 
-	Registrations []Registration `group:"flare"`
+	Registrations []*Registration `group:"flare"`
 }
 
 func newMock(deps mockDependencies) Component {

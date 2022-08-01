@@ -310,26 +310,29 @@ The plugins then use an `fx.Out` struct to register:
 type out struct {
     fx.Out
     Component
-    FooReg foomgr.Registration `group:"foo"`
+    FooReg *foomgr.Registration `group:"foo"`
 }
 
 func newBar(deps dependencies) out {
-    // ...
+    comp := bar {
+        fooReg: foomgr.NewRegistration(..),
+        // ...
+    }
     return out {
         Component: comp,
-        FooReg: foomgr.Registration{comp},
+        FooReg: comp.fooReg,
     }
 }
 ```
 
-Here the `out` struct indicates that the `newBar` constructor returns multiple values, including the component itself and a foomgr.Registration in the group "foo".o
+Here the `out` struct indicates that the `newBar` constructor returns multiple values, including the component itself and a foomgr.Registration in the group "foo".
 
 The foomgr component will then gather all of the defined Registrations with
 
 ```go
 type dependencies struct {
     fx.In
-    Registrations []Registration
+    Registrations []*Registration
     // ..
 }
 ```
@@ -423,6 +426,7 @@ See [#2](https://github.com/djmitche/dd-agent-comp-experiments/pull/2) for an at
  * Subprocesses?
  * Split ipc server/client into separate packages
  * Doc how to handle enabling / disabling -- maybe this is per-bundle?
+ * var componentName .. in component.go
 
 ## TODO When Implemeting
 

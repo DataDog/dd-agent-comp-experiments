@@ -6,6 +6,9 @@
 // Package health implements a component that monitors the health of other
 // components.
 //
+// The data from this component is provided by other components, by providing a
+// health.Registration instance in value-group "health".
+//
 // The health component supports monitoring several kinds of components.  "Simple"
 // components record their health status with this component with simple function
 // calls.  If such a component deadlocks, the health component will be unaware.
@@ -14,9 +17,6 @@
 // read within a configured amount of time.  This approach makes sense for components
 // using the [actor model](https://en.wikipedia.org/wiki/Actor_model), where the
 // component is considered unhealthy if it is not polling for events frequently.
-//
-// The health component is ready for registration as soon as it is initialized.
-// Registration can occur at any time, but typically occurs before components have started.
 //
 // All of the component's methods can be called concurrently.
 package health
@@ -29,19 +29,25 @@ import (
 
 // Component is the component type.
 type Component interface {
-	// Register registers a component for monitoring.  It is assumed to be
-	// healthy initially, and that status can be updated with methods on the
-	// returned value.
-	//
-	// Component is the component's package path (e.g., `comp/health`).
-	Register(component string) *Registration
-
 	// GetHealth gets a map containing the health of all components.  This map is a copy
 	// and will not be altered after return.
 	GetHealth() map[string]ComponentHealth
 
 	// GetHealthRemote gets the same value as GetHealth, but using the IPC API.
 	GetHealthRemote() (map[string]ComponentHealth, error)
+}
+
+// Registration represents a registration with this component.
+//
+// Registration methods must not be called until the calling component has
+// started.
+type Registration struct {
+	// component is the name of the component being monitored.
+	component string
+
+	// health links to the comp/health component, once registration is
+	// complete.
+	health *health
 }
 
 // ModuleParams are the parameters to Module.

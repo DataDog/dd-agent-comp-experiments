@@ -6,7 +6,7 @@
 // Package flare implements a component creates flares for submission to support.
 //
 // The data from this component is provided by other components, by providing a
-// flarereg.Registration instance in value-group "flare".
+// flare.Registration instance in value-group "flare".
 //
 // This component registers itself with the ipcapi component, and supports either
 // generating a flare locally (CreateFlare) or calling the API to direct the running

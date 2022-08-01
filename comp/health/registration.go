@@ -10,19 +10,22 @@ import (
 	"time"
 )
 
-// Registration represents a registration with this component.
-type Registration struct {
-	health    *health
-	component string
+// NewRegistration creates a new Registration instance for the named component.
+func NewRegistration(component string) *Registration {
+	return &Registration{component: component}
 }
 
 // SetUnhealthy records this component as being unhealthy, with the included message
-// summarizing the problem.  This can be called at any time.
+// summarizing the problem.
+//
+// This method must not be called before the monitored component has started.
 func (reg *Registration) SetUnhealthy(message string) {
 	reg.health.setHealth(reg.component, false, message)
 }
 
-// SetHealthy records this component as being healthy.  This can be called at any time.
+// SetHealthy records this component as being healthy.
+//
+// This method must not be called before the monitored component has started.
 func (reg *Registration) SetHealthy() {
 	reg.health.setHealth(reg.component, true, "")
 }
@@ -37,6 +40,8 @@ func (reg *Registration) SetHealthy() {
 //
 // The returned function cancels the liveness monitor, leaving the component in its
 // existing state.
+//
+// This method must not be called before the monitored component has started.
 func (reg *Registration) LivenessMonitor(period time.Duration) (<-chan struct{}, func()) {
 	ch := make(chan struct{}, 1) // capacity=1 to allow one tick to elapse before failure
 	stopped := make(chan struct{})

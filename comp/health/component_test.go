@@ -18,15 +18,25 @@ import (
 )
 
 func TestSimple(t *testing.T) {
+	type out struct {
+		fx.Out
+		Registration *Registration `group:"health"`
+	}
+
 	var h Component
+	reg := &Registration{component: "comp/thing"}
 	app := fxtest.New(t,
 		Module,
 		config.Module,
 		log.Module,
 		ipcapi.Module,
+		fx.Provide(func() out {
+			return out{
+				Registration: reg,
+			}
+		}),
 		fx.Populate(&h),
 	)
-	reg := h.Register("comp/thing")
 	defer app.RequireStart().RequireStop()
 
 	require.Equal(t, ComponentHealth{Healthy: true}, h.GetHealth()["comp/thing"])
@@ -37,15 +47,25 @@ func TestSimple(t *testing.T) {
 }
 
 func TestLiveness(t *testing.T) {
+	type out struct {
+		fx.Out
+		Registration *Registration `group:"health"`
+	}
+
 	var h Component
+	reg := &Registration{component: "comp/thing"}
 	app := fxtest.New(t,
 		Module,
 		config.Module,
 		log.Module,
 		ipcapi.Module,
+		fx.Provide(func() out {
+			return out{
+				Registration: reg,
+			}
+		}),
 		fx.Populate(&h),
 	)
-	reg := h.Register("comp/thing")
 	defer app.RequireStart().RequireStop()
 
 	ch, stop := reg.LivenessMonitor(time.Millisecond)

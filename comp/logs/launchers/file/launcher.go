@@ -32,22 +32,31 @@ type dependencies struct {
 	Log         log.Component
 	Sourcemgr   sourcemgr.Component
 	LauncherMgr launchermgr.Component
-	Health      health.Component
 }
 
-func newLauncher(deps dependencies) (Component, error) {
+type out struct {
+	fx.Out
+
+	Component
+	HealthReg *health.Registration `group:"health"`
+}
+
+func newLauncher(deps dependencies) (out, error) {
 	subscription, err := deps.Sourcemgr.Subscribe()
 	if err != nil {
-		return nil, err
+		return out{}, err
 	}
 	l := &launcher{
 		log:          deps.Log,
 		subscription: subscription,
-		health:       deps.Health.Register("comp/logs/launchers/file"),
+		health:       health.NewRegistration("comp/logs/launchers/file"),
 	}
 	deps.LauncherMgr.RegisterLauncher("file", l)
 	l.actor.HookLifecycle(deps.Lc, l.run)
-	return l, nil
+	return out{
+		Component: l,
+		HealthReg: l.health,
+	}, nil
 }
 
 func (l *launcher) run(ctx context.Context) {

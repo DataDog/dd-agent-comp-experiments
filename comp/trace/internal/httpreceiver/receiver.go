@@ -70,7 +70,6 @@ func (r *receiver) handler(w http.ResponseWriter, req *http.Request) {
 		spans = append(spans, api.Span{Data: scanner.Text()})
 	}
 	if err := scanner.Err(); err != nil {
-		fmt.Printf("uhoh: %s\n", err)
 		w.WriteHeader(400)
 	}
 

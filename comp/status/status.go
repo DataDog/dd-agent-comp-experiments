@@ -39,10 +39,10 @@ type out struct {
 	fx.Out
 
 	Component
-	FlareReg flare.Registration `group:"flare"`
+	FlareReg *flare.Registration `group:"flare"`
 }
 
-func newStatus(deps dependencies) Component {
+func newStatus(deps dependencies) out {
 	s := &status{
 		ipcapi: deps.IpcAPI,
 	}

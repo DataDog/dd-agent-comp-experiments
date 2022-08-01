@@ -24,8 +24,8 @@ type Registration struct {
 
 // FileRegistration creates a Registration that will generat a single file of the
 // given name, with the content returned by `cb`.
-func FileRegistration(filename string, cb func() (string, error)) Registration {
-	return Registration{
+func FileRegistration(filename string, cb func() (string, error)) *Registration {
+	return &Registration{
 		Callback: func(flareDir string) error {
 			content, err := cb()
 			if err != nil {

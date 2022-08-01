@@ -42,13 +42,15 @@ type dependencies struct {
 	Params ModuleParams `optional:"true"`
 	Log    log.Component
 	IpcAPI ipcapi.Component
+
+	Registrations []*Registration `group:"health"`
 }
 
 type out struct {
 	fx.Out
 
 	Component
-	FlareReg flare.Registration `group:"flare"`
+	FlareReg *flare.Registration `group:"flare"`
 }
 
 func newHealth(deps dependencies) out {
@@ -58,27 +60,19 @@ func newHealth(deps dependencies) out {
 		log:        deps.Log,
 		ipcapi:     deps.IpcAPI,
 	}
+
+	// provide each registration with a pointer to the new component, and
+	// default to a healthy status. The Registrations will update the component
+	// as health status changes.
+	for _, reg := range deps.Registrations {
+		reg.health = h
+		h.components[reg.component] = ComponentHealth{Healthy: true}
+	}
+
 	deps.IpcAPI.Register("/agent/health", h.ipcHandler)
 	return out{
 		Component: h,
 		FlareReg:  flare.FileRegistration("health.json", h.flareFile),
-	}
-}
-
-// RegisterSimple implements Component#RegisterSimple.
-func (h *health) Register(component string) *Registration {
-	h.Lock()
-	defer h.Unlock()
-
-	if !h.disabled {
-		if _, exists := h.components[component]; exists {
-			panic(fmt.Sprintf("Component %s is already registered with the health component", component))
-		}
-		h.components[component] = ComponentHealth{Healthy: true}
-	}
-	return &Registration{
-		health:    h,
-		component: component,
 	}
 }
 

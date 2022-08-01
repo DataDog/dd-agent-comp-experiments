@@ -27,19 +27,28 @@ type traceWriter struct {
 type dependencies struct {
 	fx.In
 
-	Lc     fx.Lifecycle
-	Health health.Component
-	Log    log.Component
+	Lc  fx.Lifecycle
+	Log log.Component
 }
 
-func newTraceWriter(deps dependencies) Component {
+type out struct {
+	fx.Out
+
+	Component
+	HealthReg *health.Registration `group:"health"`
+}
+
+func newTraceWriter(deps dependencies) out {
 	t := &traceWriter{
 		in:     make(chan *api.Payload, 1000),
-		health: deps.Health.Register("comp/trace/internal/tracewriter"),
 		log:    deps.Log,
+		health: health.NewRegistration("comp/trace/internal/tracewriter"),
 	}
 	t.actor.HookLifecycle(deps.Lc, t.run)
-	return t
+	return out{
+		Component: t,
+		HealthReg: t.health,
+	}
 }
 
 func (t *traceWriter) PayloadChan() chan<- *api.Payload {
