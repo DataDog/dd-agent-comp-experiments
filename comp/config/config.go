@@ -41,11 +41,15 @@ func newConfig(deps dependencies) (Component, error) {
 		return nil, err
 	}
 
-	c := &config{
+	return &config{
 		viper: v,
-	}
+	}, nil
+}
 
-	return c, nil
+func newMock(deps dependencies) (Component, error) {
+	return &config{
+		viper: viper.New(),
+	}, nil
 }
 
 // GetInt implements Component#GetInt.

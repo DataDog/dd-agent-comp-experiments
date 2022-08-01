@@ -160,6 +160,8 @@ To support testing, components can optionally provide a mock implementation, wit
  * `pkg.MockModule` -- an `fx.Option` that can be included in a test `App` to get the component's mock implementation.
 
 ```go
+
+// Mock implements mock-specific methods.
 type Mock interface {
     // Component methods are included in Mock.
     Component
@@ -168,6 +170,7 @@ type Mock interface {
     AddedFoos() []Foo
 }
 
+// MockModule defines the fx options for the mock component.
 var MockModule = fx.Module(
     "comp/foo",
     fx.Provide(newMockFoo),

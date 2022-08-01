@@ -10,6 +10,10 @@
 // configuration is available to all other components, even before they have
 // started.  To accomplish this, it requires the config file path in
 // its ModuleParams.
+//
+// The component attempts to load the configuration file at instantiation, failing
+// startup if this is not possible.  The mock component does nothing at
+// startup, beginning with an empty config.
 package config
 
 import "go.uber.org/fx"
@@ -31,6 +35,13 @@ type Component interface {
 	WriteConfig(filename string) error
 }
 
+// Mock implements mock-specific methods.
+type Mock interface {
+	Component
+
+	// TODO: Set..
+}
+
 // ModuleParams are the parameters to Module.
 type ModuleParams struct {
 	// ConfFilePath is the path to the configuration file.
@@ -43,4 +54,10 @@ const componentName = "comp/config"
 var Module = fx.Module(
 	componentName,
 	fx.Provide(newConfig),
+)
+
+// MockModule defines the fx options for the mock component.
+var MockModule = fx.Module(
+	componentName,
+	fx.Provide(newMock),
 )

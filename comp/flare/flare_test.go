@@ -30,7 +30,7 @@ func TestFlareMechanics(t *testing.T) {
 	var flare Component
 	app := fxtest.New(t,
 		Module,
-		config.Module,
+		config.MockModule,
 		fx.Provide(func() provides {
 			return provides{
 				Registration: FileRegistration("greeting.txt", func() (string, error) {
