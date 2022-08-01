@@ -12,21 +12,24 @@ import (
 
 	"go.uber.org/fx"
 
+	"github.com/djmitche/dd-agent-comp-experiments/comp/logs/launchers/launchermgr"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/status"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/util/log"
 )
 
 type agent struct {
-	cfg *config
-	log log.Component
+	cfg         *config
+	log         log.Component
+	launchermgr launchermgr.Component
 }
 
 type dependencies struct {
 	fx.In
 
-	Lc  fx.Lifecycle
-	Cfg *config
-	Log log.Component
+	Lc          fx.Lifecycle
+	Cfg         *config
+	Log         log.Component
+	Launchermgr launchermgr.Component
 }
 
 type provides struct {
@@ -38,8 +41,9 @@ type provides struct {
 
 func newAgent(deps dependencies) provides {
 	a := &agent{
-		cfg: deps.Cfg,
-		log: deps.Log,
+		cfg:         deps.Cfg,
+		log:         deps.Log,
+		launchermgr: deps.Launchermgr,
 	}
 
 	deps.Lc.Append(fx.Hook{
@@ -70,7 +74,11 @@ func (a *agent) status() string {
 	fmt.Fprintf(&bldr, "Logs Agent\n")
 	fmt.Fprintf(&bldr, "==========\n")
 	fmt.Fprintf(&bldr, "\n")
-	fmt.Fprintf(&bldr, "STATUS: A-OK!\n")
+	fmt.Fprintf(&bldr, "Running Launchers:\n")
+
+	for name := range a.launchermgr.GetLaunchers() {
+		fmt.Fprintf(&bldr, " %s\n", name)
+	}
 
 	return bldr.String()
 }

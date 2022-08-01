@@ -7,7 +7,8 @@
 // the set of loaded launchers during start-up, and allows enumeration and retrieval
 // as necessary.
 //
-// Launchers register themselves with this component.
+// Launchers provide a launchermgr.Registration instance in value-group "launchermgr" to
+// register themselves with this manager.
 //
 // All component methods can be called concurrently.
 package launchermgr
@@ -16,15 +17,10 @@ import "go.uber.org/fx"
 
 // team: agent-metrics-logs
 
-const componentName = "comp/logs/launchers/manager"
+const componentName = "comp/logs/launchers/launchermgr"
 
 // Component is the component type.
 type Component interface {
-	// RegisterLaucher registers a launcher with the manager.  This must be called
-	// before the manager is started.  It is an error to register multiple launchers
-	// with the same name.
-	RegisterLauncher(name string, launcher Launcher) error
-
 	// GetLaunchers gets a map of launchers by name.  This method must be
 	// called after the manager has started, guaranteeing that the map is
 	// immutable.  Callers must not modify the map.
@@ -33,6 +29,20 @@ type Component interface {
 	// GetLauncher gets a launcher by name, or nil if no such launcher exists.
 	// This method must be called after the manager has started.
 	GetLauncher(name string) Launcher
+}
+
+// Registration is provided by launchers.
+type Registration struct {
+	// name is the name of the launcher
+	name string
+
+	// launcher points to the launcher itself
+	launcher Launcher
+}
+
+// NewRegistration creates a new Registration instance for the named component.
+func NewRegistration(name string, launcher Launcher) *Registration {
+	return &Registration{name, launcher}
 }
 
 // Launcher defines the interface each launcher must satisfy.

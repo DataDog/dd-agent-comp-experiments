@@ -24,12 +24,22 @@ type manager struct {
 	launchers map[string]Launcher
 }
 
-func newManager(lc fx.Lifecycle) Component {
+type dependencies struct {
+	fx.In
+
+	Lc            fx.Lifecycle
+	Registrations []*Registration `group:"launchermgr"`
+}
+
+func newManager(deps dependencies) Component {
 	m := &manager{
 		started:   false,
 		launchers: make(map[string]Launcher),
 	}
-	lc.Append(fx.Hook{OnStart: m.start})
+	for _, reg := range deps.Registrations {
+		m.launchers[reg.name] = reg.launcher
+	}
+	deps.Lc.Append(fx.Hook{OnStart: m.start})
 	return m
 }
 

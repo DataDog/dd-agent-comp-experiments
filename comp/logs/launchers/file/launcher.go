@@ -28,17 +28,17 @@ type launcher struct {
 type dependencies struct {
 	fx.In
 
-	Lc          fx.Lifecycle
-	Log         log.Component
-	Sourcemgr   sourcemgr.Component
-	LauncherMgr launchermgr.Component
+	Lc        fx.Lifecycle
+	Log       log.Component
+	Sourcemgr sourcemgr.Component
 }
 
 type provides struct {
 	fx.Out
 
 	Component
-	HealthReg *health.Registration `group:"health"`
+	HealthReg      *health.Registration      `group:"health"`
+	LauncherMgrReg *launchermgr.Registration `group:"launchermgr"`
 }
 
 func newLauncher(deps dependencies) (provides, error) {
@@ -51,11 +51,11 @@ func newLauncher(deps dependencies) (provides, error) {
 		subscription: subscription,
 		health:       health.NewRegistration(componentName),
 	}
-	deps.LauncherMgr.RegisterLauncher("file", l)
 	l.actor.HookLifecycle(deps.Lc, l.run)
 	return provides{
-		Component: l,
-		HealthReg: l.health,
+		Component:      l,
+		HealthReg:      l.health,
+		LauncherMgrReg: launchermgr.NewRegistration("file", l),
 	}, nil
 }
 
