@@ -420,6 +420,7 @@ See [#2](https://github.com/djmitche/dd-agent-comp-experiments/pull/2) for an at
  * [DONE] status output
  * tlm / expvars
  * startup for bundles? the hidden Invoke() of a constructor that does nothing is weird.
+   * Doc how to handle enabling / disabling -- maybe this is per-bundle?
  * more tests
    * some kind of external test (`./test/`?)
  * more components
@@ -434,7 +435,6 @@ See [#2](https://github.com/djmitche/dd-agent-comp-experiments/pull/2) for an at
    * Forwarder
    * [DONE] Flares
  * Subprocesses?
- * Doc how to handle enabling / disabling -- maybe this is per-bundle?
 
 ## TODO When Implemeting
 
