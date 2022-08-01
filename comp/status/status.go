@@ -32,8 +32,14 @@ type status struct {
 type dependencies struct {
 	fx.In
 	Lc     fx.Lifecycle
-	Flare  flare.Component
 	IpcAPI ipcapi.Component
+}
+
+type out struct {
+	fx.Out
+
+	Component
+	FlareReg flare.Registration `group:"flare"`
 }
 
 func newStatus(deps dependencies) Component {
@@ -41,8 +47,10 @@ func newStatus(deps dependencies) Component {
 		ipcapi: deps.IpcAPI,
 	}
 	deps.IpcAPI.Register("/agent/status", s.ipcHandler)
-	deps.Flare.RegisterFile("agent-status.txt", s.flareFile)
-	return s
+	return out{
+		Component: s,
+		FlareReg:  flare.FileRegistration("agent-status.json", s.flareFile),
+	}
 }
 
 // RegisterSection implements Component#RegisterSection.

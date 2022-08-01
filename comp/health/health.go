@@ -12,7 +12,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/djmitche/dd-agent-comp-experiments/comp/flare"
+	flare "github.com/djmitche/dd-agent-comp-experiments/comp/flare"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/ipcapi"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/util/log"
 	"go.uber.org/fx"
@@ -37,14 +37,21 @@ type health struct {
 
 type dependencies struct {
 	fx.In
+
 	Lc     fx.Lifecycle
 	Params ModuleParams `optional:"true"`
 	Log    log.Component
-	Flare  flare.Component
 	IpcAPI ipcapi.Component
 }
 
-func newHealth(deps dependencies) Component {
+type out struct {
+	fx.Out
+
+	Component
+	FlareReg flare.Registration `group:"flare"`
+}
+
+func newHealth(deps dependencies) out {
 	h := &health{
 		disabled:   deps.Params.Disabled,
 		components: make(map[string]ComponentHealth),
@@ -52,8 +59,10 @@ func newHealth(deps dependencies) Component {
 		ipcapi:     deps.IpcAPI,
 	}
 	deps.IpcAPI.Register("/agent/health", h.ipcHandler)
-	deps.Flare.RegisterFile("health.json", h.flareFile)
-	return h
+	return out{
+		Component: h,
+		FlareReg:  flare.FileRegistration("health.json", h.flareFile),
+	}
 }
 
 // RegisterSimple implements Component#RegisterSimple.

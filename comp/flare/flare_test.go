@@ -6,36 +6,55 @@
 package flare
 
 import (
+	"io/ioutil"
 	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/djmitche/dd-agent-comp-experiments/comp/config"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/ipcapi"
+	"github.com/mholt/archiver"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/fx"
 	"go.uber.org/fx/fxtest"
 )
 
 func TestFlareMechanics(t *testing.T) {
+	flareDir := t.TempDir()
+
+	type out struct {
+		fx.Out
+
+		Registration Registration `group:"flare"`
+	}
+
 	var flare Component
 	app := fxtest.New(t,
 		Module,
 		config.Module,
 		ipcapi.MockModule,
+		fx.Provide(func() out {
+			return out{
+				Registration: FileRegistration("greeting.txt", func() (string, error) {
+					return "hello, world", nil
+				}),
+			}
+		}),
 		fx.Populate(&flare),
 	)
-
-	flare.RegisterFile("test.txt", func() (string, error) {
-		return "hello, world", nil
-	})
 
 	defer app.RequireStart().RequireStop()
 
 	archiveFile, err := flare.CreateFlare()
 	require.NoError(t, err)
 
-	// XXX unzip archive file and verify..
 	require.NotEqual(t, "", archiveFile)
+	err = archiver.Extract(archiveFile, "hostname/greeting.txt", flareDir)
+	require.NoError(t, err)
+
+	content, err := ioutil.ReadFile(filepath.Join(flareDir, "hostname", "greeting.txt"))
+	require.NoError(t, err)
+	require.Equal(t, "hello, world", string(content))
 
 	// this will create a temporary file without t.TempDir, so we must clean it
 	// up manually
@@ -43,16 +62,24 @@ func TestFlareMechanics(t *testing.T) {
 }
 
 func TestMock(t *testing.T) {
+	type out struct {
+		fx.Out
+
+		Registration Registration `group:"flare"`
+	}
+
 	var flare Component
 	app := fxtest.New(t,
 		MockModule,
-		ipcapi.MockModule,
+		fx.Provide(func() out {
+			return out{
+				Registration: FileRegistration("sub/dir/test.txt", func() (string, error) {
+					return "hello, world", nil
+				}),
+			}
+		}),
 		fx.Populate(&flare),
 	)
-
-	flare.RegisterFile("sub/dir/test.txt", func() (string, error) {
-		return "hello, world", nil
-	})
 
 	defer app.RequireStart().RequireStop()
 

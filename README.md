@@ -79,7 +79,7 @@ var Module = fx.Module(
 )
 ```
 
-The Component interface is implemented in another file by an unexported type with a sensible name such as `launcher` or `provider`.
+The Component interface is implemented in another file by an unexported type with a sensible name such as `launcher` or `provider` or `foo`.
 
 ```go
 package config
@@ -302,6 +302,38 @@ For example, a slimmed-down logs agent for limited systems might only support lo
 Plugins always "plug in" to some "manager" component (typically named `foomgr`), and should depend on that manager and register themselves with it at startup.
 Then, it is up to apps to depend on the necessary plugins.
 
+This is accomplished using Fx's "value groups", where the plugins are all members of the same value group.
+The manager component will define the name and type (typically `Registration`) of the group.
+The plugins then use an `fx.Out` struct to register:
+
+```go
+type out struct {
+    fx.Out
+    Component
+    FooReg foomgr.Registration `group:"foo"`
+}
+
+func newBar(deps dependencies) out {
+    // ...
+    return out {
+        Component: comp,
+        FooReg: foomgr.Registration{comp},
+    }
+}
+```
+
+Here the `out` struct indicates that the `newBar` constructor returns multiple values, including the component itself and a foomgr.Registration in the group "foo".o
+
+The foomgr component will then gather all of the defined Registrations with
+
+```go
+type dependencies struct {
+    fx.In
+    Registrations []Registration
+    // ..
+}
+```
+
 ## Programming Errors
 
 Programming errors, such as calling a method at an inappropriate time, should be handled with `panic(..)` instead of errors.
@@ -389,6 +421,8 @@ See [#2](https://github.com/djmitche/dd-agent-comp-experiments/pull/2) for an at
    * Forwarder
    * [DONE] Flares
  * Subprocesses?
+ * Split ipc server/client into separate packages
+ * Doc how to handle enabling / disabling -- maybe this is per-bundle?
 
 ## TODO When Implemeting
 

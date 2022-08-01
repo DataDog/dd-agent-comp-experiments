@@ -25,6 +25,7 @@ import (
 // If oneShot is true, then this is a "one-shot" process and all support for long-term
 // execution, such as health monitoring, will be disabled.
 func SharedOptions(confFilePath string, oneShot bool) fx.Option {
+	var flareInst flare.Component
 	return fx.Options(
 		fx.Supply(log.ModuleParams{Console: !oneShot}),
 		log.Module,
@@ -38,7 +39,9 @@ func SharedOptions(confFilePath string, oneShot bool) fx.Option {
 		fx.Supply(ipcapi.ModuleParams{Disabled: oneShot}),
 		ipcapi.Module,
 
+		fx.Populate(&flareInst), // instantiate flare, even if nothing depends on it
 		flare.Module,
+
 		status.Module,
 
 		// Include Fx's detailed logging to stderr only if TRACE_FX is set.

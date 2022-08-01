@@ -5,8 +5,26 @@
 
 // Package flare implements a component creates flares for submission to support.
 //
-// Other components depend on this one, registering callbacks that can be used
-// to create content in the flare.
+// The data from this component is provided by other components, by providing a
+// flarereg.Registration instance in value-group "flare".
+//
+//		type out struct {
+//			fx.Out
+//
+//			flarereg.Registration
+//			Component
+//		}
+//
+//		func newThing(..) out {
+//			t := &thing{..}
+//			// ..
+//			return out {
+//				Registration: FileRegistration("thing.json", func() (string, error) {
+//					return `{"thing-count": 100}`, nil
+//				}),
+//				Component: t,
+//			}
+//		}
 //
 // This component registers itself with the ipcapi component, and supports either
 // generating a flare locally (CreateFlare) or calling the API to direct the running
@@ -14,36 +32,24 @@
 // process that is not running a full Agent will still generate a flare, but that
 // flare will lack information from components that are not running.
 //
-// All flare methods can be called at any time, but the expectation is that Register*
-// methods would be called during the setup phase.
+// All flare methods can be called at any time.
 package flare
 
 // NOTE: it might be nice to users to generate a "README.md" describing each file in
-// the flare, based on docs passed to the flare.Register* methods.
+// the flare, based on the Registrations.
 
 import (
 	"testing"
 
 	"go.uber.org/fx"
+
+	"github.com/djmitche/dd-agent-comp-experiments/comp/flare/reg"
 )
 
 // team: agent-shared-components
 
 // Component is the component type.
 type Component interface {
-	// RegisterFile registers a callback that will create content to place into
-	// a file in the flare.  The returned content will be scrubbed of secrets.
-	// If the callback fails, the error will be recorded in FLARE-ERRORS.txt,
-	// but flare generation will continue.  The given filename must be
-	// relative.
-	RegisterFile(filename string, cb func() (string, error))
-
-	// Register registers a callback that can write whatever data it wants
-	// to the flare, by creating files and directories under flareDir.
-	//
-	// The callback must scrub any content it writes to the flareDir.
-	Register(cb func(flareDir string) error)
-
 	// CreateFlare creates a new flare locally and returns the path to the
 	// flare file.
 	CreateFlare() (string, error)
@@ -61,6 +67,12 @@ type Mock interface {
 	// named file.
 	GetFlareFile(t *testing.T, filename string) (string, error)
 }
+
+// re-exports (avoiding a Go package dependency loop)
+
+type Registration = reg.Registration
+
+var FileRegistration = reg.FileRegistration
 
 // Module defines the fx options for this component.
 var Module = fx.Module(

@@ -20,71 +20,58 @@ import (
 	"github.com/djmitche/dd-agent-comp-experiments/comp/config"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/ipcapi"
 	"github.com/mholt/archiver"
+	"go.uber.org/fx"
 )
 
 type flare struct {
 	// Mutex covers all fields
 	sync.Mutex
 
-	// callbacks contains all registered callbacks (as would be given to Register)
-	callbacks []func(string) error
+	// registrations contains all registrations by other components
+	registrations []Registration
 
 	// ipcapi is used in CreateFlareRemote
 	ipcapi ipcapi.Component
 }
 
-func newFlare(config config.Component, ipcapi ipcapi.Component) Component {
+type dependencies struct {
+	fx.In
+
+	Registrations []Registration `group:"flare"`
+
+	Config config.Component
+	IpcAPI ipcapi.Component
+}
+
+func newFlare(deps dependencies) Component {
 	f := &flare{
-		ipcapi: ipcapi,
+		registrations: deps.Registrations,
+		ipcapi:        deps.IpcAPI,
 	}
-	ipcapi.Register("/agent/flare", f.ipcHandler)
+	deps.IpcAPI.Register("/agent/flare", f.ipcHandler)
 
-	// Register a few handlers for information provided by modules on which this
-	// one depends.
-	f.Register(func(flareDir string) error {
-		return config.WriteConfig(filepath.Join(flareDir, "config.yaml"))
-	})
-
-	// XXX: we would have similar dependency cycles with anything this component
-	// depends on, which means most of the "basic" components like comp/util/log.
+	/*
+		// Register a few handlers for information provided by modules on which this
+		// one depends.
+		f.Register(func(flareDir string) error {
+			return config.WriteConfig(filepath.Join(flareDir, "config.yaml"))
+		})
+	*/
 
 	return f
 }
 
-func newMock(ipcapi ipcapi.Component) Component {
+type mockDependencies struct {
+	fx.In
+
+	Registrations []Registration `group:"flare"`
+}
+
+func newMock(deps mockDependencies) Component {
 	// mock is just like the real thing, but doesn't use ipcapi or config.
-	return &flare{}
-}
-
-// RegisterFile implements Component#RegisterFile.
-func (f *flare) RegisterFile(filename string, cb func() (string, error)) {
-	if filepath.IsAbs(filename) {
-		panic(fmt.Sprintf("path %s is not relative", filename))
+	return &flare{
+		registrations: deps.Registrations,
 	}
-
-	// register this as a closure capturing filename and cb
-	f.Register(func(flareDir string) error {
-		content, err := cb()
-		if err != nil {
-			return err
-		}
-
-		fullpath := filepath.Join(flareDir, filename)
-		parentDir := filepath.Dir(fullpath)
-		err = os.MkdirAll(parentDir, 0o700)
-		if err != nil {
-			return err
-		}
-
-		return ioutil.WriteFile(fullpath, []byte(content), 0o600)
-	})
-}
-
-// Register implements Component#Register.
-func (f *flare) Register(cb func(flareDir string) error) {
-	f.Lock()
-	defer f.Unlock()
-	f.callbacks = append(f.callbacks, cb)
 }
 
 // CreateFlare implements Component#CreateFlare.
@@ -98,8 +85,7 @@ func (f *flare) CreateFlare() (string, error) {
 		return "", err
 	}
 
-	// XXX: finding the hostname may be another circular dependency, if the
-	// (as-yet-unwritten) hostname component depends on this component.
+	// TODO: use something like comp/hostname for this.
 	flareDir := filepath.Join(rootDir, "hostname")
 
 	err = os.MkdirAll(flareDir, 0o700)
@@ -188,8 +174,8 @@ func (f *flare) ipcHandler(w http.ResponseWriter, _ *http.Request) {
 // It assumes f is locked.
 func (f *flare) writeFlareFiles(flareDir string, returnErrors bool) error {
 	errors := []string{}
-	for _, cb := range f.callbacks {
-		err := cb(flareDir)
+	for _, reg := range f.registrations {
+		err := reg.Callback(flareDir)
 		if err != nil {
 			if returnErrors {
 				return err

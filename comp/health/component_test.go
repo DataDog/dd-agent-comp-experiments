@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/djmitche/dd-agent-comp-experiments/comp/config"
-	"github.com/djmitche/dd-agent-comp-experiments/comp/flare"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/ipcapi"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/util/log"
 	"github.com/stretchr/testify/require"
@@ -24,7 +23,6 @@ func TestSimple(t *testing.T) {
 		Module,
 		config.Module,
 		log.Module,
-		flare.Module,
 		ipcapi.Module,
 		fx.Populate(&h),
 	)
@@ -44,7 +42,6 @@ func TestLiveness(t *testing.T) {
 		Module,
 		config.Module,
 		log.Module,
-		flare.Module,
 		ipcapi.Module,
 		fx.Populate(&h),
 	)
