@@ -8,24 +8,6 @@
 // The data from this component is provided by other components, by providing a
 // flarereg.Registration instance in value-group "flare".
 //
-//		type out struct {
-//			fx.Out
-//
-//			flarereg.Registration
-//			Component
-//		}
-//
-//		func newThing(..) out {
-//			t := &thing{..}
-//			// ..
-//			return out {
-//				Registration: FileRegistration("thing.json", func() (string, error) {
-//					return `{"thing-count": 100}`, nil
-//				}),
-//				Component: t,
-//			}
-//		}
-//
 // This component registers itself with the ipcapi component, and supports either
 // generating a flare locally (CreateFlare) or calling the API to direct the running
 // Agent to create a flare (CreateFlareRemote).  Creating a flare locally in a
