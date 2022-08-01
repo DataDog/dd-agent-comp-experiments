@@ -307,25 +307,26 @@ The manager component will define the name and type (typically `Registration`) o
 The plugins then use an `fx.Out` struct to register:
 
 ```go
-type out struct {
+type provides struct {
     fx.Out
     Component
     FooReg *foomgr.Registration `group:"foo"`
-}
+} //                 IMPORTANT! ^^^^^^^^^^^^^
+  // Without this tag, build will succeed but the registration will be ignored
 
-func newBar(deps dependencies) out {
+func newBar(deps dependencies) provides {
     comp := bar {
         fooReg: foomgr.NewRegistration(..),
         // ...
     }
-    return out {
+    return provides {
         Component: comp,
         FooReg: comp.fooReg,
     }
 }
 ```
 
-Here the `out` struct indicates that the `newBar` constructor returns multiple values, including the component itself and a foomgr.Registration in the group "foo".
+Here the `provides` struct indicates that the `newBar` constructor returns multiple values, including the component itself and a foomgr.Registration in the group "foo".
 
 The foomgr component will then gather all of the defined Registrations with
 

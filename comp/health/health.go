@@ -46,14 +46,14 @@ type dependencies struct {
 	Registrations []*Registration `group:"health"`
 }
 
-type out struct {
+type provides struct {
 	fx.Out
 
 	Component
 	FlareReg *flare.Registration `group:"flare"`
 }
 
-func newHealth(deps dependencies) out {
+func newHealth(deps dependencies) provides {
 	h := &health{
 		disabled:   deps.Params.Disabled,
 		components: make(map[string]ComponentHealth),
@@ -70,7 +70,7 @@ func newHealth(deps dependencies) out {
 	}
 
 	deps.IpcAPI.Register("/agent/health", h.ipcHandler)
-	return out{
+	return provides{
 		Component: h,
 		FlareReg:  flare.FileRegistration("health.json", h.flareFile),
 	}

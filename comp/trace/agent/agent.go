@@ -26,25 +26,32 @@ type dependencies struct {
 
 	Lc           fx.Lifecycle
 	HTTPReceiver httpreceiver.Component // required just to load the component
-	Status       status.Component
 	Log          log.Component
 }
 
-func newAgent(deps dependencies) Component {
+type provides struct {
+	fx.Out
+
+	Component
+	StatusReg *status.Registration `group:"status"`
+}
+
+func newAgent(deps dependencies) provides {
 	// TODO: this will likely carry a reference to Receiver, Processor, and so
 	// on to handle requests for Status, stats, etc.
 	a := &agent{
 		log: deps.Log,
 	}
 
-	deps.Status.RegisterSection("trace-agent", 3, a.status)
-
 	deps.Lc.Append(fx.Hook{
 		OnStart: a.start,
 		OnStop:  a.stop,
 	})
 
-	return a
+	return provides{
+		Component: a,
+		StatusReg: status.NewRegistration("trace-agent", 3, a.status),
+	}
 }
 
 func (a *agent) start(context.Context) error {

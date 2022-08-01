@@ -22,7 +22,7 @@ import (
 func TestFlareMechanics(t *testing.T) {
 	flareDir := t.TempDir()
 
-	type out struct {
+	type provides struct {
 		fx.Out
 
 		Registration *Registration `group:"flare"`
@@ -33,8 +33,8 @@ func TestFlareMechanics(t *testing.T) {
 		Module,
 		config.Module,
 		ipcapi.MockModule,
-		fx.Provide(func() out {
-			return out{
+		fx.Provide(func() provides {
+			return provides{
 				Registration: FileRegistration("greeting.txt", func() (string, error) {
 					return "hello, world", nil
 				}),
@@ -62,7 +62,7 @@ func TestFlareMechanics(t *testing.T) {
 }
 
 func TestMock(t *testing.T) {
-	type out struct {
+	type provides struct {
 		fx.Out
 
 		Registration *Registration `group:"flare"`
@@ -71,8 +71,8 @@ func TestMock(t *testing.T) {
 	var flare Component
 	app := fxtest.New(t,
 		MockModule,
-		fx.Provide(func() out {
-			return out{
+		fx.Provide(func() provides {
+			return provides{
 				Registration: FileRegistration("sub/dir/test.txt", func() (string, error) {
 					return "hello, world", nil
 				}),

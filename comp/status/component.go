@@ -5,9 +5,8 @@
 
 // Package status implements the functionality behind `agent status`.
 //
-// It allows other components to register "sections" of the status output, and makes
-// these available via the ipcapi.  The `agent status` command can then choose which
-// sections to display.
+// The data included in the status output is provided by other components, by providing a
+// status.Registration instance in value-group "health".
 //
 // All of the component's methods can be called concurrently.
 package status
@@ -20,18 +19,30 @@ import (
 
 // Component is the component type.
 type Component interface {
-	// RegisterSection registers a callback that will get the text of a
-	// section.  The order parameter determines the order in which sections are
-	// displayed when displaying all sections.  The callback must produce some
-	// output; if an error occurs, it should include that error in the output.
-	RegisterSection(section string, order int, cb func() string)
-
 	// GetStatus gets the agent status.  If the section parameter is not empty, then
 	// only that section's status is returned.  This is a newline-terminated string.
 	GetStatus(section string) string
 
 	// GetStatus gets the same value as GetStatus, but using the IPC API.
 	GetStatusRemote(section string) (string, error)
+}
+
+// Registration is provided by other components in order to register sections
+// for status reporting.
+type Registration struct {
+	section string
+	order   int
+	cb      func() string
+}
+
+// NewRegistration creates a new Registration.
+//
+// The section name allows users to select a single section for output (`agent
+// status <section-name>`). When all sections are included, they are ordered by
+// `order`.  The `cb` returns the text of the section, including the header. If
+// an error occurs in `cb`, it should include the error message in its output.
+func NewRegistration(section string, order int, cb func() string) *Registration {
+	return &Registration{section, order, cb}
 }
 
 // Module defines the fx options for this component.

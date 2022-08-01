@@ -24,26 +24,33 @@ type agent struct {
 type dependencies struct {
 	fx.In
 
-	Lc     fx.Lifecycle
-	Cfg    *config
-	Log    log.Component
-	Status status.Component
+	Lc  fx.Lifecycle
+	Cfg *config
+	Log log.Component
 }
 
-func newAgent(deps dependencies) Component {
+type provides struct {
+	fx.Out
+
+	Component
+	StatusReg *status.Registration `group:"status"`
+}
+
+func newAgent(deps dependencies) provides {
 	a := &agent{
 		cfg: deps.Cfg,
 		log: deps.Log,
 	}
-
-	deps.Status.RegisterSection("logs-agent", 4, a.status)
 
 	deps.Lc.Append(fx.Hook{
 		OnStart: a.start,
 		OnStop:  a.stop,
 	})
 
-	return a
+	return provides{
+		Component: a,
+		StatusReg: status.NewRegistration("logs-agent", 4, a.status),
+	}
 }
 
 func (a *agent) start(context.Context) error {

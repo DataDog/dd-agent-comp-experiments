@@ -44,14 +44,14 @@ type dependencies struct {
 	TraceWriter tracewriter.Component
 }
 
-type out struct {
+type provides struct {
 	fx.Out
 
 	Component
 	HealthReg *health.Registration `group:"health"`
 }
 
-func newProcessor(deps dependencies) out {
+func newProcessor(deps dependencies) provides {
 	width := runtime.NumCPU()
 	p := &processor{
 		payloadChan:     make(chan *api.Payload, width),
@@ -59,7 +59,7 @@ func newProcessor(deps dependencies) out {
 		health:          health.NewRegistration("comp/trace/internal/processor"),
 	}
 	p.actor.HookLifecycle(deps.Lc, p.run)
-	return out{
+	return provides{
 		Component: p,
 		HealthReg: p.health,
 	}

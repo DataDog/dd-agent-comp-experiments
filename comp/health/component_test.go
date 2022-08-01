@@ -18,7 +18,7 @@ import (
 )
 
 func TestSimple(t *testing.T) {
-	type out struct {
+	type provides struct {
 		fx.Out
 		Registration *Registration `group:"health"`
 	}
@@ -30,8 +30,8 @@ func TestSimple(t *testing.T) {
 		config.Module,
 		log.Module,
 		ipcapi.Module,
-		fx.Provide(func() out {
-			return out{
+		fx.Provide(func() provides {
+			return provides{
 				Registration: reg,
 			}
 		}),
@@ -47,7 +47,7 @@ func TestSimple(t *testing.T) {
 }
 
 func TestLiveness(t *testing.T) {
-	type out struct {
+	type provides struct {
 		fx.Out
 		Registration *Registration `group:"health"`
 	}
@@ -59,8 +59,8 @@ func TestLiveness(t *testing.T) {
 		config.Module,
 		log.Module,
 		ipcapi.Module,
-		fx.Provide(func() out {
-			return out{
+		fx.Provide(func() provides {
+			return provides{
 				Registration: reg,
 			}
 		}),

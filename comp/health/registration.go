@@ -10,11 +10,6 @@ import (
 	"time"
 )
 
-// NewRegistration creates a new Registration instance for the named component.
-func NewRegistration(component string) *Registration {
-	return &Registration{component: component}
-}
-
 // SetUnhealthy records this component as being unhealthy, with the included message
 // summarizing the problem.
 //

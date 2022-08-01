@@ -37,7 +37,8 @@ type Component interface {
 	GetHealthRemote() (map[string]ComponentHealth, error)
 }
 
-// Registration represents a registration with this component.
+// Registration is provided by other components in order to register those
+// components for health monitoring.
 //
 // Registration methods must not be called until the calling component has
 // started.
@@ -48,6 +49,11 @@ type Registration struct {
 	// health links to the comp/health component, once registration is
 	// complete.
 	health *health
+}
+
+// NewRegistration creates a new Registration instance for the named component.
+func NewRegistration(component string) *Registration {
+	return &Registration{component: component}
 }
 
 // ModuleParams are the parameters to Module.

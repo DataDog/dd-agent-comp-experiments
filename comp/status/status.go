@@ -9,7 +9,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"sort"
 	"strings"
 	"sync"
 
@@ -23,7 +22,7 @@ type status struct {
 	sync.Mutex
 
 	// components maps component package path to that component's current status
-	sections []sectionInfo
+	sections []*Registration
 
 	// ipcapi is used to serve the status to remote instances.
 	ipcapi ipcapi.Component
@@ -31,41 +30,29 @@ type status struct {
 
 type dependencies struct {
 	fx.In
-	Lc     fx.Lifecycle
-	IpcAPI ipcapi.Component
+
+	Lc            fx.Lifecycle
+	IpcAPI        ipcapi.Component
+	Registrations []*Registration `group:"status"`
 }
 
-type out struct {
+type provides struct {
 	fx.Out
 
 	Component
 	FlareReg *flare.Registration `group:"flare"`
 }
 
-func newStatus(deps dependencies) out {
+func newStatus(deps dependencies) provides {
 	s := &status{
-		ipcapi: deps.IpcAPI,
+		ipcapi:   deps.IpcAPI,
+		sections: deps.Registrations,
 	}
 	deps.IpcAPI.Register("/agent/status", s.ipcHandler)
-	return out{
+	return provides{
 		Component: s,
 		FlareReg:  flare.FileRegistration("agent-status.json", s.flareFile),
 	}
-}
-
-// RegisterSection implements Component#RegisterSection.
-func (s *status) RegisterSection(section string, order int, cb func() string) {
-	s.Lock()
-	defer s.Unlock()
-
-	for _, s := range s.sections {
-		if s.name == section {
-			panic(fmt.Sprintf("Section %s is already registered with the status component", section))
-		}
-	}
-
-	s.sections = append(s.sections, sectionInfo{name: section, order: order, cb: cb})
-	sort.Sort(byOrder(s.sections))
 }
 
 // GetStatus implements Component#GetStatus.
@@ -75,7 +62,7 @@ func (s *status) GetStatus(section string) string {
 
 	var bldr strings.Builder
 	for _, s := range s.sections {
-		if section != "" && s.name != section {
+		if section != "" && s.section != section {
 			continue
 		}
 
@@ -123,14 +110,8 @@ func (s *status) flareFile() (string, error) {
 	return s.GetStatus(""), nil
 }
 
-type sectionInfo struct {
-	name  string
-	order int
-	cb    func() string
-}
-
 // byOrder supports sorting sections by order.
-type byOrder []sectionInfo
+type byOrder []*Registration
 
 func (a byOrder) Len() int           { return len(a) }
 func (a byOrder) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
