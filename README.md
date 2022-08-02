@@ -42,8 +42,12 @@ A component is defined in a dedicated package under `comp/`, with the following 
    The documentation (both package-level and method-level) should also include:
 
    * Precise information about which interface methods can be called during the setup phase, and which must only be called after the component is started.
-   * Precise information about data ownership of passed values and returned values (does the method modify its arguments?  can the caller modify a returned slice or map?).
-   * Precise information about goroutines and blocking (does the method block? is a callback invoked in a dedicated goroutine? what happens if a channel is full?)
+   * Precise information about data ownership of passed values and returned values.
+     By default, any mutable value returned by a component will not be modified after it is returned.
+     Similarly, any mutable value passed to a component will not be later modified either by the component or the caller.
+     Any deviation from these defaults should be clearly documented.
+   * Precise information about goroutines and blocking (does the method block? is a callback invoked in a dedicated goroutine? what happens if a channel is full?).
+     By default, all methods are assumed to return without blocking.
 
  * `pkg.Component` -- the type implemented by the component.
    This can be an empty interface, but is the type by which other components will find this one via `fx`.
