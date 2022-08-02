@@ -50,7 +50,7 @@ A component is defined in a dedicated package under `comp/`, with the following 
      By default, all methods are assumed to return without blocking.
 
  * `pkg.Component` -- the type implemented by the component.
-   This can be an empty interface, but is the type by which other components will find this one via `fx`.
+   This can be an empty interface, but is the type by which other components will find this one via `fx` and so must still appear in a function signature.
    It should have a formulaic doc string like `// Component is the component type.`, deferring documentation to the package docs.
    All interface methods should be exported and thoroughly documented.
 
