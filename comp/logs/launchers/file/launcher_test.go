@@ -31,12 +31,12 @@ func TestMyComponent(t *testing.T) {
 		log.MockModule,
 		sourcemgr.Module,
 		launchermgr.Module,
+		fx.Supply(t),
 		fx.Populate(&comp),
 		fx.Populate(&smgr),
 		fx.Populate(&l),
 	)
 
-	l.(log.Mock).SetT(t)
 	defer app.RequireStart().RequireStop()
 
 	// Arrange

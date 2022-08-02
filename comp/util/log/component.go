@@ -9,13 +9,11 @@
 // will be buffered until the component starts and only written after that
 // time.
 //
-// This component has special support for acting as an Fx logger, including
-// capturing log messages emitted before the component itself is initialized.
+// Use the mock component to capture and assert on log messages.  It requires a
+// *testing.T, which can be supplied with `fxtest.New(.., fx.Supply(t), ..)`.
 package log
 
 import (
-	"testing"
-
 	"go.uber.org/fx"
 )
 
@@ -42,11 +40,6 @@ type Component interface {
 // Mock is the mocked component type.
 type Mock interface {
 	Component
-
-	// SetT sets the testing instance to which log messages should be copied.
-	// If this is not called and ModuleParams#Console is false, log messages
-	// are not written anywhere.
-	SetT(*testing.T)
 
 	// StartCapture begins capturing log messages.  All log messages are
 	// captured, regardless of level.

@@ -10,8 +10,6 @@ import (
 	"strings"
 	"sync"
 	"testing"
-
-	"go.uber.org/fx"
 )
 
 type mock struct {
@@ -21,8 +19,10 @@ type mock struct {
 	captured  []string
 }
 
-func newMockLogger(lc fx.Lifecycle) Component {
-	return &mock{}
+func newMockLogger(t *testing.T) Component {
+	return &mock{
+		t: t,
+	}
 }
 
 // Configure implements Component#Configure.
@@ -48,14 +48,6 @@ func (m *mock) Debug(v ...interface{}) {
 
 // Flush implements Component#Flush.
 func (*mock) Flush() {
-}
-
-// SetT implements Mock#SetT.
-func (m *mock) SetT(t *testing.T) {
-	m.Lock()
-	defer m.Unlock()
-
-	m.t = t
 }
 
 // StartCapture implements Mock#StartCapture.
