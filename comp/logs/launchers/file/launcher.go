@@ -64,7 +64,7 @@ func (l *launcher) run(ctx context.Context) {
 	for {
 		select {
 		case chg := <-l.subscription.Chan():
-			l.log.Debug("got change", chg)
+			l.log.Debug("file launcher got LogSource change", chg)
 			// XXX start a tailer, etc. etc.
 		case <-monitor:
 		case <-ctx.Done():

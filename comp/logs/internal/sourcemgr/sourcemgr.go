@@ -9,6 +9,8 @@ import (
 	"context"
 	"sync"
 
+	"github.com/djmitche/dd-agent-comp-experiments/comp/autodiscovery"
+	"github.com/djmitche/dd-agent-comp-experiments/pkg/util/actor"
 	"github.com/djmitche/dd-agent-comp-experiments/pkg/util/subscriptions"
 	"go.uber.org/fx"
 )
@@ -22,14 +24,25 @@ type sourceMgr struct {
 
 	// subscriptions contains the subcriptions for source additions/removals
 	subscriptions subscriptions.SubscriptionPoint[SourceChange]
+
+	// subscription is the subscription to AD
+	subscription subscriptions.Subscriber[autodiscovery.ConfigChange]
+
+	actor actor.Goroutine
 }
 
-func newSourceMgr(lc fx.Lifecycle) Component {
+func newSourceMgr(lc fx.Lifecycle, autodiscovery autodiscovery.Component) (Component, error) {
+	subscription, err := autodiscovery.Subscribe()
+	if err != nil {
+		return &sourceMgr{}, err
+	}
 	sm := &sourceMgr{
 		subscriptions: subscriptions.NewSubscriptionPoint[SourceChange](),
+		subscription:  subscription,
 	}
+	sm.actor.HookLifecycle(lc, sm.run)
 	lc.Append(fx.Hook{OnStart: sm.start})
-	return sm
+	return sm, nil
 }
 
 // start marks the component as started.
@@ -38,6 +51,30 @@ func (sm *sourceMgr) start(ctx context.Context) error {
 	defer sm.Unlock()
 	sm.started = true
 	return nil
+}
+
+func (sm *sourceMgr) run(ctx context.Context) {
+	sources := map[string]*LogSource{}
+	for {
+		select {
+		case chg := <-sm.subscription.Chan():
+			// XXX this temporarily subscribes to AD; there should be a scheduler in
+			// between the two components.
+			if chg.IsScheduled {
+				src := &LogSource{Name: "logs-for-" + chg.Config.Name}
+				sources[src.Name] = src
+				sm.AddSource(src)
+			} else {
+				name := "logs-for-" + chg.Config.Name
+				src := sources[name]
+				if src != nil {
+					sm.RemoveSource(src)
+				}
+			}
+		case <-ctx.Done():
+			return
+		}
+	}
 }
 
 // Subscribe implements Component#Subscribe.

@@ -8,6 +8,7 @@ package common
 import (
 	"os"
 
+	"github.com/djmitche/dd-agent-comp-experiments/comp/autodiscovery"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/config"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/flare"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/health"
@@ -61,6 +62,9 @@ func SharedOptions(confFilePath string, oneShot bool) fx.Option {
 		options = append(options,
 			ipcclient.Module)
 	}
+
+	options = append(options,
+		autodiscovery.Module)
 
 	// Include Fx's detailed logging to stderr only if TRACE_FX is set.
 	// This logging is verbose, and occurs mostly during early application
