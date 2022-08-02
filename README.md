@@ -350,13 +350,6 @@ type dependencies struct {
 }
 ```
 
-## Programming Errors
-
-Programming errors, such as calling a method at an inappropriate time, should be handled with `panic(..)` instead of errors.
-If an error is returned, it will likely be logged and may not be seen.
-A panic, on the other hand, is very noticeable and carries a stack trace that can help the programmer figure out what they've missed.
-Try to arrange for such panics to happen consistently, so that such programming errors are quick to find.
-
 # Future Plans
 
 ## Component Linting
