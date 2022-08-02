@@ -48,7 +48,7 @@ func TestMyComponent(t *testing.T) {
 	// Assert
 	require.Eventually(t, func() bool {
 		for _, m := range l.(log.Mock).Captured() {
-			if strings.Contains(m, "got change") {
+			if strings.Contains(m, "got LogSource change") {
 				return true
 			}
 		}

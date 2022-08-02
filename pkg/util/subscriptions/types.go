@@ -24,20 +24,8 @@ package subscriptions
 // Message is the type of the message handled by a subscription point.  It can be any type.
 type Message interface{}
 
-// SubscriptionPoint defines a source of events to which others may subscribe.
-type SubscriptionPoint[M Message] interface {
-	// Subscribe adds a new subscriber to the subscription point.
-	Subscribe() (Subscriber[M], error)
-
-	// Unsubscribe removes a subscriber from the subscription point.
-	Unsubscribe(Subscriber[M])
-
-	// Notify notifies all subscribers with a new message.
-	Notify(M)
-}
-
-// Subscriber defines a single subscriber to a SubscriptionPoint.
-type Subscriber[M Message] interface {
+// Subscription defines a single subscriber to a SubscriptionPoint.
+type Subscription[M Message] interface {
 	// Chan returns the channel from which the subscriber should read messages.
 	Chan() <-chan M
 

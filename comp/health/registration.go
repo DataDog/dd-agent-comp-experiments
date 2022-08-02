@@ -15,14 +15,20 @@ import (
 //
 // This method must not be called before the monitored component has started.
 func (reg *Registration) SetUnhealthy(message string) {
-	reg.health.setHealth(reg.component, false, message)
+	// if comp/health hasn't been created, then there is nothing to do.
+	if reg.health != nil {
+		reg.health.setHealth(reg.component, false, message)
+	}
 }
 
 // SetHealthy records this component as being healthy.
 //
 // This method must not be called before the monitored component has started.
 func (reg *Registration) SetHealthy() {
-	reg.health.setHealth(reg.component, true, "")
+	// if comp/health hasn't been created, then there is nothing to do.
+	if reg.health != nil {
+		reg.health.setHealth(reg.component, true, "")
+	}
 }
 
 // LivenessMonitor starts a goroutine that periodically writes items to the
@@ -38,6 +44,11 @@ func (reg *Registration) SetHealthy() {
 //
 // This method must not be called before the monitored component has started.
 func (reg *Registration) LivenessMonitor(period time.Duration) (<-chan struct{}, func()) {
+	// if comp/health hasn't been created, then there is nothing to do.
+	if reg.health == nil {
+		return make(chan struct{}), func() {}
+	}
+
 	ch := make(chan struct{}, 1) // capacity=1 to allow one tick to elapse before failure
 	stopped := make(chan struct{})
 	ctx, cancel := context.WithCancel(context.Background())

@@ -6,49 +6,44 @@
 package subscriptions
 
 // subscriptionPoint implements SubscriptionPoint.
-type subscriptionPoint[M Message] struct {
-	subscribers []*subscriber[M]
+type SubscriptionPoint[M Message] struct {
+	subscribers []*subscription[M]
 }
 
-type subscriber[M Message] struct {
+type subscription[M Message] struct {
 	ch chan M
 }
 
-// NewSubscriptionPoint creates a new SubscriptionPoint.
-func NewSubscriptionPoint[M Message]() SubscriptionPoint[M] {
-	return &subscriptionPoint[M]{}
-}
-
-// Subscribe implements SubscriptionPoint#Subscribe.
-func (sp *subscriptionPoint[M]) Subscribe() (Subscriber[M], error) {
-	sub := &subscriber[M]{make(chan M, 1)}
-	sp.subscribers = append(sp.subscribers, sub)
-	return sub, nil
-}
-
-// Unsubscribe implements SubscriptionPoint#Unsubscribe.
-func (sp *subscriptionPoint[M]) Unsubscribe(sub Subscriber[M]) {
-	for i, s := range sp.subscribers {
-		if s == sub {
-			sp.subscribers = append(sp.subscribers[:i], sp.subscribers[i+1:]...)
-			return
-		}
+// NewSubscriptionPoint creates a new SubscriptionPoint.  The subscriptions
+// must all be instances of `subscription`.
+func NewSubscriptionPoint[M Message](subscriptions []Subscription[M]) *SubscriptionPoint[M] {
+	subValues := make([]*subscription[M], len(subscriptions))
+	for i, sub := range subscriptions {
+		subValues[i] = sub.(*subscription[M])
+	}
+	return &SubscriptionPoint[M]{
+		subscribers: subValues,
 	}
 }
 
-// Notify implements SubscriptionPoint#Notify.
-func (sp *subscriptionPoint[M]) Notify(message M) {
+// NewSubscription creates a new subscription of the required type.
+func NewSubscription[M Message]() (Subscription[M], error) {
+	return &subscription[M]{make(chan M, 1)}, nil
+}
+
+// Notify notifies all subscribers with a new message.
+func (sp *SubscriptionPoint[M]) Notify(message M) {
 	for _, s := range sp.subscribers {
 		s.send(message)
 	}
 }
 
-// Chan implements Subscriber#Chan.
-func (s *subscriber[M]) Chan() <-chan M {
+// Chan implements Subscription#Chan.
+func (s *subscription[M]) Chan() <-chan M {
 	return s.ch
 }
 
-// send implements Subscriber#send.
-func (s *subscriber[M]) send(message M) {
+// send implements Subscription#send.
+func (s *subscription[M]) send(message M) {
 	s.ch <- message
 }

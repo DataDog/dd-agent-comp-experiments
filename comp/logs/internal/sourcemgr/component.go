@@ -7,6 +7,8 @@
 // LogSource).  It receives additions and removals of sources from other
 // components, and it informs subscribers of these additions and removals.
 //
+// Subscribers should provide a Subscription value in value-group "sourcemgr".
+//
 // Once added to this component, a LogSource must be considered immutable: neither
 // the component having called AddSource, nor any of the subscribers, may modify the
 // source.
@@ -25,10 +27,6 @@ const componentName = "comp/logs/internal/sourcemgr"
 
 // Component is the component type.
 type Component interface {
-	// Subscribe registers a subscriber for add/remove events.  This must be called
-	// before the component starts.  Subscribers cannot be unsubscribed.
-	Subscribe() (subscriptions.Subscriber[SourceChange], error)
-
 	// AddSource adds a new log source.
 	AddSource(*LogSource)
 
@@ -48,6 +46,15 @@ type SourceChange struct {
 
 	// Source is the source being added or removed.
 	Source *LogSource
+}
+
+// Subscription is the type that other components should provide in order to
+// subscribe to SourceChanges.
+type Subscription = subscriptions.Subscription[SourceChange]
+
+// Subscribe creates a new subscription to this component.
+func Subscribe() (Subscription, error) {
+	return subscriptions.NewSubscription[SourceChange]()
 }
 
 // Module defines the fx options for this component.

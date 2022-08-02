@@ -20,7 +20,7 @@ import (
 
 type launcher struct {
 	log          log.Component
-	subscription subscriptions.Subscriber[sourcemgr.SourceChange]
+	subscription subscriptions.Subscription[sourcemgr.SourceChange]
 	actor        actor.Goroutine
 	health       *health.Registration
 }
@@ -28,9 +28,8 @@ type launcher struct {
 type dependencies struct {
 	fx.In
 
-	Lc        fx.Lifecycle
-	Log       log.Component
-	Sourcemgr sourcemgr.Component
+	Lc  fx.Lifecycle
+	Log log.Component
 }
 
 type provides struct {
@@ -38,11 +37,12 @@ type provides struct {
 
 	Component
 	HealthReg      *health.Registration      `group:"health"`
+	Subscription   sourcemgr.Subscription    `group:"sourcemgr"`
 	LauncherMgrReg *launchermgr.Registration `group:"launchermgr"`
 }
 
 func newLauncher(deps dependencies) (provides, error) {
-	subscription, err := deps.Sourcemgr.Subscribe()
+	subscription, err := sourcemgr.Subscribe()
 	if err != nil {
 		return provides{}, err
 	}
@@ -56,6 +56,7 @@ func newLauncher(deps dependencies) (provides, error) {
 		Component:      l,
 		HealthReg:      l.health,
 		LauncherMgrReg: launchermgr.NewRegistration("file", l),
+		Subscription:   subscription,
 	}, nil
 }
 

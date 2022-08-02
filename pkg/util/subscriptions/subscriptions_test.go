@@ -12,20 +12,16 @@ import (
 )
 
 func TestSubscribeUnsubscribe(t *testing.T) {
-	sp := NewSubscriptionPoint[string]()
-
-	sub1, err := sp.Subscribe()
+	sub1, err := NewSubscription[string]()
 	require.NoError(t, err)
-	sub2, err := sp.Subscribe()
+	sub2, err := NewSubscription[string]()
 	require.NoError(t, err)
+	sp := NewSubscriptionPoint[string]([]Subscription[string]{sub1, sub2})
 
 	sp.Notify("hello!")
 	require.Equal(t, "hello!", <-sub1.Chan())
 	require.Equal(t, "hello!", <-sub2.Chan())
 
-	sp.Unsubscribe(sub1)
-
-	sp.Notify("goodbye!")
 	require.Equal(t, 0, len(sub1.Chan()))
-	require.Equal(t, "goodbye!", <-sub2.Chan())
+	require.Equal(t, 0, len(sub2.Chan()))
 }

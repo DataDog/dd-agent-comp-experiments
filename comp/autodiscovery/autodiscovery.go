@@ -26,8 +26,8 @@ type autoDiscovery struct {
 	// log is the log component
 	log log.Component
 
-	// subscriptions contains the subcriptions for source additions/removals
-	subscriptions subscriptions.SubscriptionPoint[ConfigChange]
+	// subscriptionPoint contains the subcriptions for source additions/removals
+	subscriptionPoint *subscriptions.SubscriptionPoint[ConfigChange]
 
 	// actor manages the goroutine "monitoring" for container/pod changes
 	actor actor.Goroutine
@@ -38,8 +38,9 @@ type autoDiscovery struct {
 type dependencies struct {
 	fx.In
 
-	Log log.Component
-	Lc  fx.Lifecycle
+	Lc            fx.Lifecycle
+	Log           log.Component
+	Subscriptions []Subscription `group:"autodiscovery"`
 }
 
 type provides struct {
@@ -51,9 +52,9 @@ type provides struct {
 
 func newAD(deps dependencies) provides {
 	ad := &autoDiscovery{
-		log:           deps.Log,
-		subscriptions: subscriptions.NewSubscriptionPoint[ConfigChange](),
-		health:        health.NewRegistration(componentName),
+		log:               deps.Log,
+		subscriptionPoint: subscriptions.NewSubscriptionPoint[ConfigChange](deps.Subscriptions),
+		health:            health.NewRegistration(componentName),
 	}
 	ad.actor.HookLifecycle(deps.Lc, ad.run)
 	return provides{
@@ -73,13 +74,13 @@ func (ad *autoDiscovery) run(ctx context.Context) {
 				cfg := &Config{Name: fmt.Sprintf("cfg-%d", rand.Int63())}
 				scheduled = append(scheduled, cfg)
 				ad.log.Debug("scheduling", cfg.Name)
-				ad.subscriptions.Notify(ConfigChange{IsScheduled: true, Config: cfg})
+				ad.subscriptionPoint.Notify(ConfigChange{IsScheduled: true, Config: cfg})
 			} else {
 				i := rand.Intn(len(scheduled))
 				cfg := scheduled[i]
 				scheduled = append(scheduled[:i], scheduled[i+1:]...)
 				ad.log.Debug("unscheduling", cfg.Name)
-				ad.subscriptions.Notify(ConfigChange{IsScheduled: false, Config: cfg})
+				ad.subscriptionPoint.Notify(ConfigChange{IsScheduled: false, Config: cfg})
 			}
 		case <-monitor:
 		case <-ctx.Done():
@@ -87,11 +88,4 @@ func (ad *autoDiscovery) run(ctx context.Context) {
 			return
 		}
 	}
-}
-
-// Subscribe implements Component#Subscribe.
-func (ad *autoDiscovery) Subscribe() (subscriptions.Subscriber[ConfigChange], error) {
-	ad.Lock()
-	defer ad.Unlock()
-	return ad.subscriptions.Subscribe()
 }

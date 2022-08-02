@@ -4,8 +4,9 @@
 // Copyright 2016-present Datadog, Inc.
 
 // Package autodiscovery implements discovery of configuration for dynamic
-// entities like pods and containers.  It broadcasts changes to that configuration
-// to subscribers.
+// entities like pods and containers.  It broadcasts changes to that
+// configuration to subscribers.  Subscriptions are created by providing a
+// Subscription value in value-group "autodiscovery".
 package autodiscovery
 
 import (
@@ -19,10 +20,6 @@ const componentName = "comp/autodiscovery"
 
 // Component is the component type.
 type Component interface {
-	// Subscribe registers a subscriber for schedule/unschedule events.  This
-	// must be called before the component starts.  Subscribers cannot be
-	// unsubscribed.
-	Subscribe() (subscriptions.Subscriber[ConfigChange], error)
 }
 
 // Config defines config for a container or pod. XXX this is an
@@ -39,6 +36,15 @@ type ConfigChange struct {
 
 	// Config is the config being changed.
 	Config *Config
+}
+
+// Subscription is the type that other components should provide in order to
+// subscribe to ConfigChanges.
+type Subscription = subscriptions.Subscription[ConfigChange]
+
+// Subscribe creates a new subscription to this component.
+func Subscribe() (Subscription, error) {
+	return subscriptions.NewSubscription[ConfigChange]()
 }
 
 // Module defines the fx options for this component.

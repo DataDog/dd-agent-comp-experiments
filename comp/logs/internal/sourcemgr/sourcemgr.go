@@ -23,26 +23,43 @@ type sourceMgr struct {
 	started bool
 
 	// subscriptions contains the subcriptions for source additions/removals
-	subscriptions subscriptions.SubscriptionPoint[SourceChange]
+	subscriptions *subscriptions.SubscriptionPoint[SourceChange]
 
 	// subscription is the subscription to AD
-	subscription subscriptions.Subscriber[autodiscovery.ConfigChange]
+	subscription subscriptions.Subscription[autodiscovery.ConfigChange]
 
 	actor actor.Goroutine
 }
 
-func newSourceMgr(lc fx.Lifecycle, autodiscovery autodiscovery.Component) (Component, error) {
+type dependencies struct {
+	fx.In
+
+	Lc            fx.Lifecycle
+	Subscriptions []Subscription `group:"sourcemgr"`
+}
+
+type provides struct {
+	fx.Out
+
+	Component
+	Subscription autodiscovery.Subscription `group:"autodiscovery"`
+}
+
+func newSourceMgr(deps dependencies) (provides, error) {
 	subscription, err := autodiscovery.Subscribe()
 	if err != nil {
-		return &sourceMgr{}, err
+		return provides{}, err
 	}
 	sm := &sourceMgr{
-		subscriptions: subscriptions.NewSubscriptionPoint[SourceChange](),
+		subscriptions: subscriptions.NewSubscriptionPoint[SourceChange](deps.Subscriptions),
 		subscription:  subscription,
 	}
-	sm.actor.HookLifecycle(lc, sm.run)
-	lc.Append(fx.Hook{OnStart: sm.start})
-	return sm, nil
+	sm.actor.HookLifecycle(deps.Lc, sm.run)
+	deps.Lc.Append(fx.Hook{OnStart: sm.start})
+	return provides{
+		Component:    sm,
+		Subscription: sm.subscription,
+	}, nil
 }
 
 // start marks the component as started.
@@ -75,16 +92,6 @@ func (sm *sourceMgr) run(ctx context.Context) {
 			return
 		}
 	}
-}
-
-// Subscribe implements Component#Subscribe.
-func (sm *sourceMgr) Subscribe() (subscriptions.Subscriber[SourceChange], error) {
-	sm.Lock()
-	defer sm.Unlock()
-	if sm.started {
-		panic("sourcemgr component has already been started")
-	}
-	return sm.subscriptions.Subscribe()
 }
 
 // AddSource implements Component#AddSource.
