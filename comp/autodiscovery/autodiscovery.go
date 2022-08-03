@@ -40,14 +40,14 @@ type dependencies struct {
 
 	Lc            fx.Lifecycle
 	Log           log.Component
-	Subscriptions []Subscription `group:"autodiscovery"`
+	Subscriptions []Subscription `group:"true"`
 }
 
 type provides struct {
 	fx.Out
 
 	Component
-	HealthReg *health.Registration `group:"health"`
+	HealthReg *health.Registration `group:"true"`
 }
 
 func newAD(deps dependencies) provides {

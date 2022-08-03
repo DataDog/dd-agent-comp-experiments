@@ -36,7 +36,7 @@ type provides struct {
 	fx.Out
 
 	Component
-	StatusReg *status.Registration `group:"status"`
+	StatusReg *status.Registration `group:"true"`
 }
 
 func newAgent(deps dependencies) provides {

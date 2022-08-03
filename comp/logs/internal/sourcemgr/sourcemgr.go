@@ -35,14 +35,14 @@ type dependencies struct {
 	fx.In
 
 	Lc            fx.Lifecycle
-	Subscriptions []Subscription `group:"sourcemgr"`
+	Subscriptions []Subscription `group:"true"`
 }
 
 type provides struct {
 	fx.Out
 
 	Component
-	Subscription autodiscovery.Subscription `group:"autodiscovery"`
+	Subscription autodiscovery.Subscription `group:"true"`
 }
 
 func newSourceMgr(deps dependencies) (provides, error) {

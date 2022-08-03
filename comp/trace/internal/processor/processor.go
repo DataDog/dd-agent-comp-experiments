@@ -48,7 +48,7 @@ type provides struct {
 	fx.Out
 
 	Component
-	HealthReg *health.Registration `group:"health"`
+	HealthReg *health.Registration `group:"true"`
 }
 
 func newProcessor(deps dependencies) provides {

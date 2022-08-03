@@ -36,9 +36,9 @@ type provides struct {
 	fx.Out
 
 	Component
-	HealthReg      *health.Registration      `group:"health"`
-	Subscription   sourcemgr.Subscription    `group:"sourcemgr"`
-	LauncherMgrReg *launchermgr.Registration `group:"launchermgr"`
+	HealthReg      *health.Registration      `group:"true"`
+	Subscription   sourcemgr.Subscription    `group:"true"`
+	LauncherMgrReg *launchermgr.Registration `group:"true"`
 }
 
 func newLauncher(deps dependencies) (provides, error) {

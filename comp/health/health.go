@@ -44,15 +44,15 @@ type dependencies struct {
 	Log       log.Component
 	IPCClient ipcclient.Component `optional:"true"` // can be omitted in 'agent run'
 
-	Registrations []*Registration `group:"health"`
+	Registrations []*Registration `group:"true"`
 }
 
 type provides struct {
 	fx.Out
 
 	Component
-	FlareReg *flare.Registration `group:"flare"`
-	IPCRoute *ipcserver.Route    `group:"ipcserver"`
+	FlareReg *flare.Registration `group:"true"`
+	IPCRoute *ipcserver.Route    `group:"true"`
 }
 
 func newHealth(deps dependencies) provides {

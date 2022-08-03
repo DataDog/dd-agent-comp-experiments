@@ -35,7 +35,7 @@ type provides struct {
 	fx.Out
 
 	Component
-	HealthReg *health.Registration `group:"health"`
+	HealthReg *health.Registration `group:"true"`
 }
 
 func newTraceWriter(deps dependencies) provides {

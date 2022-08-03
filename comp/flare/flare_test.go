@@ -24,7 +24,7 @@ func TestFlareMechanics(t *testing.T) {
 	type provides struct {
 		fx.Out
 
-		Registration *Registration `group:"flare"`
+		Registration *Registration `group:"true"`
 	}
 
 	var flare Component
@@ -63,7 +63,7 @@ func TestMock(t *testing.T) {
 	type provides struct {
 		fx.Out
 
-		Registration *Registration `group:"flare"`
+		Registration *Registration `group:"true"`
 	}
 
 	var flare Component

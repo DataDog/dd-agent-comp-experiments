@@ -34,15 +34,15 @@ type dependencies struct {
 
 	Lc            fx.Lifecycle
 	IPCClient     ipcclient.Component `optional:"true"` // can be omitted in 'agent run'
-	Registrations []*Registration     `group:"status"`
+	Registrations []*Registration     `group:"true"`
 }
 
 type provides struct {
 	fx.Out
 
 	Component
-	FlareReg *flare.Registration `group:"flare"`
-	IPCRoute *ipcserver.Route    `group:"ipcserver"`
+	FlareReg *flare.Registration `group:"true"`
+	IPCRoute *ipcserver.Route    `group:"true"`
 }
 
 func newStatus(deps dependencies) provides {

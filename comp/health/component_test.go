@@ -19,7 +19,7 @@ import (
 func TestSimple(t *testing.T) {
 	type provides struct {
 		fx.Out
-		Registration *Registration `group:"health"`
+		Registration *Registration `group:"true"`
 	}
 
 	var h Component
@@ -47,7 +47,7 @@ func TestSimple(t *testing.T) {
 func TestLiveness(t *testing.T) {
 	type provides struct {
 		fx.Out
-		Registration *Registration `group:"health"`
+		Registration *Registration `group:"true"`
 	}
 
 	var h Component
