@@ -8,7 +8,7 @@ package common
 import (
 	"os"
 
-	"github.com/djmitche/dd-agent-comp-experiments/comp/autodiscovery/scheduler"
+	"github.com/djmitche/dd-agent-comp-experiments/comp/autodiscovery"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/core"
 	"go.uber.org/fx"
 	"go.uber.org/fx/fxevent"
@@ -32,7 +32,10 @@ func SharedOptions(confFilePath string, oneShot bool) fx.Option {
 		core.Bundle)
 
 	options = append(options,
-		scheduler.Module)
+		fx.Supply(&autodiscovery.BundleParams{
+			AutoStart: !oneShot, // TODO: this might need to be true for e.g., `agent check`
+		}),
+		autodiscovery.Bundle)
 
 	// Include Fx's detailed logging to stderr only if TRACE_FX is set.
 	// This logging is verbose, and occurs mostly during early application

@@ -12,6 +12,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/djmitche/dd-agent-comp-experiments/comp/autodiscovery/internal"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/core/health"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/core/log"
 	"github.com/djmitche/dd-agent-comp-experiments/pkg/util/actor"
@@ -41,6 +42,7 @@ type dependencies struct {
 	Lc            fx.Lifecycle
 	Log           log.Component
 	Subscriptions []Subscription `group:"true"`
+	Params        *internal.BundleParams
 }
 
 type provides struct {
@@ -56,7 +58,9 @@ func newAD(deps dependencies) provides {
 		subscriptionPoint: subscriptions.NewSubscriptionPoint[ConfigChange](deps.Subscriptions),
 		health:            health.NewRegistration(componentName),
 	}
-	ad.actor.HookLifecycle(deps.Lc, ad.run)
+	if deps.Params.AutoStart {
+		ad.actor.HookLifecycle(deps.Lc, ad.run)
+	}
 	return provides{
 		Component: ad,
 		HealthReg: ad.health,
