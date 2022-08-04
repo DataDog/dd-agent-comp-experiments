@@ -6,6 +6,7 @@
 package internal
 
 import (
+	"github.com/djmitche/dd-agent-comp-experiments/comp/core/config"
 	"github.com/djmitche/dd-agent-comp-experiments/pkg/util/startup"
 )
 
@@ -13,19 +14,13 @@ import (
 
 // BundleParams defines the parameters for this bundle.
 type BundleParams struct {
-	// ConfFilePath is the path to the configuration file.
-	ConfFilePath string
-
-	// AutoStart determines whether components in this bundle should start
-	// automatically.  This is typically true for long-running processes and
-	// false for one-shot processes.  This defaults to Always.
+	// AutoStart determines whether logs-agent components should start, defaulting
+	// to Never.
 	AutoStart startup.AutoStart
-
-	// Console determines whether log messages should be output to the console.
-	Console bool
 }
 
-// ShouldStart determines whether the bundle should start.
-func (p BundleParams) ShouldStart() bool {
-	return p.AutoStart.ShouldStart(true)
+// ShouldStart determines whether the bundle should start, based on
+// configuration.
+func (p BundleParams) ShouldStart(config config.Component) bool {
+	return p.AutoStart.ShouldStart(config.GetBool("logs_enabled"))
 }

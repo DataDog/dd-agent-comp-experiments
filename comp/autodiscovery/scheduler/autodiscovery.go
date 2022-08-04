@@ -42,7 +42,7 @@ type dependencies struct {
 	Lc            fx.Lifecycle
 	Log           log.Component
 	Subscriptions []Subscription `group:"true"`
-	Params        *internal.BundleParams
+	Params        internal.BundleParams
 }
 
 type provides struct {
@@ -58,7 +58,7 @@ func newAD(deps dependencies) provides {
 		subscriptionPoint: subscriptions.NewSubscriptionPoint[ConfigChange](deps.Subscriptions),
 		health:            health.NewRegistration(componentName),
 	}
-	if deps.Params.AutoStart {
+	if deps.Params.ShouldStart() {
 		ad.actor.HookLifecycle(deps.Lc, ad.run)
 	}
 	return provides{

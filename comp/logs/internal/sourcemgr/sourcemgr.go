@@ -10,6 +10,8 @@ import (
 	"sync"
 
 	"github.com/djmitche/dd-agent-comp-experiments/comp/autodiscovery/scheduler"
+	"github.com/djmitche/dd-agent-comp-experiments/comp/core/config"
+	"github.com/djmitche/dd-agent-comp-experiments/comp/logs/internal"
 	"github.com/djmitche/dd-agent-comp-experiments/pkg/util/actor"
 	"github.com/djmitche/dd-agent-comp-experiments/pkg/util/subscriptions"
 	"go.uber.org/fx"
@@ -35,6 +37,8 @@ type dependencies struct {
 	fx.In
 
 	Lc            fx.Lifecycle
+	Params        internal.BundleParams
+	Config        config.Component
 	Subscriptions []Subscription `group:"true"`
 }
 
@@ -54,8 +58,11 @@ func newSourceMgr(deps dependencies) (provides, error) {
 		subscriptions: subscriptions.NewSubscriptionPoint[SourceChange](deps.Subscriptions),
 		subscription:  subscription,
 	}
-	sm.actor.HookLifecycle(deps.Lc, sm.run)
-	deps.Lc.Append(fx.Hook{OnStart: sm.start})
+	if deps.Params.ShouldStart(deps.Config) {
+		sm.actor.HookLifecycle(deps.Lc, sm.run)
+		deps.Lc.Append(fx.Hook{OnStart: sm.start})
+	}
+	// TODO: if this component _doesn't_ start, the AD will block trying to send messages
 	return provides{
 		Component:    sm,
 		Subscription: sm.subscription,

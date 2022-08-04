@@ -33,14 +33,14 @@ type server struct {
 type dependencies struct {
 	fx.In
 	Lc     fx.Lifecycle
-	Params *internal.BundleParams `optional:"true"`
+	Params internal.BundleParams
 	Config config.Component
 	Routes []*Route `group:"true"`
 }
 
 func newServer(deps dependencies) Component {
 	a := &server{
-		autoStart: deps.Params.AutoStart,
+		autoStart: deps.Params.ShouldStart(),
 		port:      deps.Config.GetInt("cmd_port"),
 		router:    mux.NewRouter(),
 	}

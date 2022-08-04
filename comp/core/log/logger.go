@@ -23,7 +23,7 @@ type dependencies struct {
 	fx.In
 
 	Lc     fx.Lifecycle
-	Params *internal.BundleParams
+	Params internal.BundleParams
 }
 
 func newLogger(deps dependencies) Component {

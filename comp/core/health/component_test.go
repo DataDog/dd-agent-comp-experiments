@@ -11,6 +11,7 @@ import (
 
 	"github.com/djmitche/dd-agent-comp-experiments/comp/core/internal"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/core/log"
+	"github.com/djmitche/dd-agent-comp-experiments/pkg/util/startup"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/fx"
 	"go.uber.org/fx/fxtest"
@@ -27,7 +28,7 @@ func TestSimple(t *testing.T) {
 	app := fxtest.New(t,
 		Module,
 		log.Module,
-		fx.Supply(&internal.BundleParams{AutoStart: true}),
+		fx.Supply(internal.BundleParams{AutoStart: startup.Always}),
 		fx.Provide(func() provides {
 			return provides{
 				Registration: reg,
@@ -55,7 +56,7 @@ func TestLiveness(t *testing.T) {
 	app := fxtest.New(t,
 		Module,
 		log.Module,
-		fx.Supply(&internal.BundleParams{AutoStart: true}),
+		fx.Supply(internal.BundleParams{AutoStart: startup.Always}),
 		fx.Provide(func() provides {
 			return provides{
 				Registration: reg,

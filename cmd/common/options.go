@@ -10,6 +10,7 @@ import (
 
 	"github.com/djmitche/dd-agent-comp-experiments/comp/autodiscovery"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/core"
+	"github.com/djmitche/dd-agent-comp-experiments/pkg/util/startup"
 	"go.uber.org/fx"
 	"go.uber.org/fx/fxevent"
 )
@@ -23,17 +24,24 @@ import (
 func SharedOptions(confFilePath string, oneShot bool) fx.Option {
 	options := []fx.Option{}
 
+	var autoStart startup.AutoStart
+	if oneShot {
+		autoStart = startup.Never
+	} else {
+		autoStart = startup.IfConfigured
+	}
+
 	options = append(options,
-		fx.Supply(&core.BundleParams{
-			AutoStart:    !oneShot,
+		fx.Supply(core.BundleParams{
+			AutoStart:    autoStart,
 			ConfFilePath: confFilePath,
 			Console:      true,
 		}),
 		core.Bundle)
 
 	options = append(options,
-		fx.Supply(&autodiscovery.BundleParams{
-			AutoStart: !oneShot, // TODO: this might need to be true for e.g., `agent check`
+		fx.Supply(autodiscovery.BundleParams{
+			AutoStart: autoStart, // TODO: this might need to be startup.Always for e.g., `agent check`
 		}),
 		autodiscovery.Bundle)
 

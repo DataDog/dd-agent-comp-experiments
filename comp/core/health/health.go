@@ -41,7 +41,7 @@ type dependencies struct {
 	fx.In
 
 	Lc        fx.Lifecycle
-	Params    *internal.BundleParams
+	Params    internal.BundleParams
 	Log       log.Component
 	IPCClient ipcclient.Component `optional:"true"` // can be omitted in 'agent run'
 
@@ -58,7 +58,7 @@ type provides struct {
 
 func newHealth(deps dependencies) provides {
 	h := &health{
-		autoStart:  deps.Params.AutoStart,
+		autoStart:  deps.Params.ShouldStart(),
 		components: make(map[string]ComponentHealth),
 		log:        deps.Log,
 		ipcclient:  deps.IPCClient,

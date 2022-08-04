@@ -5,11 +5,20 @@
 
 package internal
 
+import (
+	"github.com/djmitche/dd-agent-comp-experiments/pkg/util/startup"
+)
+
 // BundleParams must be defined here to avoid package dependency cycles.
 
 // BundleParams defines the parameters for this bundle.
 type BundleParams struct {
 	// AutoStart determines whether AutoDiscovery should start automatically,
 	// defaulting to false.
-	AutoStart bool
+	AutoStart startup.AutoStart
+}
+
+// ShouldStart determines whether the bundle should start.
+func (p BundleParams) ShouldStart() bool {
+	return p.AutoStart.ShouldStart(true)
 }

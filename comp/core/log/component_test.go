@@ -16,7 +16,7 @@ import (
 func TestLogging(t *testing.T) {
 	var log Component
 	app := fxtest.New(t,
-		fx.Supply(&internal.BundleParams{}),
+		fx.Supply(internal.BundleParams{}),
 		Module,
 		fx.Populate(&log),
 	)

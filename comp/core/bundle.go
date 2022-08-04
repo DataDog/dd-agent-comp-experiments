@@ -30,21 +30,9 @@ const componentName = "comp/core"
 
 type BundleParams = internal.BundleParams
 
-// Bundle defines the fx options for this component.
+// Bundle defines the fx options for this bundle.
 var Bundle = fx.Module(
 	componentName,
-
-	// apply defaults to BundleParams
-	fx.Decorate(func(params *BundleParams) *BundleParams {
-		if params != nil {
-			return params
-		}
-
-		return &BundleParams{
-			ConfFilePath: "", // config component applies its own defaults
-			AutoStart:    false,
-		}
-	}),
 
 	config.Module,
 	flare.Module,

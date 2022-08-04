@@ -12,13 +12,14 @@ import (
 
 	"go.uber.org/fx"
 
-	"github.com/djmitche/dd-agent-comp-experiments/comp/logs/launchers/launchermgr"
-	"github.com/djmitche/dd-agent-comp-experiments/comp/core/status"
+	"github.com/djmitche/dd-agent-comp-experiments/comp/core/config"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/core/log"
+	"github.com/djmitche/dd-agent-comp-experiments/comp/core/status"
+	"github.com/djmitche/dd-agent-comp-experiments/comp/logs/internal"
+	"github.com/djmitche/dd-agent-comp-experiments/comp/logs/launchers/launchermgr"
 )
 
 type agent struct {
-	cfg         *config
 	log         log.Component
 	launchermgr launchermgr.Component
 }
@@ -27,7 +28,8 @@ type dependencies struct {
 	fx.In
 
 	Lc          fx.Lifecycle
-	Cfg         *config
+	Params      internal.BundleParams
+	Config      config.Component
 	Log         log.Component
 	Launchermgr launchermgr.Component
 }
@@ -41,15 +43,13 @@ type provides struct {
 
 func newAgent(deps dependencies) provides {
 	a := &agent{
-		cfg:         deps.Cfg,
 		log:         deps.Log,
 		launchermgr: deps.Launchermgr,
 	}
 
-	deps.Lc.Append(fx.Hook{
-		OnStart: a.start,
-		OnStop:  a.stop,
-	})
+	if deps.Params.ShouldStart(deps.Config) {
+		deps.Lc.Append(fx.Hook{OnStart: a.start, OnStop: a.stop})
+	}
 
 	return provides{
 		Component: a,

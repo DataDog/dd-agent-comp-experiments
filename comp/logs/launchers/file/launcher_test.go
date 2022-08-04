@@ -10,22 +10,27 @@ import (
 	"testing"
 	"time"
 
+	"github.com/djmitche/dd-agent-comp-experiments/comp/core"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/core/config"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/core/health"
+	"github.com/djmitche/dd-agent-comp-experiments/comp/core/log"
+	"github.com/djmitche/dd-agent-comp-experiments/comp/logs/internal"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/logs/internal/sourcemgr"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/logs/launchers/launchermgr"
-	"github.com/djmitche/dd-agent-comp-experiments/comp/core/log"
+	"github.com/djmitche/dd-agent-comp-experiments/pkg/util/startup"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/fx"
 	"go.uber.org/fx/fxtest"
 )
 
-func TestMyComponent(t *testing.T) {
+func TestLauncher(t *testing.T) {
 	var comp Component
 	var smgr sourcemgr.Component
 	var l log.Component
 	app := fxtest.New(t,
 		Module,
+		fx.Supply(core.BundleParams{AutoStart: startup.Never}),
+		fx.Supply(internal.BundleParams{AutoStart: startup.Always}),
 		health.Module,
 		config.Module,
 		log.MockModule,

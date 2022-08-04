@@ -9,10 +9,12 @@ import (
 	"context"
 	"time"
 
+	"github.com/djmitche/dd-agent-comp-experiments/comp/core/config"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/core/health"
+	"github.com/djmitche/dd-agent-comp-experiments/comp/core/log"
+	"github.com/djmitche/dd-agent-comp-experiments/comp/logs/internal"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/logs/internal/sourcemgr"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/logs/launchers/launchermgr"
-	"github.com/djmitche/dd-agent-comp-experiments/comp/core/log"
 	"github.com/djmitche/dd-agent-comp-experiments/pkg/util/actor"
 	"github.com/djmitche/dd-agent-comp-experiments/pkg/util/subscriptions"
 	"go.uber.org/fx"
@@ -28,8 +30,10 @@ type launcher struct {
 type dependencies struct {
 	fx.In
 
-	Lc  fx.Lifecycle
-	Log log.Component
+	Lc     fx.Lifecycle
+	Config config.Component
+	Params internal.BundleParams
+	Log    log.Component
 }
 
 type provides struct {
@@ -51,7 +55,9 @@ func newLauncher(deps dependencies) (provides, error) {
 		subscription: subscription,
 		health:       health.NewRegistration(componentName),
 	}
-	l.actor.HookLifecycle(deps.Lc, l.run)
+	if deps.Params.ShouldStart(deps.Config) {
+		l.actor.HookLifecycle(deps.Lc, l.run)
+	}
 	return provides{
 		Component:      l,
 		HealthReg:      l.health,

@@ -25,5 +25,6 @@ type Component interface {
 // Module defines the fx options for this component.
 var Module fx.Option = fx.Module(
 	componentName,
+
 	fx.Provide(newLauncher),
 )
