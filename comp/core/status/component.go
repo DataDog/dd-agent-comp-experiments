@@ -6,7 +6,8 @@
 // Package status implements the functionality behind `agent status`.
 //
 // The data included in the status output is provided by other components, by providing a
-// status.Registration instance in value-group "health".
+// *status.Registration instance in value-group "health".  Nil *status.Registrations will
+// be ignored, assuming they are for disabled components.
 //
 // All of the component's methods can be called concurrently.
 package status

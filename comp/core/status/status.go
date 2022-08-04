@@ -68,7 +68,9 @@ func (s *status) GetStatus(section string) string {
 			continue
 		}
 
-		fmt.Fprintf(&bldr, "%s\n", s.cb())
+		if s != nil {
+			fmt.Fprintf(&bldr, "%s\n", s.cb())
+		}
 	}
 
 	if bldr.Len() == 0 {

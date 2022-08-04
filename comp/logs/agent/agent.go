@@ -47,14 +47,13 @@ func newAgent(deps dependencies) provides {
 		launchermgr: deps.Launchermgr,
 	}
 
+	prov := provides{Component: a}
 	if deps.Params.ShouldStart(deps.Config) {
 		deps.Lc.Append(fx.Hook{OnStart: a.start, OnStop: a.stop})
+		prov.StatusReg = status.NewRegistration("logs-agent", 4, a.status)
 	}
 
-	return provides{
-		Component: a,
-		StatusReg: status.NewRegistration("logs-agent", 4, a.status),
-	}
+	return prov
 }
 
 func (a *agent) start(context.Context) error {
