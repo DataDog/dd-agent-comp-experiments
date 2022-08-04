@@ -20,7 +20,7 @@ type config struct {
 type dependencies struct {
 	fx.In
 
-	Params ModuleParams `optional:"true"`
+	Params *ModuleParams `optional:"true"`
 }
 
 func newConfig(deps dependencies) (Component, error) {
@@ -28,7 +28,7 @@ func newConfig(deps dependencies) (Component, error) {
 	v.SetConfigName("datadog")
 	v.SetEnvPrefix("DD_")
 	v.SetConfigType("yaml")
-	if deps.Params.ConfFilePath != "" {
+	if deps.Params != nil && deps.Params.ConfFilePath != "" {
 		v.AddConfigPath(deps.Params.ConfFilePath)
 		if strings.HasSuffix(deps.Params.ConfFilePath, ".yaml") {
 			v.SetConfigFile(deps.Params.ConfFilePath)

@@ -40,7 +40,7 @@ type dependencies struct {
 	fx.In
 
 	Lc        fx.Lifecycle
-	Params    ModuleParams `optional:"true"`
+	Params    *ModuleParams `optional:"true"`
 	Log       log.Component
 	IPCClient ipcclient.Component `optional:"true"` // can be omitted in 'agent run'
 
@@ -57,7 +57,7 @@ type provides struct {
 
 func newHealth(deps dependencies) provides {
 	h := &health{
-		disabled:   deps.Params.Disabled,
+		disabled:   deps.Params != nil && deps.Params.Disabled,
 		components: make(map[string]ComponentHealth),
 		log:        deps.Log,
 		ipcclient:  deps.IPCClient,

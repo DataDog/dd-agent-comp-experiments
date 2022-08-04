@@ -22,12 +22,12 @@ type dependencies struct {
 	fx.In
 
 	Lc     fx.Lifecycle
-	Params ModuleParams `optional:"true"`
+	Params *ModuleParams `optional:"true"`
 }
 
 func newLogger(deps dependencies) Component {
 	c := &logger{
-		console: deps.Params.Console,
+		console: deps.Params != nil && deps.Params.Console,
 	}
 	deps.Lc.Append(fx.Hook{OnStart: c.start})
 	return c

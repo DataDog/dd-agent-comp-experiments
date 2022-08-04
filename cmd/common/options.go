@@ -30,20 +30,20 @@ func SharedOptions(confFilePath string, oneShot bool) fx.Option {
 	options := []fx.Option{}
 
 	options = append(options,
-		fx.Supply(log.ModuleParams{Console: !oneShot}),
+		fx.Supply(&log.ModuleParams{Console: !oneShot}),
 		log.Module)
 
 	options = append(options,
-		fx.Supply(config.ModuleParams{ConfFilePath: confFilePath}),
+		fx.Supply(&config.ModuleParams{ConfFilePath: confFilePath}),
 		config.Module)
 
 	options = append(options,
-		fx.Supply(health.ModuleParams{Disabled: oneShot}),
+		fx.Supply(&health.ModuleParams{Disabled: oneShot}),
 		health.Module)
 
 	var ipcInst ipcserver.Component
 	options = append(options,
-		fx.Supply(ipcserver.ModuleParams{Disabled: oneShot}),
+		fx.Supply(&ipcserver.ModuleParams{Disabled: oneShot}),
 		fx.Populate(&ipcInst), // instantiate ipc server, even if nothing depends on it
 		ipcserver.Module)
 

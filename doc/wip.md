@@ -7,15 +7,6 @@ Should these be different binaries (as they are now), or the same binary with di
 
 It may be that this is unrelated to components -- need more info.
 
-## ModuleParams Defaults
-
-Currently, the guide recommends that `ModuleParams` be optional and that its zero value be meaningful.
-But this may result in a lot of `if params.Xyz == "" { params.Xyz = "real default" }`, which could be annoying and ugly.
-
-If component users were encouraged to use `fx.Replace(foo.ModuleParams{ Xyz: "specific value" })` to specify parameters, then the component's module could use `fx.Supply(ModuleParams{ Xyz: "real default", ... }` to supply nonzero defaults.
-
-Another option is to require `*ModuleParams`, in which case `nil` serves as a distinct value indicating "use the defaults".
-
 ## Remote Components
 
 [The RFC](https://github.com/DataDog/architecture/blob/master/rfcs/agent-component-architecture/rfc.md#remote-component-considerations) mentions remote components, but without much detail.
@@ -52,6 +43,8 @@ See [#2](https://github.com/djmitche/dd-agent-comp-experiments/pull/2) for an at
 
 # TODO
 
+ * put all options in a variable for each app, and validate in a unit test (@ogaca-dd)
+ * doc kinds of components, whether they should use Fx: https://github.com/djmitche/dd-agent-comp-experiments/pull/1#discussion_r936350828
  * startup for bundles? the hidden Invoke() of a constructor that does nothing is weird.
    * Doc how to handle enabling / disabling -- maybe this is per-bundle?
  * more tests

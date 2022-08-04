@@ -106,7 +106,7 @@ Some components require parameters before they are instantiated.
 For example, `comp/config` requires the path to the configuration file so that it can be ready to answer config requests as soon as it is instantiated.
 Other components may wish to provide different implementations depending on these parameters; for example, `comp/health` need not monitor anything if not in a running agent.
 
-To support this, components can define a `pkg.ModuleParams` type and expect that it be supplied by the app.
+To support this, components can define a `pkg.ModuleParams` type and allow apps to (optionally) supply it.
 
 ```go
 // ModuleParams are the parameters to Module.
@@ -123,7 +123,7 @@ type dependenices {
     fx.In
 
     // ...
-    Params ModuleParams `optional:"true"`
+    Params *ModuleParams `optional:"true"`
 }
 func newFoo(deps dependencies) { ...  }
 ```
@@ -179,7 +179,7 @@ For parameterized components, the app must also supply the parameters:
 ```go
 app = fx.New(
     foo.Module,
-    fx.Supply(foo.ModuleParams{
+    fx.Supply(&foo.ModuleParams{
         MaxFoos: 13,
     }),
     ...
