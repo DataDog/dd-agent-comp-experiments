@@ -9,12 +9,12 @@ import (
 	"os"
 
 	"github.com/djmitche/dd-agent-comp-experiments/comp/autodiscovery"
-	"github.com/djmitche/dd-agent-comp-experiments/comp/config"
-	"github.com/djmitche/dd-agent-comp-experiments/comp/flare"
-	"github.com/djmitche/dd-agent-comp-experiments/comp/health"
+	"github.com/djmitche/dd-agent-comp-experiments/comp/core/config"
+	"github.com/djmitche/dd-agent-comp-experiments/comp/core/flare"
+	"github.com/djmitche/dd-agent-comp-experiments/comp/core/health"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/ipc/ipcclient"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/ipc/ipcserver"
-	"github.com/djmitche/dd-agent-comp-experiments/comp/status"
+	"github.com/djmitche/dd-agent-comp-experiments/comp/core/status"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/util/log"
 	"go.uber.org/fx"
 	"go.uber.org/fx/fxevent"
@@ -22,7 +22,7 @@ import (
 
 // SharedOptions defines fx.Options that are shared among all agent flavors.
 //
-// The confFilePath is passed to the comp/config component.
+// The confFilePath is passed to the comp/core/config component.
 //
 // If oneShot is true, then this is a "one-shot" process and all support for long-term
 // execution, such as health monitoring, will be disabled.

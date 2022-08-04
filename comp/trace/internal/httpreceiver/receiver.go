@@ -11,7 +11,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/djmitche/dd-agent-comp-experiments/comp/config"
+	"github.com/djmitche/dd-agent-comp-experiments/comp/core/config"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/trace/internal/processor"
 	"github.com/djmitche/dd-agent-comp-experiments/pkg/trace/api"
 	"go.uber.org/fx"

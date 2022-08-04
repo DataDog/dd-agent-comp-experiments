@@ -17,7 +17,7 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/djmitche/dd-agent-comp-experiments/comp/config"
+	"github.com/djmitche/dd-agent-comp-experiments/comp/core/config"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/ipc/ipcclient"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/ipc/ipcserver"
 	"github.com/mholt/archiver"

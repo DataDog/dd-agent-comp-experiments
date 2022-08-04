@@ -15,7 +15,7 @@ import (
 //
 // This method must not be called before the monitored component has started.
 func (reg *Registration) SetUnhealthy(message string) {
-	// if comp/health hasn't been created, then there is nothing to do.
+	// if comp/core/health hasn't been created, then there is nothing to do.
 	if reg.health != nil {
 		reg.health.setHealth(reg.component, false, message)
 	}
@@ -25,7 +25,7 @@ func (reg *Registration) SetUnhealthy(message string) {
 //
 // This method must not be called before the monitored component has started.
 func (reg *Registration) SetHealthy() {
-	// if comp/health hasn't been created, then there is nothing to do.
+	// if comp/core/health hasn't been created, then there is nothing to do.
 	if reg.health != nil {
 		reg.health.setHealth(reg.component, true, "")
 	}
@@ -44,7 +44,7 @@ func (reg *Registration) SetHealthy() {
 //
 // This method must not be called before the monitored component has started.
 func (reg *Registration) LivenessMonitor(period time.Duration) (<-chan struct{}, func()) {
-	// if comp/health hasn't been created, then there is nothing to do.
+	// if comp/core/health hasn't been created, then there is nothing to do.
 	if reg.health == nil {
 		return make(chan struct{}), func() {}
 	}

@@ -6,7 +6,7 @@
 package agent
 
 import (
-	configPkg "github.com/djmitche/dd-agent-comp-experiments/comp/config"
+	configPkg "github.com/djmitche/dd-agent-comp-experiments/comp/core/config"
 )
 
 type config struct {

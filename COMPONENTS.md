@@ -3,20 +3,20 @@
 This file lists all components defined in this repository, with their package summary.
 Click the links for more documentation.
 
-## [comp/config](https://pkg.go.dev/github.com/djmitche/dd-agent-comp-experiments/comp/config@v0.0.2)
+## [comp/core/config](https://pkg.go.dev/github.com/djmitche/dd-agent-comp-experiments/comp/core/config@v0.0.2)
 
 *Datadog Team*: agent-shared-components
 
 Package config implements a component to handle agent configuration.  This
 component wraps Viper.
 
-## [comp/flare](https://pkg.go.dev/github.com/djmitche/dd-agent-comp-experiments/comp/flare@v0.0.2)
+## [comp/core/flare](https://pkg.go.dev/github.com/djmitche/dd-agent-comp-experiments/comp/core/flare@v0.0.2)
 
 *Datadog Team*: agent-shared-components
 
 Package flare implements a component creates flares for submission to support.
 
-## [comp/health](https://pkg.go.dev/github.com/djmitche/dd-agent-comp-experiments/comp/health@v0.0.2)
+## [comp/core/health](https://pkg.go.dev/github.com/djmitche/dd-agent-comp-experiments/comp/core/health@v0.0.2)
 
 *Datadog Team*: agent-shared-components
 
@@ -61,7 +61,7 @@ Package launchermgr implements a component managing logs-agent launchers.  It co
 the set of loaded launchers during start-up, and allows enumeration and retrieval
 as necessary.
 
-## [comp/status](https://pkg.go.dev/github.com/djmitche/dd-agent-comp-experiments/comp/status@v0.0.2)
+## [comp/core/status](https://pkg.go.dev/github.com/djmitche/dd-agent-comp-experiments/comp/core/status@v0.0.2)
 
 *Datadog Team*: agent-shared-components
 

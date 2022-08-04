@@ -12,7 +12,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/djmitche/dd-agent-comp-experiments/comp/health"
+	"github.com/djmitche/dd-agent-comp-experiments/comp/core/health"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/util/log"
 	"github.com/djmitche/dd-agent-comp-experiments/pkg/util/actor"
 	"github.com/djmitche/dd-agent-comp-experiments/pkg/util/subscriptions"

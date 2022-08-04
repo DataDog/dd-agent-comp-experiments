@@ -103,8 +103,8 @@ Within the body of the constructor, it may call methods on other components, as 
 ### Parameterized Components
 
 Some components require parameters before they are instantiated.
-For example, `comp/config` requires the path to the configuration file so that it can be ready to answer config requests as soon as it is instantiated.
-Other components may wish to provide different implementations depending on these parameters; for example, `comp/health` need not monitor anything if not in a running agent.
+For example, `comp/core/config` requires the path to the configuration file so that it can be ready to answer config requests as soon as it is instantiated.
+Other components may wish to provide different implementations depending on these parameters; for example, `comp/core/health` need not monitor anything if not in a running agent.
 
 To support this, components can define a `pkg.ModuleParams` type and allow apps to (optionally) supply it.
 

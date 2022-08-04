@@ -36,10 +36,10 @@ The command implementation (under `cmd/`) then simply calls `GetStatusRemote` an
 
 ## Health Monitoring
 
-Components which can fail, and especially those using the actor model, should register with `comp/health` to monitor their health.
+Components which can fail, and especially those using the actor model, should register with `comp/core/health` to monitor their health.
 In this context, "failure" is a user-visible problem with the component that can occur after startup.
 This may be related to resource exhaustion, user misconfiguration, or an issue in the environment.
-Many components can't fail (or at least, we can't yet imagine how they would fail); these do not need to report to the `comp/health` component.
+Many components can't fail (or at least, we can't yet imagine how they would fail); these do not need to report to the `comp/core/health` component.
 
 ## Plugins
 

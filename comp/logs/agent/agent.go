@@ -13,7 +13,7 @@ import (
 	"go.uber.org/fx"
 
 	"github.com/djmitche/dd-agent-comp-experiments/comp/logs/launchers/launchermgr"
-	"github.com/djmitche/dd-agent-comp-experiments/comp/status"
+	"github.com/djmitche/dd-agent-comp-experiments/comp/core/status"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/util/log"
 )
 

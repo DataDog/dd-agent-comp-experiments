@@ -12,7 +12,7 @@ import (
 	"strings"
 	"sync"
 
-	flare "github.com/djmitche/dd-agent-comp-experiments/comp/flare"
+	flare "github.com/djmitche/dd-agent-comp-experiments/comp/core/flare"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/ipc/ipcclient"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/ipc/ipcserver"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/util/log"

@@ -17,7 +17,7 @@ import (
 
 // team: agent-shared-components
 
-const componentName = "comp/status"
+const componentName = "comp/core/status"
 
 // Component is the component type.
 type Component interface {

@@ -11,7 +11,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/djmitche/dd-agent-comp-experiments/comp/status"
+	"github.com/djmitche/dd-agent-comp-experiments/comp/core/status"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/trace/internal/httpreceiver"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/util/log"
 	"go.uber.org/fx"

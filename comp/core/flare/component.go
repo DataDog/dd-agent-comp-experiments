@@ -25,12 +25,12 @@ import (
 
 	"go.uber.org/fx"
 
-	"github.com/djmitche/dd-agent-comp-experiments/comp/flare/reg"
+	"github.com/djmitche/dd-agent-comp-experiments/comp/core/flare/reg"
 )
 
 // team: agent-shared-components
 
-const componentName = "comp/flare"
+const componentName = "comp/core/flare"
 
 // Component is the component type.
 type Component interface {

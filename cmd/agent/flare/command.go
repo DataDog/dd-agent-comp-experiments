@@ -11,7 +11,7 @@ import (
 
 	"github.com/djmitche/dd-agent-comp-experiments/cmd/agent/root"
 	"github.com/djmitche/dd-agent-comp-experiments/cmd/common"
-	"github.com/djmitche/dd-agent-comp-experiments/comp/flare"
+	"github.com/djmitche/dd-agent-comp-experiments/comp/core/flare"
 	"github.com/spf13/cobra"
 	"go.uber.org/fx"
 )

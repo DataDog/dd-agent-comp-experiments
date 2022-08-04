@@ -11,7 +11,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/djmitche/dd-agent-comp-experiments/comp/config"
+	"github.com/djmitche/dd-agent-comp-experiments/comp/core/config"
 	"github.com/mholt/archiver"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/fx"

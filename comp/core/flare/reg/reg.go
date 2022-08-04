@@ -4,9 +4,9 @@
 // Copyright 2016-present Datadog, Inc.
 
 // Package reg contains the Registration type and helper functions for
-// comp/flare, isolated here to prevent Go package cycles.
+// comp/core/flare, isolated here to prevent Go package cycles.
 //
-// In most cases, these items can be used from the comp/flare package directly.
+// In most cases, these items can be used from the comp/core/flare package directly.
 package reg
 
 import (

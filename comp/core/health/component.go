@@ -27,7 +27,7 @@ import (
 
 // team: agent-shared-components
 
-const componentName = "comp/health"
+const componentName = "comp/core/health"
 
 // Component is the component type.
 type Component interface {
@@ -48,7 +48,7 @@ type Registration struct {
 	// component is the name of the component being monitored.
 	component string
 
-	// health links to the comp/health component, once registration is
+	// health links to the comp/core/health component, once registration is
 	// complete.
 	health *health
 }
