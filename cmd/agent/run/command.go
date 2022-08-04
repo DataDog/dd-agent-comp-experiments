@@ -41,7 +41,10 @@ func run(_ *cobra.Command, args []string) error {
 			AutoStart: startup.IfConfigured,
 		}),
 		logs.Bundle,
-		trace.Module,
+		fx.Supply(trace.BundleParams{
+			AutoStart: startup.IfConfigured,
+		}),
+		trace.Bundle,
 		logsAgentPluginOptions(),
 	)
 	return common.RunApp(app)

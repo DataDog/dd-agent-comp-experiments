@@ -12,6 +12,7 @@ import (
 	"net/http"
 
 	"github.com/djmitche/dd-agent-comp-experiments/comp/core/config"
+	"github.com/djmitche/dd-agent-comp-experiments/comp/trace/internal"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/trace/internal/processor"
 	"github.com/djmitche/dd-agent-comp-experiments/pkg/trace/api"
 	"go.uber.org/fx"
@@ -32,6 +33,7 @@ type dependencies struct {
 	fx.In
 
 	Lc        fx.Lifecycle
+	Params    internal.BundleParams
 	Config    config.Component
 	Processor processor.Component
 }
@@ -41,7 +43,9 @@ func newReceiver(deps dependencies) Component {
 		port:          deps.Config.GetInt("apm_config.receiver_port"),
 		processorChan: deps.Processor.PayloadChan(),
 	}
-	deps.Lc.Append(fx.Hook{OnStart: r.start, OnStop: r.stop})
+	if deps.Params.ShouldStart(deps.Config) {
+		deps.Lc.Append(fx.Hook{OnStart: r.start, OnStop: r.stop})
+	}
 	return r
 }
 

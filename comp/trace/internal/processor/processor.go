@@ -11,7 +11,9 @@ import (
 	"runtime"
 	"time"
 
+	"github.com/djmitche/dd-agent-comp-experiments/comp/core/config"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/core/health"
+	"github.com/djmitche/dd-agent-comp-experiments/comp/trace/internal"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/trace/internal/tracewriter"
 	"github.com/djmitche/dd-agent-comp-experiments/pkg/trace/api"
 	"github.com/djmitche/dd-agent-comp-experiments/pkg/util/actor"
@@ -41,6 +43,8 @@ type dependencies struct {
 	fx.In
 
 	Lc          fx.Lifecycle
+	Params      internal.BundleParams
+	Config      config.Component
 	TraceWriter tracewriter.Component
 }
 
@@ -58,7 +62,9 @@ func newProcessor(deps dependencies) provides {
 		traceWriterChan: deps.TraceWriter.PayloadChan(),
 		health:          health.NewRegistration(componentName),
 	}
-	p.actor.HookLifecycle(deps.Lc, p.run)
+	if deps.Params.ShouldStart(deps.Config) {
+		p.actor.HookLifecycle(deps.Lc, p.run)
+	}
 	return provides{
 		Component: p,
 		HealthReg: p.health,

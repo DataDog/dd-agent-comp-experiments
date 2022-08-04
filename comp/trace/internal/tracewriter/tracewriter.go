@@ -9,8 +9,10 @@ import (
 	"context"
 	"time"
 
+	"github.com/djmitche/dd-agent-comp-experiments/comp/core/config"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/core/health"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/core/log"
+	"github.com/djmitche/dd-agent-comp-experiments/comp/trace/internal"
 	"github.com/djmitche/dd-agent-comp-experiments/pkg/trace/api"
 	"github.com/djmitche/dd-agent-comp-experiments/pkg/util/actor"
 	"go.uber.org/fx"
@@ -27,8 +29,10 @@ type traceWriter struct {
 type dependencies struct {
 	fx.In
 
-	Lc  fx.Lifecycle
-	Log log.Component
+	Lc     fx.Lifecycle
+	Params internal.BundleParams
+	Config config.Component
+	Log    log.Component
 }
 
 type provides struct {
@@ -44,7 +48,9 @@ func newTraceWriter(deps dependencies) provides {
 		log:    deps.Log,
 		health: health.NewRegistration(componentName),
 	}
-	t.actor.HookLifecycle(deps.Lc, t.run)
+	if deps.Params.ShouldStart(deps.Config) {
+		t.actor.HookLifecycle(deps.Lc, t.run)
+	}
 	return provides{
 		Component: t,
 		HealthReg: t.health,

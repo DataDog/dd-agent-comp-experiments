@@ -11,9 +11,11 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/djmitche/dd-agent-comp-experiments/comp/core/status"
-	"github.com/djmitche/dd-agent-comp-experiments/comp/trace/internal/httpreceiver"
+	"github.com/djmitche/dd-agent-comp-experiments/comp/core/config"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/core/log"
+	"github.com/djmitche/dd-agent-comp-experiments/comp/core/status"
+	"github.com/djmitche/dd-agent-comp-experiments/comp/trace/internal"
+	"github.com/djmitche/dd-agent-comp-experiments/comp/trace/internal/httpreceiver"
 	"go.uber.org/fx"
 )
 
@@ -25,6 +27,8 @@ type dependencies struct {
 	fx.In
 
 	Lc           fx.Lifecycle
+	Params       internal.BundleParams
+	Config       config.Component
 	HTTPReceiver httpreceiver.Component // required just to load the component
 	Log          log.Component
 }
@@ -43,10 +47,9 @@ func newAgent(deps dependencies) provides {
 		log: deps.Log,
 	}
 
-	deps.Lc.Append(fx.Hook{
-		OnStart: a.start,
-		OnStop:  a.stop,
-	})
+	if deps.Params.ShouldStart(deps.Config) {
+		deps.Lc.Append(fx.Hook{OnStart: a.start, OnStop: a.stop})
+	}
 
 	return provides{
 		Component: a,

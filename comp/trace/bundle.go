@@ -8,15 +8,23 @@ package trace
 
 import (
 	"github.com/djmitche/dd-agent-comp-experiments/comp/trace/agent"
+	"github.com/djmitche/dd-agent-comp-experiments/comp/trace/internal"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/trace/internal/httpreceiver"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/trace/internal/processor"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/trace/internal/tracewriter"
 	"go.uber.org/fx"
 )
 
-// Module defines the fx options for the trace agent.
-var Module fx.Option = fx.Module(
-	"comp/trace",
+// team: trace-agent
+
+const componentName = "comp/trace"
+
+type BundleParams = internal.BundleParams
+
+// Bundle defines the fx options for the trace agent.
+var Bundle fx.Option = fx.Module(
+	componentName,
+
 	agent.Module,
 	processor.Module,
 	tracewriter.Module,
