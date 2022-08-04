@@ -3,11 +3,10 @@
 // This product includes software developed at Datadog (https://www.datadoghq.com/).
 // Copyright 2016-present Datadog, Inc.
 
-// Package autodiscovery implements discovery of configuration for dynamic
-// entities like pods and containers.  It broadcasts changes to that
-// configuration to subscribers.  Subscriptions are created by providing a
+// Package scheduler broadcasts changes to discovered configuration
+// configuration to its subscribers.  Subscriptions are created by providing a
 // Subscription value in value-group "autodiscovery".
-package autodiscovery
+package scheduler
 
 import (
 	"github.com/djmitche/dd-agent-comp-experiments/pkg/util/subscriptions"

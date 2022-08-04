@@ -9,7 +9,7 @@ import (
 	"context"
 	"sync"
 
-	"github.com/djmitche/dd-agent-comp-experiments/comp/autodiscovery"
+	"github.com/djmitche/dd-agent-comp-experiments/comp/autodiscovery/scheduler"
 	"github.com/djmitche/dd-agent-comp-experiments/pkg/util/actor"
 	"github.com/djmitche/dd-agent-comp-experiments/pkg/util/subscriptions"
 	"go.uber.org/fx"
@@ -26,7 +26,7 @@ type sourceMgr struct {
 	subscriptions *subscriptions.SubscriptionPoint[SourceChange]
 
 	// subscription is the subscription to AD
-	subscription subscriptions.Subscription[autodiscovery.ConfigChange]
+	subscription subscriptions.Subscription[scheduler.ConfigChange]
 
 	actor actor.Goroutine
 }
@@ -42,11 +42,11 @@ type provides struct {
 	fx.Out
 
 	Component
-	Subscription autodiscovery.Subscription `group:"true"`
+	Subscription scheduler.Subscription `group:"true"`
 }
 
 func newSourceMgr(deps dependencies) (provides, error) {
-	subscription, err := autodiscovery.Subscribe()
+	subscription, err := scheduler.Subscribe()
 	if err != nil {
 		return provides{}, err
 	}

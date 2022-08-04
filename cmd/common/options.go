@@ -8,13 +8,13 @@ package common
 import (
 	"os"
 
-	"github.com/djmitche/dd-agent-comp-experiments/comp/autodiscovery"
+	"github.com/djmitche/dd-agent-comp-experiments/comp/autodiscovery/scheduler"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/core/config"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/core/flare"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/core/health"
+	"github.com/djmitche/dd-agent-comp-experiments/comp/core/status"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/ipc/ipcclient"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/ipc/ipcserver"
-	"github.com/djmitche/dd-agent-comp-experiments/comp/core/status"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/util/log"
 	"go.uber.org/fx"
 	"go.uber.org/fx/fxevent"
@@ -64,7 +64,7 @@ func SharedOptions(confFilePath string, oneShot bool) fx.Option {
 	}
 
 	options = append(options,
-		autodiscovery.Module)
+		scheduler.Module)
 
 	// Include Fx's detailed logging to stderr only if TRACE_FX is set.
 	// This logging is verbose, and occurs mostly during early application
