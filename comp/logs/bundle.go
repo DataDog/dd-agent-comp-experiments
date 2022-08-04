@@ -21,7 +21,7 @@ import (
 	"go.uber.org/fx"
 )
 
-// team: agent-shared-components
+// team: agent-metrics-logs
 
 const componentName = "comp/logs"
 

@@ -15,7 +15,7 @@ import (
 	"go.uber.org/fx"
 )
 
-// team: agent-shared-components
+// team: container-integrations
 
 const componentName = "comp/autodiscovery"
 
