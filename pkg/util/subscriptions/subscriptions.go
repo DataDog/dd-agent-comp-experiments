@@ -7,33 +7,40 @@ package subscriptions
 
 // subscriptionPoint implements SubscriptionPoint.
 type SubscriptionPoint[M Message] struct {
-	subscribers []*subscription[M]
+	subscriptions []*subscription[M]
 }
 
 type subscription[M Message] struct {
 	ch chan M
 }
 
-// NewSubscriptionPoint creates a new SubscriptionPoint.  The subscriptions
-// must all be instances of `subscription`.
+// NewSubscriptionPoint creates a new SubscriptionPoint.
+//
+// The given Subscriptions can be nil, in which case they are ignored.  This
+// occurs when components that _might_ make a subscription choose not to (such
+// as when those components are not enabled).
 func NewSubscriptionPoint[M Message](subscriptions []Subscription[M]) *SubscriptionPoint[M] {
-	subValues := make([]*subscription[M], len(subscriptions))
-	for i, sub := range subscriptions {
-		subValues[i] = sub.(*subscription[M])
+	// filter out the nil subscriptions, and cast the remainder to the concrete
+	// type.
+	concreteSubs := make([]*subscription[M], 0, len(subscriptions))
+	for _, sub := range subscriptions {
+		if sub != nil {
+			concreteSubs = append(concreteSubs, sub.(*subscription[M]))
+		}
 	}
 	return &SubscriptionPoint[M]{
-		subscribers: subValues,
+		subscriptions: concreteSubs,
 	}
 }
 
 // NewSubscription creates a new subscription of the required type.
-func NewSubscription[M Message]() (Subscription[M], error) {
-	return &subscription[M]{make(chan M, 1)}, nil
+func NewSubscription[M Message]() Subscription[M] {
+	return &subscription[M]{make(chan M, 1)}
 }
 
 // Notify notifies all subscribers with a new message.
 func (sp *SubscriptionPoint[M]) Notify(message M) {
-	for _, s := range sp.subscribers {
+	for _, s := range sp.subscriptions {
 		s.send(message)
 	}
 }

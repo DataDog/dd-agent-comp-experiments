@@ -45,25 +45,21 @@ type provides struct {
 	LauncherMgrReg *launchermgr.Registration `group:"true"`
 }
 
-func newLauncher(deps dependencies) (provides, error) {
-	subscription, err := sourcemgr.Subscribe()
-	if err != nil {
-		return provides{}, err
-	}
+func newLauncher(deps dependencies) provides {
 	l := &launcher{
-		log:          deps.Log,
-		subscription: subscription,
-		health:       health.NewRegistration(componentName),
+		log:    deps.Log,
+		health: health.NewRegistration(componentName),
 	}
 	if deps.Params.ShouldStart(deps.Config) {
 		l.actor.HookLifecycle(deps.Lc, l.run)
+		l.subscription = sourcemgr.Subscribe()
 	}
 	return provides{
 		Component:      l,
 		HealthReg:      l.health,
 		LauncherMgrReg: launchermgr.NewRegistration("file", l),
-		Subscription:   subscription,
-	}, nil
+		Subscription:   l.subscription,
+	}
 }
 
 func (l *launcher) run(ctx context.Context) {

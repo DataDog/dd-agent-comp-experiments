@@ -47,6 +47,7 @@ See [#2](https://github.com/djmitche/dd-agent-comp-experiments/pull/2) for an at
      * bundles (and remove module params)
        * not optional
      * doc kinds of components, whether they should use Fx: https://github.com/djmitche/dd-agent-comp-experiments/pull/1#discussion_r936350828
+     * nil subscriptions
  * OneShot should use a Hook, rather than run things before startup
  * put all options in a variable for each app, and validate in a unit test (@ogaca-dd)
    * Maybe a common.RunCobraCommand?

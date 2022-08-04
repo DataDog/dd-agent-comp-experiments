@@ -53,7 +53,7 @@ type SourceChange struct {
 type Subscription = subscriptions.Subscription[SourceChange]
 
 // Subscribe creates a new subscription to this component.
-func Subscribe() (Subscription, error) {
+func Subscribe() Subscription {
 	return subscriptions.NewSubscription[SourceChange]()
 }
 

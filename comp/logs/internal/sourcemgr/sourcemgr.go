@@ -49,24 +49,19 @@ type provides struct {
 	Subscription scheduler.Subscription `group:"true"`
 }
 
-func newSourceMgr(deps dependencies) (provides, error) {
-	subscription, err := scheduler.Subscribe()
-	if err != nil {
-		return provides{}, err
-	}
+func newSourceMgr(deps dependencies) provides {
 	sm := &sourceMgr{
 		subscriptions: subscriptions.NewSubscriptionPoint[SourceChange](deps.Subscriptions),
-		subscription:  subscription,
 	}
 	if deps.Params.ShouldStart(deps.Config) {
 		sm.actor.HookLifecycle(deps.Lc, sm.run)
 		deps.Lc.Append(fx.Hook{OnStart: sm.start})
+		sm.subscription = scheduler.Subscribe()
 	}
-	// TODO: if this component _doesn't_ start, the AD will block trying to send messages
 	return provides{
 		Component:    sm,
 		Subscription: sm.subscription,
-	}, nil
+	}
 }
 
 // start marks the component as started.
