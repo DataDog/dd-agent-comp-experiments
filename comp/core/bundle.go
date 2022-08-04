@@ -17,6 +17,8 @@ import (
 	"github.com/djmitche/dd-agent-comp-experiments/comp/core/flare"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/core/health"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/core/internal"
+	"github.com/djmitche/dd-agent-comp-experiments/comp/core/ipc/ipcclient"
+	"github.com/djmitche/dd-agent-comp-experiments/comp/core/ipc/ipcserver"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/core/log"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/core/status"
 	"go.uber.org/fx"
@@ -47,6 +49,12 @@ var Bundle = fx.Module(
 	config.Module,
 	flare.Module,
 	health.Module,
-	status.Module,
+	ipcclient.Module,
+	ipcserver.Module,
 	log.Module,
+	status.Module,
+
+	// instantiate the ipcserver unconditionally, as nothing else actually depends
+	// on it (but it depends on a number of other things, such as flare and status)
+	fx.Invoke(func(ipcserver.Component) {}),
 )

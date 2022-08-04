@@ -31,6 +31,19 @@ Package flare implements a component creates flares for submission to support.
 Package health implements a component that monitors the health of other
 components.
 
+## [comp/core/ipc/ipcclient](https://pkg.go.dev/github.com/djmitche/dd-agent-comp-experiments/comp/core/ipc/ipcclient@v0.0.2)
+
+*Datadog Team*: agent-shared-components
+
+Package ipcclient implements a component to access the IPC server remotely.
+
+## [comp/core/ipc/ipcserver](https://pkg.go.dev/github.com/djmitche/dd-agent-comp-experiments/comp/core/ipc/ipcserver@v0.0.2)
+
+*Datadog Team*: agent-shared-components
+
+Package ipcserver implements a component to manage the IPC API server and act
+as a client.
+
 ## [comp/core/log](https://pkg.go.dev/github.com/djmitche/dd-agent-comp-experiments/comp/core/log@v0.0.2)
 
 *Datadog Team*: agent-shared-components
@@ -42,19 +55,6 @@ Package log implements a component to handle logging internal to the agent.
 *Datadog Team*: agent-shared-components
 
 Package status implements the functionality behind `agent status`.
-
-## [comp/ipc/ipcclient](https://pkg.go.dev/github.com/djmitche/dd-agent-comp-experiments/comp/ipc/ipcclient@v0.0.2)
-
-*Datadog Team*: agent-shared-components
-
-Package ipcclient implements a component to access the IPC server remotely.
-
-## [comp/ipc/ipcserver](https://pkg.go.dev/github.com/djmitche/dd-agent-comp-experiments/comp/ipc/ipcserver@v0.0.2)
-
-*Datadog Team*: agent-shared-components
-
-Package ipcserver implements a component to manage the IPC API server and act
-as a client.
 
 ## [comp/logs/agent](https://pkg.go.dev/github.com/djmitche/dd-agent-comp-experiments/comp/logs/agent@v0.0.2)
 

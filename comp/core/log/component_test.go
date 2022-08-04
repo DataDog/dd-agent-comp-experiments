@@ -8,6 +8,7 @@ package log
 import (
 	"testing"
 
+	"github.com/djmitche/dd-agent-comp-experiments/comp/core/internal"
 	"go.uber.org/fx"
 	"go.uber.org/fx/fxtest"
 )
@@ -15,7 +16,7 @@ import (
 func TestLogging(t *testing.T) {
 	var log Component
 	app := fxtest.New(t,
-		fx.Supply(&ModuleParams{}),
+		fx.Supply(&internal.BundleParams{}),
 		Module,
 		fx.Populate(&log),
 	)

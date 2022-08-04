@@ -29,7 +29,7 @@ The `pkg/util/actor` package supports components that use the actor structure, i
 Several commands, such as `agent status` or `agent config`, call the running Agent's IPC API and format the result.
 Components implementing this pattern should generally have two similar methods, such as `GetStatus` and `GetStatusRemote`.
 The first method gathers the data locally, and the second requests the same data via the IPC API.
-The component should plugin to `comp/ipc/ipcserver` to provide the result of the first method over the IPC API.
+The component should plugin to `comp/core/ipc/ipcserver` to provide the result of the first method over the IPC API.
 
 This arrangement locates both the client and server sides of the IPC API in one module.
 The command implementation (under `cmd/`) then simply calls `GetStatusRemote` and formats the result for display.

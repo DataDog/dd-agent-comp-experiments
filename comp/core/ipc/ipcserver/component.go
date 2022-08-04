@@ -10,7 +10,7 @@
 // ipcserver.Route instance in value-group "ipcserver".
 //
 // The Mock version of this component allows registration but does not actually
-// start a server, and does not require ModuleParams.
+// start a server.
 //
 // XXX In a real agent, this would support TLS and gRPC and Auth and timeouts
 // and stuff; see cmd/agent/api.
@@ -24,7 +24,7 @@ import (
 
 // team: agent-shared-components
 
-const componentName = "comp/ipc/ipcserver"
+const componentName = "comp/core/ipc/ipcserver"
 
 // Component is the component type.
 type Component interface {
@@ -50,13 +50,6 @@ type Route struct {
 // NewRoute creates a new Route instance for the named component.
 func NewRoute(path string, handler http.HandlerFunc) *Route {
 	return &Route{path, handler}
-}
-
-type ModuleParams struct {
-	// Disabled indicates that the component should ignore all registration and
-	// perform no monitoring.  This is intended for one-shot processes such as
-	// `agent status`.
-	Disabled bool
 }
 
 var Module = fx.Module(

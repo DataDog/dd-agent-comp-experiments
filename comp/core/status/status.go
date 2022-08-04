@@ -13,8 +13,8 @@ import (
 	"sync"
 
 	"github.com/djmitche/dd-agent-comp-experiments/comp/core/flare"
-	"github.com/djmitche/dd-agent-comp-experiments/comp/ipc/ipcclient"
-	"github.com/djmitche/dd-agent-comp-experiments/comp/ipc/ipcserver"
+	"github.com/djmitche/dd-agent-comp-experiments/comp/core/ipc/ipcclient"
+	"github.com/djmitche/dd-agent-comp-experiments/comp/core/ipc/ipcserver"
 	"go.uber.org/fx"
 )
 

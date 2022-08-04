@@ -11,13 +11,14 @@ import (
 	"net/http"
 
 	"github.com/djmitche/dd-agent-comp-experiments/comp/core/config"
+	"github.com/djmitche/dd-agent-comp-experiments/comp/core/internal"
 	"github.com/gorilla/mux"
 	"go.uber.org/fx"
 )
 
 type server struct {
-	// disabled indicates that the component should do nothing.
-	disabled bool
+	// autoStart indicates that the component should do nothing.
+	autoStart bool
 
 	// port is the port on which the server is running.
 	port int
@@ -25,23 +26,23 @@ type server struct {
 	// router is the router used by the server
 	router *mux.Router
 
-	// server is the running server, if started and not disabled
+	// server is the running server, if started
 	server *http.Server
 }
 
 type dependencies struct {
 	fx.In
 	Lc     fx.Lifecycle
-	Params *ModuleParams `optional:"true"`
+	Params *internal.BundleParams `optional:"true"`
 	Config config.Component
 	Routes []*Route `group:"true"`
 }
 
 func newServer(deps dependencies) Component {
 	a := &server{
-		disabled: deps.Params != nil && deps.Params.Disabled,
-		port:     deps.Config.GetInt("cmd_port"),
-		router:   mux.NewRouter(),
+		autoStart: deps.Params.AutoStart,
+		port:      deps.Config.GetInt("cmd_port"),
+		router:    mux.NewRouter(),
 	}
 
 	for _, r := range deps.Routes {
@@ -54,16 +55,16 @@ func newServer(deps dependencies) Component {
 
 func newMock() Component {
 	a := &server{
-		disabled: true,
-		port:     0,
-		router:   mux.NewRouter(),
+		autoStart: false,
+		port:      0,
+		router:    mux.NewRouter(),
 	}
 	return a
 }
 
-// start starts the http server, if not disabled.
+// start starts the http server, if autoStart is true.
 func (a *server) start(ctx context.Context) error {
-	if a.disabled {
+	if !a.autoStart {
 		return nil
 	}
 
@@ -75,12 +76,8 @@ func (a *server) start(ctx context.Context) error {
 	return nil
 }
 
-// stop stops the http server, if not disabled.
+// stop stops the http server, if started
 func (a *server) stop(ctx context.Context) error {
-	if a.disabled {
-		return nil
-	}
-
 	if a.server != nil {
 		defer func() { a.server = nil }()
 		err := a.server.Shutdown(ctx)

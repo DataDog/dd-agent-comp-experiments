@@ -3,10 +3,10 @@ comp/autodiscovery/scheduler @DataDog/container-integrations
 comp/core/config @DataDog/agent-shared-components
 comp/core/flare @DataDog/agent-shared-components
 comp/core/health @DataDog/agent-shared-components
+comp/core/ipc/ipcclient @DataDog/agent-shared-components
+comp/core/ipc/ipcserver @DataDog/agent-shared-components
 comp/core/log @DataDog/agent-shared-components
 comp/core/status @DataDog/agent-shared-components
-comp/ipc/ipcclient @DataDog/agent-shared-components
-comp/ipc/ipcserver @DataDog/agent-shared-components
 comp/logs/agent @DataDog/agent-metrics-logs
 comp/logs/internal/sourcemgr @DataDog/agent-metrics-logs
 comp/logs/launchers/file @DataDog/agent-metrics-logs

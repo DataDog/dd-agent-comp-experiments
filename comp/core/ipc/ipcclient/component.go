@@ -12,7 +12,7 @@ import (
 
 // team: agent-shared-components
 
-const componentName = "comp/ipc/ipcclient"
+const componentName = "comp/core/ipc/ipcclient"
 
 // Component is the component type.
 type Component interface {

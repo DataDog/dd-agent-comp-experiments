@@ -18,8 +18,9 @@ import (
 	"testing"
 
 	"github.com/djmitche/dd-agent-comp-experiments/comp/core/config"
-	"github.com/djmitche/dd-agent-comp-experiments/comp/ipc/ipcclient"
-	"github.com/djmitche/dd-agent-comp-experiments/comp/ipc/ipcserver"
+	"github.com/djmitche/dd-agent-comp-experiments/comp/core/ipc/ipcclient"
+	"github.com/djmitche/dd-agent-comp-experiments/comp/core/ipc/ipcserver"
+	"github.com/djmitche/dd-agent-comp-experiments/comp/core/log"
 	"github.com/mholt/archiver"
 	"go.uber.org/fx"
 )
@@ -33,6 +34,9 @@ type flare struct {
 
 	// ipcclient is used to fetch flares remotely
 	ipcclient ipcclient.Component
+
+	// log is the log component
+	log log.Component
 }
 
 type dependencies struct {
@@ -40,7 +44,8 @@ type dependencies struct {
 
 	Config        config.Component
 	IPCClient     ipcclient.Component `optional:"true"` // can be omitted in 'agent run'
-	Registrations []*Registration     `group:"true"`
+	Log           log.Component
+	Registrations []*Registration `group:"true"`
 }
 
 type provides struct {
@@ -54,6 +59,7 @@ func newFlare(deps dependencies) provides {
 	f := &flare{
 		registrations: deps.Registrations,
 		ipcclient:     deps.IPCClient,
+		log:           deps.Log,
 	}
 
 	return provides{
@@ -151,6 +157,8 @@ func (f *flare) GetFlareFile(t *testing.T, filename string) (string, error) {
 // with {"filename": <filename>} giving the local filename of the flare file.
 func (f *flare) ipcHandler(w http.ResponseWriter, _ *http.Request) {
 	w.Header()["Content-Type"] = []string{"application/json; charset=UTF-8"}
+
+	f.log.Debug("Creating flare for remote request")
 
 	archiveFile, err := f.CreateFlare()
 	if err != nil {

@@ -10,10 +10,6 @@ import (
 
 	"github.com/djmitche/dd-agent-comp-experiments/comp/autodiscovery/scheduler"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/core"
-	"github.com/djmitche/dd-agent-comp-experiments/comp/core/flare"
-	"github.com/djmitche/dd-agent-comp-experiments/comp/core/status"
-	"github.com/djmitche/dd-agent-comp-experiments/comp/ipc/ipcclient"
-	"github.com/djmitche/dd-agent-comp-experiments/comp/ipc/ipcserver"
 	"go.uber.org/fx"
 	"go.uber.org/fx/fxevent"
 )
@@ -34,26 +30,6 @@ func SharedOptions(confFilePath string, oneShot bool) fx.Option {
 			Console:      true,
 		}),
 		core.Bundle)
-
-	var ipcInst ipcserver.Component
-	options = append(options,
-		fx.Supply(&ipcserver.ModuleParams{Disabled: oneShot}),
-		fx.Populate(&ipcInst), // instantiate ipc server, even if nothing depends on it
-		ipcserver.Module)
-
-	var flareInst flare.Component
-	options = append(options,
-		fx.Populate(&flareInst)) // instantiate flare, even if nothing depends on it
-
-	var statusInst status.Component
-	options = append(options,
-		fx.Populate(&statusInst)) // instantiate status, even if nothing depends on it
-
-	// oneShot processes typically use the ipc client, while 'run' processes do not.
-	if oneShot {
-		options = append(options,
-			ipcclient.Module)
-	}
 
 	options = append(options,
 		scheduler.Module)
