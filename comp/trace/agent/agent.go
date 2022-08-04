@@ -13,7 +13,7 @@ import (
 
 	"github.com/djmitche/dd-agent-comp-experiments/comp/core/status"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/trace/internal/httpreceiver"
-	"github.com/djmitche/dd-agent-comp-experiments/comp/util/log"
+	"github.com/djmitche/dd-agent-comp-experiments/comp/core/log"
 	"go.uber.org/fx"
 )
 

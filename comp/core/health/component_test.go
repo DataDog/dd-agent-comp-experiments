@@ -9,8 +9,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/djmitche/dd-agent-comp-experiments/comp/core/config"
-	"github.com/djmitche/dd-agent-comp-experiments/comp/util/log"
+	"github.com/djmitche/dd-agent-comp-experiments/comp/core/internal"
+	"github.com/djmitche/dd-agent-comp-experiments/comp/core/log"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/fx"
 	"go.uber.org/fx/fxtest"
@@ -26,8 +26,8 @@ func TestSimple(t *testing.T) {
 	reg := &Registration{component: "comp/thing"}
 	app := fxtest.New(t,
 		Module,
-		config.Module,
 		log.Module,
+		fx.Supply(&internal.BundleParams{AutoStart: true}),
 		fx.Provide(func() provides {
 			return provides{
 				Registration: reg,
@@ -54,8 +54,8 @@ func TestLiveness(t *testing.T) {
 	reg := &Registration{component: "comp/thing"}
 	app := fxtest.New(t,
 		Module,
-		config.Module,
 		log.Module,
+		fx.Supply(&internal.BundleParams{AutoStart: true}),
 		fx.Provide(func() provides {
 			return provides{
 				Registration: reg,

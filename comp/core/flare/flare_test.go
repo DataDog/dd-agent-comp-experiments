@@ -12,6 +12,7 @@ import (
 	"testing"
 
 	"github.com/djmitche/dd-agent-comp-experiments/comp/core/config"
+	"github.com/djmitche/dd-agent-comp-experiments/comp/core/internal"
 	"github.com/mholt/archiver"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/fx"
@@ -31,6 +32,7 @@ func TestFlareMechanics(t *testing.T) {
 	app := fxtest.New(t,
 		Module,
 		config.MockModule,
+		fx.Supply(&internal.BundleParams{AutoStart: true}),
 		fx.Provide(func() provides {
 			return provides{
 				Registration: FileRegistration("greeting.txt", func() (string, error) {

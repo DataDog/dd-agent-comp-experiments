@@ -9,13 +9,11 @@ import (
 	"os"
 
 	"github.com/djmitche/dd-agent-comp-experiments/comp/autodiscovery/scheduler"
-	"github.com/djmitche/dd-agent-comp-experiments/comp/core/config"
+	"github.com/djmitche/dd-agent-comp-experiments/comp/core"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/core/flare"
-	"github.com/djmitche/dd-agent-comp-experiments/comp/core/health"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/core/status"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/ipc/ipcclient"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/ipc/ipcserver"
-	"github.com/djmitche/dd-agent-comp-experiments/comp/util/log"
 	"go.uber.org/fx"
 	"go.uber.org/fx/fxevent"
 )
@@ -30,16 +28,12 @@ func SharedOptions(confFilePath string, oneShot bool) fx.Option {
 	options := []fx.Option{}
 
 	options = append(options,
-		fx.Supply(&log.ModuleParams{Console: !oneShot}),
-		log.Module)
-
-	options = append(options,
-		fx.Supply(&config.ModuleParams{ConfFilePath: confFilePath}),
-		config.Module)
-
-	options = append(options,
-		fx.Supply(&health.ModuleParams{Disabled: oneShot}),
-		health.Module)
+		fx.Supply(&core.BundleParams{
+			AutoStart:    !oneShot,
+			ConfFilePath: confFilePath,
+			Console:      true,
+		}),
+		core.Bundle)
 
 	var ipcInst ipcserver.Component
 	options = append(options,
@@ -49,13 +43,11 @@ func SharedOptions(confFilePath string, oneShot bool) fx.Option {
 
 	var flareInst flare.Component
 	options = append(options,
-		fx.Populate(&flareInst), // instantiate flare, even if nothing depends on it
-		flare.Module)
+		fx.Populate(&flareInst)) // instantiate flare, even if nothing depends on it
 
 	var statusInst status.Component
 	options = append(options,
-		fx.Populate(&statusInst), // instantiate status, even if nothing depends on it
-		status.Module)
+		fx.Populate(&statusInst)) // instantiate status, even if nothing depends on it
 
 	// oneShot processes typically use the ipc client, while 'run' processes do not.
 	if oneShot {

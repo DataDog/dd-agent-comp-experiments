@@ -14,7 +14,7 @@ import (
 	"github.com/djmitche/dd-agent-comp-experiments/comp/core/health"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/logs/internal/sourcemgr"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/logs/launchers/launchermgr"
-	"github.com/djmitche/dd-agent-comp-experiments/comp/util/log"
+	"github.com/djmitche/dd-agent-comp-experiments/comp/core/log"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/fx"
 	"go.uber.org/fx/fxtest"

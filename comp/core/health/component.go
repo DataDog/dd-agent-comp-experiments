@@ -58,14 +58,6 @@ func NewRegistration(component string) *Registration {
 	return &Registration{component: component}
 }
 
-// ModuleParams are the parameters to Module.
-type ModuleParams struct {
-	// Disabled indicates that the component should ignore all registration and
-	// perform no monitoring.  This is intended for one-shot processes such as
-	// `agent status`.
-	Disabled bool
-}
-
 // Module defines the fx options for this component.
 var Module = fx.Module(
 	componentName,

@@ -31,7 +31,7 @@ A component is defined in a dedicated package under `comp/`, with the following 
    All interface methods should be exported and thoroughly documented.
 
  * `pkg.Module` -- an `fx.Option` that can be included in an `fx.App` to make this component available.
-   To improve logging, use `fx.Module(comppath, ..)`, where `comppath` is the root-relative package path, e.g., `"comp/util/log"`.
+   To improve logging, use `fx.Module(comppath, ..)`, where `comppath` is the root-relative package path, e.g., `"comp/core/log"`.
    It should have a formulaic doc string like `// Module defines the fx options for this component.`
 
 Components should not be nested; that is, no component's Go path should be a prefix of another component's Go path.
@@ -192,7 +192,7 @@ Component dependencies are automatically determined from the arguments to a comp
 For example, a component that depends on the log component will have a `logs.Component` in its argument list:
 
 ```go
-import "github.com/djmitche/dd-agent-comp-experiments/comp/util/log"
+import "github.com/djmitche/dd-agent-comp-experiments/comp/core/log"
 
 func newThing(..., log log.Component, ...) Component {
     return &thing{
@@ -239,4 +239,3 @@ func TestMyComponent(t *testing.T) {
 ```
 
 If the component has a mock implementation, it is a good idea to test that mock implementation as well.
-

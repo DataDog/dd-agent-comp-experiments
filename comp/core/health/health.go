@@ -13,9 +13,10 @@ import (
 	"sync"
 
 	flare "github.com/djmitche/dd-agent-comp-experiments/comp/core/flare"
+	"github.com/djmitche/dd-agent-comp-experiments/comp/core/internal"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/ipc/ipcclient"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/ipc/ipcserver"
-	"github.com/djmitche/dd-agent-comp-experiments/comp/util/log"
+	"github.com/djmitche/dd-agent-comp-experiments/comp/core/log"
 	"go.uber.org/fx"
 )
 
@@ -23,8 +24,8 @@ type health struct {
 	// Mutex covers all fields, including all componentHealth values
 	sync.Mutex
 
-	// disabled indicates that the component should do nothing.
-	disabled bool
+	// autoStart indicates that the component should do start.
+	autoStart bool
 
 	// components maps component package path to that component's current health status
 	components map[string]ComponentHealth
@@ -40,7 +41,7 @@ type dependencies struct {
 	fx.In
 
 	Lc        fx.Lifecycle
-	Params    *ModuleParams `optional:"true"`
+	Params    *internal.BundleParams
 	Log       log.Component
 	IPCClient ipcclient.Component `optional:"true"` // can be omitted in 'agent run'
 
@@ -57,7 +58,7 @@ type provides struct {
 
 func newHealth(deps dependencies) provides {
 	h := &health{
-		disabled:   deps.Params != nil && deps.Params.Disabled,
+		autoStart:  deps.Params.AutoStart,
 		components: make(map[string]ComponentHealth),
 		log:        deps.Log,
 		ipcclient:  deps.IPCClient,
@@ -120,7 +121,7 @@ func (h *health) setHealth(component string, healthy bool, message string) {
 	h.Lock()
 	defer h.Unlock()
 
-	if ch, found := h.components[component]; found && !h.disabled {
+	if ch, found := h.components[component]; found && h.autoStart {
 		// XXX: we will probably want to do more than just log
 		if healthy && !ch.Healthy {
 			h.log.Debug(fmt.Sprintf("Component %s is now healthy", component))

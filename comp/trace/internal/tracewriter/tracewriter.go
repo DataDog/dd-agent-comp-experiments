@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/djmitche/dd-agent-comp-experiments/comp/core/health"
-	"github.com/djmitche/dd-agent-comp-experiments/comp/util/log"
+	"github.com/djmitche/dd-agent-comp-experiments/comp/core/log"
 	"github.com/djmitche/dd-agent-comp-experiments/pkg/trace/api"
 	"github.com/djmitche/dd-agent-comp-experiments/pkg/util/actor"
 	"go.uber.org/fx"

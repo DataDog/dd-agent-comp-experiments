@@ -8,8 +8,10 @@
 //
 // The component loads its configuration immediately on instantiation, so
 // configuration is available to all other components, even before they have
-// started.  To accomplish this, it requires the config file path in
-// its ModuleParams.
+// started.  It does this regardless of BundleParams.AutoStart.
+//
+// The config file can be supplied in BundleParams.ConfgFilePath, with a
+// system-specific default if that value is not set.
 //
 // The component attempts to load the configuration file at instantiation, failing
 // startup if this is not possible.  The mock component does nothing at
@@ -40,12 +42,6 @@ type Mock interface {
 	Component
 
 	// TODO: Set..
-}
-
-// ModuleParams are the parameters to Module.
-type ModuleParams struct {
-	// ConfFilePath is the path to the configuration file.
-	ConfFilePath string
 }
 
 const componentName = "comp/core/config"

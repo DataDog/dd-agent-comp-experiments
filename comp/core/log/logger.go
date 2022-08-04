@@ -10,6 +10,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/djmitche/dd-agent-comp-experiments/comp/core/internal"
 	"go.uber.org/fx"
 )
 
@@ -22,12 +23,12 @@ type dependencies struct {
 	fx.In
 
 	Lc     fx.Lifecycle
-	Params *ModuleParams `optional:"true"`
+	Params *internal.BundleParams
 }
 
 func newLogger(deps dependencies) Component {
 	c := &logger{
-		console: deps.Params != nil && deps.Params.Console,
+		console: deps.Params.Console,
 	}
 	deps.Lc.Append(fx.Hook{OnStart: c.start})
 	return c

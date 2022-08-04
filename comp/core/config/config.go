@@ -8,6 +8,7 @@ package config
 import (
 	"strings"
 
+	"github.com/djmitche/dd-agent-comp-experiments/comp/core/internal"
 	"github.com/spf13/viper"
 	"go.uber.org/fx"
 )
@@ -20,7 +21,7 @@ type config struct {
 type dependencies struct {
 	fx.In
 
-	Params *ModuleParams `optional:"true"`
+	Params *internal.BundleParams
 }
 
 func newConfig(deps dependencies) (Component, error) {

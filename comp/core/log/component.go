@@ -19,7 +19,7 @@ import (
 
 // team: agent-shared-components
 
-const componentName = "comp/util/log"
+const componentName = "comp/core/log"
 
 // Component is the component type.
 type Component interface {
@@ -52,12 +52,6 @@ type Mock interface {
 	// EndCapture ends capturing log messages and discards buffered log
 	// messages.  It's not required to call this.
 	EndCapture()
-}
-
-// ModuleParams are the parameters to Module.
-type ModuleParams struct {
-	// Console determines whether log messages should be output to the console.
-	Console bool
 }
 
 // Module defines the fx options for this component.
