@@ -5,8 +5,8 @@
  * `cmd/<appname>/main.go` -- entrypoint for each app
  * `pkg/<pkgnname>/...` utility types and functions, ["plain old data"](https://en.wikipedia.org/wiki/Passive_data_structure) types
  * `pkg/util/<utilname>/...` utility packages that are not in the form of a component
- * `comp/...` components
- * `comp/<bundlename>/...` component bundles
+ * `comp/<bundlename>` bundles
+ * `comp/<bundlename>/...` components (all components are in bundles)
 
 ## Subscriptions
 

@@ -209,6 +209,8 @@ In many cases, these components are not intended for use outside of that area.
 These components should be defined in an `internal/` package, and included in a `Module` definition in the parent package.
 This single `Module` can then be included by apps that require that functionality.
 
+TODO: expand, include BundleParams, bundle_test.go, etc.
+
 ### Testing
 
 Testing for a component should use `fxtest` to create the component.

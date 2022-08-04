@@ -45,18 +45,19 @@ See [#2](https://github.com/djmitche/dd-agent-comp-experiments/pull/2) for an at
 
  * Docs
      * bundles (and remove module params)
-       * not optional
-     * doc kinds of components, whether they should use Fx: https://github.com/djmitche/dd-agent-comp-experiments/pull/1#discussion_r936350828
+       * params not optional
      * nil subscriptions
+     * nil registrations in general
      * bundle_test.go
+ * How do we use MockModule in the face of Bundles?
+ * Put IPCAPI client stuff in cmd/ instead of the same component
  * OneShot should use a Hook, rather than run things before startup
  * put all options in a variable for each app, and validate in a unit test (@ogaca-dd)
    * Maybe a common.RunCobraCommand?
- * What happens when a subscriber doesn't consume because it's not started?
  * more tests
    * some kind of external test (`./test/`?)
  * more components
-   * tagger
+   * tagger **soon - open questions about local/remote**
    * wlm
    * AD + plugins
    * Check runners
