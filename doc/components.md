@@ -20,18 +20,53 @@ As an aid to thinking about this question, consider four "levels" where it might
 
 In general, meta and service-level functionality should always be implemented as components.
 Implementation-level functionality should not.
-Internal functionality is left to the descretio of the implementing team: it's fine for a meta or service component to be implemented as one large, complex component, if that makes the most sense for the team.
+Internal functionality is left to the descretion of the implementing team: it's fine for a meta or service component to be implemented as one large, complex component, if that makes the most sense for the team.
 
 ## Bundles
 
-The previous section suggests there is a large and growing number of components, and listing those components out repeatedly could grow tiresome and cause bugs.
+There is a large and growing number of components, and listing those components out repeatedly could grow tiresome and cause bugs.
 Component bundles provide a way to manipulate multiple components, usually at the meta or service level, as a single unit.
 For example, while Logs-Agent is internally composed of many components, those can be addressed as a unit with `comp/logs.Bundle`.
 
-## Apps
+Bundles also provide a way to provide parameters to components at instantiation.
+Parameters can control the behavior of components within a bundle at a coarse scale, such as whether the logs-agent should start or not.
 
-TODO
+## Apps and Binaries
 
-## Build-Time and Runtime Dependencies
+The build infrastructure builds several agent binaries from the agent source.
+Some are purpose-specific, such as the serverless agent or dogstatsd, while others such as the core agent support many kinds of functionality.
+Each build is made from a subset of the same universe of components.
+For example, the components comprising the DogStatsD build are precisely the same components implementing the DogStatsD functionality in the core agent.
 
-TODO
+Most binaries support subcommands, such as `agent run` or `agent status`.
+Each of these also uses a subset of the components available in the binary, and perhaps some different bundle parameters.
+For example, `agent status` does not need the logs-agent bundle (`comp/logs.Bundle`), and does not need to start core-bundle services like component health monitoring.
+
+These subcommands are implemented as _apps_.
+An app specifies, as arguments to `fx.New`, the set of components that can be instantiated, their parameters, and the top-level components that should be requested.
+
+### Build-Time and Runtime Dependencies
+
+Let's consider sets and subsets of components.
+Each of the following sets is a subset of the previous set:
+
+1. All implemented components (everything in [`COMPONENTS.md`](../COMPONENTS.md))
+1. All components in a binary (everything directly or indirectly referenced by a binary's `main()`) -- the _build-time dependencies_
+1. All components available in an app (everything provided by a bundle in the app's `fx.New` call)
+1. All components instantiated in an app (all explicitly required components and their transitive dependencies) -- the _runtime dependencies_
+1. All components started in an app (all instantiated components, except those disabled by their parameters)
+
+The build-time dependencies determine the binary size.
+For example, omitting container-related components from a binary dramatically reduces binary size by not requiring kubernetes and docker API libraries.
+
+The runtime dependencies determine, in part, the process memory consumption.
+This is a small effect because many components will use only a few Kb if they are not actually doing any work.
+For example, if the trace-agent's trace-writer component is instantiated, but writes no traces, the peformance impact is trivial.
+
+The started components determine CPU usage and consumption of other resources.
+A component polling a data source unnecessarily is wasteful of CPU resources.
+But perhaps more critically for correct behavior, a component started when it is not needed may open network ports or engage other resources unnecessarily.
+For example, `agent status` should not open a listening port for DogStatsD traffic.
+
+It's important to note that the size of the third set in the list above, "all components available", has no performance effect.
+As long as the components would be included in the binary anyway, it does no harm to make them available in the app.
