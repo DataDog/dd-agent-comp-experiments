@@ -23,11 +23,6 @@ const componentName = "comp/core/log"
 
 // Component is the component type.
 type Component interface {
-	// Configure defines the settings for the logger.  This can be called
-	// before the component starts, such as in an fx.Invoke.  It must only be
-	// called once, typically from the App initialization.
-	Configure(level string) error
-
 	// Debug logs at the debug level.
 	Debug(v ...interface{})
 

@@ -6,10 +6,9 @@
 package log
 
 import (
-	"context"
-	"errors"
 	"fmt"
 
+	"github.com/djmitche/dd-agent-comp-experiments/comp/core/config"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/core/internal"
 	"go.uber.org/fx"
 )
@@ -24,34 +23,19 @@ type dependencies struct {
 
 	Lc     fx.Lifecycle
 	Params internal.BundleParams
+	Config config.Component
 }
 
 func newLogger(deps dependencies) Component {
 	c := &logger{
 		console: deps.Params.Console,
+		level:   deps.Config.GetString("log_level"),
 	}
-	deps.Lc.Append(fx.Hook{OnStart: c.start})
-	return c
-}
-
-// Configure implements Component#Configure.
-func (c *logger) Configure(level string) error {
-	if c.level != "" {
-		return errors.New("Do not call Configure() twice, nor after startup")
-	}
-	c.level = level
-	return nil
-}
-
-func (c *logger) start(context.Context) error {
-	// apply defaults if Configure wasn't called
 	if c.level == "" {
 		c.level = "warn"
 	}
 
-	// (set up seelog with the given level)
-
-	return nil
+	return c
 }
 
 // Debug implements Component#Debug.
