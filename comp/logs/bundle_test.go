@@ -22,7 +22,7 @@ func TestBundleDependencies(t *testing.T) {
 		fx.Supply(autodiscovery.BundleParams{}),
 		autodiscovery.Bundle,
 
-		// provide pnd require the launchers, since they are not required automatically
+		// provide and require the launchers, since they are not required automatically
 		file.Module,
 		fx.Invoke(func(file.Component) {}),
 

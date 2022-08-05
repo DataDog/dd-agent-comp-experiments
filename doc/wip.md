@@ -49,6 +49,7 @@ See [#2](https://github.com/djmitche/dd-agent-comp-experiments/pull/2) for an at
      * nil subscriptions
      * nil registrations in general
      * bundle_test.go
+ * Issues for people to hack on
  * How do we use MockModule in the face of Bundles?
  * Put IPCAPI client stuff in cmd/ instead of the same component
  * OneShot should use a Hook, rather than run things before startup

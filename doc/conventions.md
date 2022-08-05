@@ -1,5 +1,7 @@
 # Conventions
 
+* TODO: AutoStart
+
 ## Package paths
 
  * `cmd/<appname>/main.go` -- entrypoint for each app

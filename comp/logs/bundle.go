@@ -25,6 +25,7 @@ import (
 
 const componentName = "comp/logs"
 
+// BundleParams defines the parameters for this bundle.
 type BundleParams = internal.BundleParams
 
 // Bundle defines the fx options for this bundle.
