@@ -1,4 +1,4 @@
-# Defining Components and Bundles
+# Defining Apps, Bundles, and Components
 
 This file describes the mechanics of implementing components and bundles.
 
@@ -79,22 +79,17 @@ type dependencies struct {
     // ...
 }
 
-type provides struct {
-    fx.Out
-
-    Component
-}
-
-func newFoo(deps dependencies) provides { ...  }
+func newFoo(deps dependencies) Component { ...  }
 ```
 
 The constructor `newFoo` is an `fx` constructor, so it can refer to other types and expect them to be automatically supplied.
 For very simple constructors, listing the dependencies inline is OK, but most will want to use the `dependencies` pattern shown above.
 As an `fx` constructor, it can also take an `fx.Lifetime` argument and set up OnStart or OnStop hooks.
 
-The constructor can return either `provides`, if it is infallible, or `(provides, error)`, if it could fail.
+The constructor can return either `Component`, if it is infallible, or `(Component, error)`, if it could fail.
 An returned error will crash the agent at startup with a suitable message.
-For simple constructors that return only the Component type, omitting the `provides` struct and just returning `Component` is perfectly fine.
+In fact, it is possible to return multiple values, and this is useful for registrations and subscriptions, as described in [conventions](./conventions.md).
+If the list of return values grows unwieldy, `fx.Out` can be used to create an output struct.
 
 The constructor may call methods on other components, as long as the called method's documentation indicates it is OK.
 
@@ -245,7 +240,33 @@ func TestBundleDependencies(t *testing.T) {
 }
 ```
 
-## Using Other Fx Types
+## Apps
 
-It's fine to provide other, unexported `fx` types in `pkg.Module`, if that is helpful.
-Because they are unexported, they will be invisible to users of the component.
+Apps map directly to `fx.App` instances, and as such they define a set of provided components and instantiate some of them.
+Apps are formulaic and should not contain any complex logic.
+Their job is to parse command-line options, set up an `fx.App` with the necessary bundles, components, and parameters, and run it.
+
+This will typically look something like
+
+```go
+app := fx.New(
+    fx.Supply(core.BundleParams{ ... }),
+    core.Bundle,
+
+    fx.Supply(foo.BundleParams{ ... }),
+    foo.Bundle,
+    ...
+)
+common.RunApp(app)
+```
+
+There are several [conventions](./conventions.md) to make this easier.
+
+## Binaries
+
+Each binary is defined as a `main` package in the `cmd/` directory.
+For binaries that have subcommands, each subcommand is implemented in a subdirectory of the binary directory.
+Binaries with subcommands typically define one app per subcommand.
+
+Consider carefully the tree of Go imports that begins with the `main` package.
+While the Go linker does some removal of unused symbols, the safest means to ensure a particular package isn't occuping space in the resulting binary is to not include it.

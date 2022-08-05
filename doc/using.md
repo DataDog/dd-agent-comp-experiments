@@ -1,53 +1,32 @@
 # Using Components and Bundles
 
-TODO
-
-### Apps (binaries)
-
-Apps represent the final binaries defined by the agent.
-Each "flavor" of agent is defined in a different sub-package of `cmd/`.
-
-Apps are formulaic and should not contain any complex logic.
-Their job is to parse command-line options, set up an `fx` App, and run it.
-
-For parameterized components, the app must also supply the parameters:
-
-```go
-app = fx.New(
-    foo.Module,
-    fx.Supply(&foo.ModuleParams{
-        MaxFoos: 13,
-    }),
-    ...
-)
-```
-
-### Component Dependencies
+## Component Dependencies
 
 Component dependencies are automatically determined from the arguments to a component constructor.
-For example, a component that depends on the log component will have a `logs.Component` in its argument list:
+Most components have a few dependencies, and use a struct named `dependencies` to represent them:
 
 ```go
-import "github.com/djmitche/dd-agent-comp-experiments/comp/core/log"
+type dependencies struct {
+    fx.In
 
-func newThing(..., log log.Component, ...) Component {
-    return &thing{
-        log: log,
+    Lc fx.Lifecycle
+    Params internal.BundleParams
+    Config config.Module
+    Log log.Module
+    // ...
+}
+
+func newThing(deps dependencies) Component {
+    t := &thing{
+        log: deps.Log,
         ...
     }
+    deps.Lc.Append(fx.Hook{OnStart: t.start})
+    return t
 }
 ```
 
-### Component Bundles
-
-Many components naturally gather into larger areas of the agent codebase, such as DogStatsD.
-In many cases, these components are not intended for use outside of that area.
-These components should be defined in an `internal/` package, and included in a `Module` definition in the parent package.
-This single `Module` can then be included by apps that require that functionality.
-
-TODO: expand, include BundleParams, bundle_test.go, etc.
-
-### Testing
+## Testing
 
 Testing for a component should use `fxtest` to create the component.
 This focuses testing on the API surface of the component against which other components will be built.

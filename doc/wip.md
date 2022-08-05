@@ -1,12 +1,5 @@
 # Open Questions
 
-## Subprocesses
-
-We want to support running some "things" (we should have a term for this!) as subprocesses, as is currently done for trace-agent, system-probe, process-agent, and security-agent.
-Should these be different binaries (as they are now), or the same binary with different arguments?
-
-It may be that this is unrelated to components -- need more info.
-
 ## Remote Components
 
 [The RFC](https://github.com/DataDog/architecture/blob/master/rfcs/agent-component-architecture/rfc.md#remote-component-considerations) mentions remote components, but without much detail.
@@ -21,34 +14,8 @@ There are at least two areas where we may want to consider fledgling "remote com
  * In the existing Agent, the tagger can either operate locally or use a remote tagger, with the same interface.
    So there is at least some prior art to supporting remote versions of components.
 
-## Enabling / Disabling and Component Bundles
-
-Consider configs like `logs_enabled` or `apm_config.enabled` -- when these are false, it means that several components that are already instantiated should not actually start.
-One options here is to thread a bunch of `Enable` methods through these components.
-Then an app would call
-```go
-fx.Invoke(func(config config.Component, agent logsagent.Component) {
-    if config.GetBool("logs_enabled") {
-        logsagent.Enable()
-    }
-})
-```
-
-and the logs agent's Enable method would call the Enable method on its internal components (schedulers, etc. -- anything that does something active).
-This approach is verbose -- writing `Enable` methods everywhere, adding an `enable bool` field, and then checking that field all over the place.
-It also complicates things like health monitoring, status, and ipcserver -- those all require registration during startup, _before_ it's known whether the component is enabled.
-So we'll need a way for all of those to handle disabled components.
-
-See [#2](https://github.com/djmitche/dd-agent-comp-experiments/pull/2) for an attempt at solving this (which fails because the Health registration comes after start).
-
 # TODO
 
- * Docs
-     * bundles (and remove module params)
-       * params not optional
-     * nil subscriptions
-     * nil registrations in general
-     * bundle_test.go
  * Issues for people to hack on
  * How do we use MockModule in the face of Bundles?
  * Put IPCAPI client stuff in cmd/ instead of the same component

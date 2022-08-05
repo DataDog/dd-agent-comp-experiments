@@ -1,22 +1,135 @@
 # Conventions
 
-* TODO: AutoStart
+This section contains a set of conventions for handling common situations.
+Each subsection can be read independently.
 
-## Package paths
+## Registrations
 
- * `cmd/<appname>/main.go` -- entrypoint for each app
- * `pkg/<pkgnname>/...` utility types and functions, ["plain old data"](https://en.wikipedia.org/wiki/Passive_data_structure) types
- * `pkg/util/<utilname>/...` utility packages that are not in the form of a component
- * `comp/<bundlename>` bundles
- * `comp/<bundlename>/...` components (all components are in bundles)
+Components generally need to talk to one another!
+In simple cases, that occurs by method calls.
+But in many cases, a single component needs to communicate with a number of other components that all share some characteristics.
+For example, the `comp/core/health` component monitors the health of many other components, and `comp/workloadmeta /scheduler` provides workload events to an arbitrary number of subscribers.
+
+The convention in the Agent codebase is to use [value groups](./fx.md#value-groups) to accomplish this.
+The _collecting_ component requires a slice of some _registration type_, and the _providing_ components provide that registration type.
+Consider a simple case of a server component to which endpoints can be attached.
+The server is the collecting component, requiring a slice of type `[]*Endpoint`, where `*Endpoint` is the registration type.
+Providing components provide values of type `*Endpoint`.
+
+The collecting component should define the registration type and a constructor for it.
+
+```go
+// --- server/component.go ---
+
+// Endpoint is provided by components that wish to register an endpoint
+// with this server.  If a nil *Endpoint is provided, it will be ignored.
+type Endpoint struct { .. }
+
+// NewEndpoint creates a new Endpoint.
+func NewEndpoint(route string, handler func()) *Endpoint { .. }
+```
+
+Its implementation then requires a slice of the registration type, using `group:"true"`:
+
+```go
+// --- server/server.go ---
+type dependencies struct {
+    fx.In
+
+    Endpoints []*Endpoint `group:"true"`
+}
+
+func newServer(deps dependencies) Component {
+    // ..
+    for _, e := range deps.Endpoints {
+        if e == nil {
+            continue
+        }
+        // ..
+    }
+    // ..
+}
+```
+
+It's good practice to ignore nil values, as that allows providing components to skip
+the registration if desired.
+
+Finally, the providing component includes a registration in its output:
+
+```go
+// --- foo/foo.go ---
+type provides struct {
+    fx.Out
+
+    Component
+    ServerRegistration *server.Registration `group:"true"`
+}
+
+func newFoo(deps dependencies) provides {
+    // ..
+    return provides{
+        Component: foo,
+        ServerRegistration: server.NewRegistration("/things/foo", foo.handler),
+    }
+}
+```
+
+This technique has some caveats to be aware of:
+
+ * The providing components are instantiated before the collecting component.
+ * Fx treats value groups as the collecting component depending on all of the providing components.
+   This means that the providing components cannot depend on the collecting component.
+ * Fx will instantiate _all_ providing components before the collecting component.
+   This may lead to components being instantiated in unexpected circumstances.
+   The AutoStart convention is meant to partially address this issue.
+ * Omitting the `group:"true"` in either place it appears above will lead to Fx silently ignoring the registration.
 
 ## Subscriptions
 
-A common mode of interaction between two components is for one to subscribe to notifications from the other.
-The `pkg/util/subscriptions` package provides generic support for this.
+Subscriptions are a common form of registration, and have support in the `pkg/util/subscriptions` package.
 
-Subscriptions are usually static for the lifetime of an Agent, and should be made during the setup phase, before components have started.
-The documentation for components supporting subscriptions will make this clear.
+To implement a subscription, the collecting component defines a message type, a Subscription type, and a Subscribe function:
+
+```go
+// --- eventpub/component.go ---
+type Event struct { .. }
+
+// Subscription is provided by components that wish to subscribe to events
+// from this component.  A nil *Subscription will be ignored.
+type Subscription = subscriptions.Subscription[Event]
+
+// Subscribe creates a new Subscription.
+func Subscribe() Subscription {
+    return subscriptions.NewSubscription[Event]()
+}
+
+// --- eventpub/eventpub.go ---
+type eventpub struct {
+    // .. (*eventpub implements Component)
+    subscriptions *subscriptions.SubscriptionPoint[Event]
+}
+
+type dependencies struct {
+	fx.In
+
+    // ...
+	Subscriptions []Subscription `group:"true"`
+}
+
+func newSourceMgr(deps dependencies) Component {
+	ep := &eventpub{
+		subscriptions: subscriptions.NewSubscriptionPoint[Event](deps.Subscriptions),
+	}
+    // ...
+}
+
+func (ep *eventpub) publishEvent(evt Event) {
+    // notify all subscribers
+    ep.subscriptions.Notify(evt)
+}
+```
+
+See the `pkg/util/subscriptions` documentation for more details.
 
 ## Actors
 
@@ -25,6 +138,44 @@ This approach requires no concurrency controls, since all activity takes place i
 It is also easy to test: start a goroutine, send it some events, and assert on the output.
 
 The `pkg/util/actor` package supports components that use the actor structure, including connecting them to the `fx` life cycle.
+
+## Component Auto-Startup
+
+It's easy for a component to be instantiated unexpectedly, if it is an indirect dependency of another component that is needed in a particular app.
+Value groups can also lead to unexpected instantiation.
+
+To avoid surprises, components do not automatically start just because they were instantiated.
+Instead, BundleParams for most bundles include an `AutoStart` field which dictates whether the component should or should not start up.
+"One-shot" apps set this value to `Never`, disabling any incidentally-required components from actually starting.
+
+The type is defined in `pkg/util/startup`, and can have the values `Always`, `Never`, or `IfConfigured`.
+To support the `IfConfigured` value, bundles which take configuration can define a `ShouldStart` method on `BundleParams`:
+
+```go
+// ShouldStart determines whether the bundle should start, based on
+// configuration.
+func (p BundleParams) ShouldStart(config config.Component) bool {
+	return p.AutoStart.ShouldStart(config.GetBool("foo_agent.enabled"))
+}
+```
+
+Each component in the bundle that has any active functionality then consults this function in its constructor, for example:
+
+```go
+func newFoo(deps dependencies) provides {
+    f := &foo { .. }
+    if deps.Params.ShouldStart(deps.Config) {
+        f.actor.HookLifecycle(deps.Lc, l.run)
+        f.subscription = eventpub.Subscribe()
+    }
+    return provides{
+        Component:    f,
+        Subscription: f.subscription,
+    }
+}
+```
+
+Note that l.subscription is nil if the component does not start, meaning that the component will not receive messages, which might cause the event publisher to block.
 
 ## IPC API Commands
 
@@ -43,50 +194,8 @@ In this context, "failure" is a user-visible problem with the component that can
 This may be related to resource exhaustion, user misconfiguration, or an issue in the environment.
 Many components can't fail (or at least, we can't yet imagine how they would fail); these do not need to report to the `comp/core/health` component.
 
-## Plugins
+## Non-Component Code
 
-Plugins are things like Launchers, Tailers, Config Providers, Listeners, etc. where there are several implementations that perform the same job in different contexts.
-
-We typically want to include different sets of plugins in different builds, differentiating at build time.
-Just including `somepkg.Module` in an `fx.App` is enough to pull in that module's code, causing binary bloat, so these distinctions must be made at build time.
-For example, a slimmed-down logs agent for limited systems might only support logging TCP inputs, while a full-fledged logs agent includes support for containers, syslog, files, and so on.
-
-Plugins always "plug in" to some "manager" component (typically named `foomgr`), and should depend on that manager and register themselves with it at startup.
-Then, it is up to apps to depend on the necessary plugins.
-
-This is accomplished using Fx's "value groups", where the plugins are all members of the same value group.
-The manager component will define the name and type (typically `Registration`) of the group.
-The plugins then use an `fx.Out` struct to register:
-
-```go
-type provides struct {
-    fx.Out
-    Component
-    FooReg *foomgr.Registration `group:"foo"`
-} //                 IMPORTANT! ^^^^^^^^^^^^^
-  // Without this tag, build will succeed but the registration will be ignored
-
-func newBar(deps dependencies) provides {
-    comp := bar {
-        fooReg: foomgr.NewRegistration(..),
-        // ...
-    }
-    return provides {
-        Component: comp,
-        FooReg: comp.fooReg,
-    }
-}
-```
-
-Here the `provides` struct indicates that the `newBar` constructor returns multiple values, including the component itself and a foomgr.Registration in the group "foo".
-
-The foomgr component will then gather all of the defined Registrations with
-
-```go
-type dependencies struct {
-    fx.In
-    Registrations []*Registration
-    // ..
-}
-```
+Code that does not directly implement a component, but provides supporting functionality or ["plain old data"](https://en.wikipedia.org/wiki/Passive_data_structure) structures, should be in `pkg/`.
+This might be a top-level `pkg/` directory or, for utilities, under `pkg/util/`.
 
