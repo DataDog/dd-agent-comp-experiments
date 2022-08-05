@@ -7,7 +7,7 @@
 // as a client.
 //
 // The handlers in the HTTP server are supplied by other components, by providing a
-// ipcserver.Route instance in value-group "ipcserver".
+// ipcserver.Route from their constructor.
 //
 // The Mock version of this component allows registration but does not actually
 // start a server.
@@ -40,16 +40,16 @@ type Mock interface {
 // Route is provided by other components in order to indicate routes that
 // should be served via the IPC API.
 type Route struct {
-	// path is the path at which this handler should be registered
-	path string
+	fx.Out
 
-	// handler is the handler for this path.
-	handler http.HandlerFunc
+	Route route `group:"true"`
 }
 
 // NewRoute creates a new Route instance for the named component.
-func NewRoute(path string, handler http.HandlerFunc) *Route {
-	return &Route{path, handler}
+func NewRoute(path string, handler http.HandlerFunc) Route {
+	return Route{
+		Route: route{path, handler},
+	}
 }
 
 var Module = fx.Module(

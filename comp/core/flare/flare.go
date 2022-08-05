@@ -30,7 +30,7 @@ type flare struct {
 	sync.Mutex
 
 	// registrations contains all registrations by other components
-	registrations []*Registration
+	registrations []registration
 
 	// ipcclient is used to fetch flares remotely
 	ipcclient ipcclient.Component
@@ -45,40 +45,41 @@ type dependencies struct {
 	Config        config.Component
 	IPCClient     ipcclient.Component `optional:"true"` // can be omitted in 'agent run'
 	Log           log.Component
-	Registrations []*Registration `group:"true"`
+	Registrations []registration `group:"true"`
 }
 
-type provides struct {
-	fx.Out
-
-	Component
-	IPCRoute *ipcserver.Route `group:"true"`
-}
-
-func newFlare(deps dependencies) provides {
+func newFlare(deps dependencies) (Component, ipcserver.Route) {
 	f := &flare{
-		registrations: deps.Registrations,
+		registrations: providedRegistrations(deps.Registrations),
 		ipcclient:     deps.IPCClient,
 		log:           deps.Log,
 	}
 
-	return provides{
-		Component: f,
-		IPCRoute:  ipcserver.NewRoute("/agent/flare", f.ipcHandler),
-	}
+	return f, ipcserver.NewRoute("/agent/flare", f.ipcHandler)
 }
 
 type mockDependencies struct {
 	fx.In
 
-	Registrations []*Registration `group:"true"`
+	Registrations []registration `group:"true"`
 }
 
 func newMock(deps mockDependencies) Component {
 	// mock is just like the real thing, but doesn't use ipcserver or config.
 	return &flare{
-		registrations: deps.Registrations,
+		registrations: providedRegistrations(deps.Registrations),
 	}
+}
+
+// providedRegistrations skips regsitrations with a nil callback.
+func providedRegistrations(registrations []registration) []registration {
+	provided := make([]registration, 0, len(registrations))
+	for _, r := range registrations {
+		if r.callback != nil {
+			provided = append(provided, r)
+		}
+	}
+	return provided
 }
 
 // CreateFlare implements Component#CreateFlare.
@@ -184,7 +185,7 @@ func (f *flare) ipcHandler(w http.ResponseWriter, _ *http.Request) {
 func (f *flare) writeFlareFiles(flareDir string, returnErrors bool) error {
 	errors := []string{}
 	for _, reg := range f.registrations {
-		err := reg.Callback(flareDir)
+		err := reg.callback(flareDir)
 		if err != nil {
 			if returnErrors {
 				return err

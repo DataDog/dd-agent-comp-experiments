@@ -10,11 +10,24 @@ import (
 	"time"
 )
 
+// Handle is the interface from other components to the health component.
+//
+// Handle methods must not be called until the calling component has
+// started.
+type Handle struct {
+	// component is the name of the component being monitored.
+	component string
+
+	// health links to the comp/core/health component, once registration is
+	// complete.
+	health *health
+}
+
 // SetUnhealthy records this component as being unhealthy, with the included message
 // summarizing the problem.
 //
 // This method must not be called before the monitored component has started.
-func (reg *Registration) SetUnhealthy(message string) {
+func (reg *Handle) SetUnhealthy(message string) {
 	// if comp/core/health hasn't been created, then there is nothing to do.
 	if reg.health != nil {
 		reg.health.setHealth(reg.component, false, message)
@@ -24,7 +37,7 @@ func (reg *Registration) SetUnhealthy(message string) {
 // SetHealthy records this component as being healthy.
 //
 // This method must not be called before the monitored component has started.
-func (reg *Registration) SetHealthy() {
+func (reg *Handle) SetHealthy() {
 	// if comp/core/health hasn't been created, then there is nothing to do.
 	if reg.health != nil {
 		reg.health.setHealth(reg.component, true, "")
@@ -43,7 +56,7 @@ func (reg *Registration) SetHealthy() {
 // existing state.
 //
 // This method must not be called before the monitored component has started.
-func (reg *Registration) LivenessMonitor(period time.Duration) (<-chan struct{}, func()) {
+func (reg *Handle) LivenessMonitor(period time.Duration) (<-chan struct{}, func()) {
 	// if comp/core/health hasn't been created, then there is nothing to do.
 	if reg.health == nil {
 		return make(chan struct{}), func() {}

@@ -24,24 +24,16 @@ import (
 func TestFlareMechanics(t *testing.T) {
 	flareDir := t.TempDir()
 
-	type provides struct {
-		fx.Out
-
-		Registration *Registration `group:"true"`
-	}
-
 	var flare Component
 	app := fxtest.New(t,
 		Module,
 		log.Module,
 		config.MockModule,
 		fx.Supply(internal.BundleParams{AutoStart: startup.Always}),
-		fx.Provide(func() provides {
-			return provides{
-				Registration: FileRegistration("greeting.txt", func() (string, error) {
-					return "hello, world", nil
-				}),
-			}
+		fx.Provide(func() Registration {
+			return FileRegistration("greeting.txt", func() (string, error) {
+				return "hello, world", nil
+			})
 		}),
 		fx.Populate(&flare),
 	)
@@ -65,21 +57,13 @@ func TestFlareMechanics(t *testing.T) {
 }
 
 func TestMock(t *testing.T) {
-	type provides struct {
-		fx.Out
-
-		Registration *Registration `group:"true"`
-	}
-
 	var flare Component
 	app := fxtest.New(t,
 		MockModule,
-		fx.Provide(func() provides {
-			return provides{
-				Registration: FileRegistration("sub/dir/test.txt", func() (string, error) {
-					return "hello, world", nil
-				}),
-			}
+		fx.Provide(func() Registration {
+			return FileRegistration("sub/dir/test.txt", func() (string, error) {
+				return "hello, world", nil
+			})
 		}),
 		fx.Populate(&flare),
 	)

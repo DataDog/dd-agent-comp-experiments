@@ -23,7 +23,7 @@ type traceWriter struct {
 
 	actor  actor.Goroutine
 	log    log.Component
-	health *health.Registration
+	health *health.Handle
 }
 
 type dependencies struct {
@@ -35,26 +35,17 @@ type dependencies struct {
 	Log    log.Component
 }
 
-type provides struct {
-	fx.Out
-
-	Component
-	HealthReg *health.Registration `group:"true"`
-}
-
-func newTraceWriter(deps dependencies) provides {
+func newTraceWriter(deps dependencies) (Component, health.Registration) {
+	healthReg := health.NewRegistration(componentName)
 	t := &traceWriter{
 		in:     make(chan *api.Payload, 1000),
 		log:    deps.Log,
-		health: health.NewRegistration(componentName),
+		health: healthReg.Handle,
 	}
 	if deps.Params.ShouldStart(deps.Config) {
 		t.actor.HookLifecycle(deps.Lc, t.run)
 	}
-	return provides{
-		Component: t,
-		HealthReg: t.health,
-	}
+	return t, healthReg
 }
 
 func (t *traceWriter) PayloadChan() chan<- *api.Payload {

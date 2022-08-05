@@ -19,55 +19,39 @@ import (
 )
 
 func TestSimple(t *testing.T) {
-	type provides struct {
-		fx.Out
-		Registration *Registration `group:"true"`
-	}
-
 	var h Component
-	reg := &Registration{component: "comp/thing"}
+	reg := NewRegistration("comp/thing")
 	app := fxtest.New(t,
 		Module,
 		log.Module,
 		config.MockModule,
 		fx.Supply(internal.BundleParams{AutoStart: startup.Always}),
-		fx.Provide(func() provides {
-			return provides{
-				Registration: reg,
-			}
-		}),
+		fx.Supply(reg),
 		fx.Populate(&h),
 	)
 	defer app.RequireStart().RequireStop()
 
 	require.Equal(t, ComponentHealth{Healthy: true}, h.GetHealth()["comp/thing"])
-	reg.SetUnhealthy("uhoh")
+	reg.Handle.SetUnhealthy("uhoh")
 	require.Equal(t, ComponentHealth{Healthy: false, Message: "uhoh"}, h.GetHealth()["comp/thing"])
-	reg.SetHealthy()
+	reg.Handle.SetHealthy()
 	require.Equal(t, ComponentHealth{Healthy: true}, h.GetHealth()["comp/thing"])
 }
 
 func TestLiveness(t *testing.T) {
-	type provides struct {
-		fx.Out
-		Registration *Registration `group:"true"`
-	}
-
 	var h Component
-	reg := &Registration{component: "comp/thing"}
+	reg := NewRegistration("comp/thing")
 	app := fxtest.New(t,
 		Module,
 		config.MockModule,
 		log.Module,
 		fx.Supply(internal.BundleParams{AutoStart: startup.Always}),
-		fx.Supply(provides{
-			Registration: reg,
-		}),
+		fx.Supply(reg),
 		fx.Populate(&h),
 	)
 	defer app.RequireStart().RequireStop()
 
-	ch, stop := reg.LivenessMonitor(time.Millisecond)
+	ch, stop := reg.Handle.LivenessMonitor(time.Millisecond)
 
 	for i := 0; i < 3; i++ {
 		// signal health

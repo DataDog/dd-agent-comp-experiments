@@ -8,41 +8,57 @@ Each subsection can be read independently.
 Components generally need to talk to one another!
 In simple cases, that occurs by method calls.
 But in many cases, a single component needs to communicate with a number of other components that all share some characteristics.
-For example, the `comp/core/health` component monitors the health of many other components, and `comp/workloadmeta /scheduler` provides workload events to an arbitrary number of subscribers.
+For example, the `comp/core/health` component monitors the health of many other components, and `comp/workloadmeta/scheduler` provides workload events to an arbitrary number of subscribers.
 
 The convention in the Agent codebase is to use [value groups](./fx.md#value-groups) to accomplish this.
-The _collecting_ component requires a slice of some _registration type_, and the _providing_ components provide that registration type.
+The _collecting_ component requires a slice of some _collected type_, and the _providing_ components provide values of that type.
 Consider a simple case of a server component to which endpoints can be attached.
-The server is the collecting component, requiring a slice of type `[]*Endpoint`, where `*Endpoint` is the registration type.
-Providing components provide values of type `*Endpoint`.
+The server is the collecting component, requiring a slice of type `[]*endpoint`, where `*endpoint` is the collected type.
+Providing components provide values of type `*endpoint`.
+
+The convention is to "wrap" the collected type in a struct type which embeds `fx.Out` and has tag `group:"true"`.
+This helps providing components avoid the common mistake of omitting the tag.
+The collected type can be exported, such as if it has useful methods for providing components to call, but can also be unexported.
 
 The collecting component should define the registration type and a constructor for it.
 
 ```go
 // --- server/component.go ---
 
-// Endpoint is provided by components that wish to register an endpoint
-// with this server.  If a nil *Endpoint is provided, it will be ignored.
-type Endpoint struct { .. }
+// ...
+// Server endpoints are provided by other components, by providing a server.Registration
+// instance.
+//  ...
+package server
 
-// NewEndpoint creates a new Endpoint.
-func NewEndpoint(route string, handler func()) *Endpoint { .. }
+type Registration struct {
+    fx.Out
+
+    Endpoint endpoint `group:"true"`
+}
+
+// NewRegistration creates a new Registration instance for the given endpoint.
+func NewRegistration(route string, handler func()) Registration { .. }
 ```
 
-Its implementation then requires a slice of the registration type, using `group:"true"`:
+Its implementation then requires a slice of the collected type, again using `group:"true"`:
 
 ```go
 // --- server/server.go ---
+
+// endpoint defines an endpoint on this server.
+type endpoint struct { .. }
+
 type dependencies struct {
     fx.In
 
-    Endpoints []*Endpoint `group:"true"`
+    Registrations []endpoint `group:"true"`
 }
 
 func newServer(deps dependencies) Component {
     // ..
-    for _, e := range deps.Endpoints {
-        if e == nil {
+    for _, e := range deps.Registrations {
+        if e.handler == nil {
             continue
         }
         // ..
@@ -51,26 +67,16 @@ func newServer(deps dependencies) Component {
 }
 ```
 
-It's good practice to ignore nil values, as that allows providing components to skip
+It's good practice to ignore zero values, as that allows providing components to skip
 the registration if desired.
 
 Finally, the providing component includes a registration in its output:
 
 ```go
 // --- foo/foo.go ---
-type provides struct {
-    fx.Out
-
-    Component
-    ServerRegistration *server.Registration `group:"true"`
-}
-
-func newFoo(deps dependencies) provides {
+func newFoo(deps dependencies) (Component, server.Registration) {
     // ..
-    return provides{
-        Component: foo,
-        ServerRegistration: server.NewRegistration("/things/foo", foo.handler),
-    }
+    return foo, server.NewRegistration("/things/foo", foo.handler)
 }
 ```
 
@@ -82,52 +88,48 @@ This technique has some caveats to be aware of:
  * Fx will instantiate _all_ providing components before the collecting component.
    This may lead to components being instantiated in unexpected circumstances.
    The AutoStart convention is meant to partially address this issue.
- * Omitting the `group:"true"` in either place it appears above will lead to Fx silently ignoring the registration.
 
 ## Subscriptions
 
 Subscriptions are a common form of registration, and have support in the `pkg/util/subscriptions` package.
 
-To implement a subscription, the collecting component defines a message type, a Subscription type, and a Subscribe function:
+To implement a subscription, the collecting component defines a message type.
+Providing components provide `subscriptions.Subscription[coll.Message]`, from which they can obtain a `subscriptions.Receiver[coll.Message]`.
+Collecting components require `subcriptions.Publisher[coll.Messag]`, from which they can obtain a `subscriptions.Transmitter[coll.Message]`.
 
 ```go
-// --- eventpub/component.go ---
-type Event struct { .. }
+// --- announcer/component.go ---
 
-// Subscription is provided by components that wish to subscribe to events
-// from this component.  A nil *Subscription will be ignored.
-type Subscription = subscriptions.Subscription[Event]
+// ...
+// To subscribe to these announcements, provide a subscriptions.Subscription[announcer.Announcement].
+// ...
+package announcer
 
-// Subscribe creates a new Subscription.
-func Subscribe() Subscription {
-    return subscriptions.NewSubscription[Event]()
+// --- announcer/announcer.go ---
+
+func newAnnouncer(pub subscriptions.Publisher[Anouncement]) Component {
+    return &announcer{announcementTx: pub.Transmitter()}  // (get a Transmitter from the Publisher)
 }
 
-// --- eventpub/eventpub.go ---
-type eventpub struct {
-    // .. (*eventpub implements Component)
-    subscriptions *subscriptions.SubscriptionPoint[Event]
-}
-
-type dependencies struct {
-	fx.In
-
-    // ...
-	Subscriptions []Subscription `group:"true"`
-}
-
-func newSourceMgr(deps dependencies) Component {
-	ep := &eventpub{
-		subscriptions: subscriptions.NewSubscriptionPoint[Event](deps.Subscriptions),
-	}
-    // ...
-}
-
-func (ep *eventpub) publishEvent(evt Event) {
-    // notify all subscribers
-    ep.subscriptions.Notify(evt)
-}
+// .. later send messages with 
+    ann.eventTx.Notify(a)
 ```
+
+```go
+// --- listener/listener.go ---
+
+func newListener() (Component, subscriptions.Subscription[announcer.Announcement]) {
+    sub := subscriptions.NewSubscription[Event]()
+    return &listener{eventRx: sub.Receiver}, sub
+}
+
+// .. later receive messages with
+    a := <- l.eventRx.Chan()
+```
+
+If a receiving component decides it does not want to subscribe after all (such
+as, if it is not started), it can return the zero value,
+`subscriptions.Subscription[Event]{}`, from its constructor.
 
 See the `pkg/util/subscriptions` documentation for more details.
 

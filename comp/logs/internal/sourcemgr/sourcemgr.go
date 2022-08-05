@@ -24,11 +24,11 @@ type sourceMgr struct {
 	// started is true once the component has started
 	started bool
 
-	// subscriptions contains the subcriptions for source additions/removals
-	subscriptions *subscriptions.SubscriptionPoint[SourceChange]
+	// sourceChangeTx is used to send SourceChanges
+	sourceChangeTx subscriptions.Transmitter[SourceChange]
 
-	// subscription is the subscription to AD
-	subscription subscriptions.Subscription[scheduler.ConfigChange]
+	// configChangeRx is used to subscribe to AD ConfigChanges
+	configChangeRx subscriptions.Receiver[scheduler.ConfigChange]
 
 	actor actor.Goroutine
 }
@@ -36,32 +36,24 @@ type sourceMgr struct {
 type dependencies struct {
 	fx.In
 
-	Lc            fx.Lifecycle
-	Params        internal.BundleParams
-	Config        config.Component
-	Subscriptions []Subscription `group:"true"`
+	Lc     fx.Lifecycle
+	Params internal.BundleParams
+	Config config.Component
+	Pub    subscriptions.Publisher[SourceChange]
 }
 
-type provides struct {
-	fx.Out
-
-	Component
-	Subscription scheduler.Subscription `group:"true"`
-}
-
-func newSourceMgr(deps dependencies) provides {
+func newSourceMgr(deps dependencies) (Component, subscriptions.Subscription[scheduler.ConfigChange]) {
 	sm := &sourceMgr{
-		subscriptions: subscriptions.NewSubscriptionPoint[SourceChange](deps.Subscriptions),
+		sourceChangeTx: deps.Pub.Transmitter(),
 	}
+	var sub subscriptions.Subscription[scheduler.ConfigChange]
 	if deps.Params.ShouldStart(deps.Config) {
 		sm.actor.HookLifecycle(deps.Lc, sm.run)
 		deps.Lc.Append(fx.Hook{OnStart: sm.start})
-		sm.subscription = scheduler.Subscribe()
+		sub = subscriptions.NewSubscription[scheduler.ConfigChange]()
+		sm.configChangeRx = sub.Receiver
 	}
-	return provides{
-		Component:    sm,
-		Subscription: sm.subscription,
-	}
+	return sm, sub
 }
 
 // start marks the component as started.
@@ -76,7 +68,7 @@ func (sm *sourceMgr) run(ctx context.Context) {
 	sources := map[string]*LogSource{}
 	for {
 		select {
-		case chg := <-sm.subscription.Chan():
+		case chg := <-sm.configChangeRx.Chan():
 			// XXX this temporarily subscribes to AD; there should be a scheduler in
 			// between the two components.
 			if chg.IsScheduled {
@@ -103,7 +95,7 @@ func (sm *sourceMgr) AddSource(source *LogSource) {
 	if !sm.started {
 		panic("sourcemgr component has not been started")
 	}
-	sm.subscriptions.Notify(SourceChange{
+	sm.sourceChangeTx.Notify(SourceChange{
 		IsAdd:  true,
 		Source: source,
 	})
@@ -116,7 +108,7 @@ func (sm *sourceMgr) RemoveSource(source *LogSource) {
 	if !sm.started {
 		panic("sourcemgr component has not been started")
 	}
-	sm.subscriptions.Notify(SourceChange{
+	sm.sourceChangeTx.Notify(SourceChange{
 		IsAdd:  false,
 		Source: source,
 	})

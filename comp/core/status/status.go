@@ -23,7 +23,7 @@ type status struct {
 	sync.Mutex
 
 	// components maps component package path to that component's current status
-	sections []*Registration
+	sections []registration
 
 	// ipcclient is used to fetch status remotely
 	ipcclient ipcclient.Component
@@ -34,20 +34,20 @@ type dependencies struct {
 
 	Lc            fx.Lifecycle
 	IPCClient     ipcclient.Component `optional:"true"` // can be omitted in 'agent run'
-	Registrations []*Registration     `group:"true"`
+	Registrations []registration      `group:"true"`
 }
 
 type provides struct {
 	fx.Out
 
 	Component
-	FlareReg *flare.Registration `group:"true"`
-	IPCRoute *ipcserver.Route    `group:"true"`
+	FlareReg flare.Registration
+	IPCRoute ipcserver.Route
 }
 
 func newStatus(deps dependencies) provides {
 	s := &status{
-		sections:  deps.Registrations,
+		sections:  providedRegistrations(deps.Registrations),
 		ipcclient: deps.IPCClient,
 	}
 	return provides{
@@ -55,6 +55,17 @@ func newStatus(deps dependencies) provides {
 		FlareReg:  flare.FileRegistration("agent-status.json", s.flareFile),
 		IPCRoute:  ipcserver.NewRoute("/agent/status", s.ipcHandler),
 	}
+}
+
+// providedRegistrations translates a slice of non-nil registrations
+func providedRegistrations(registrations []registration) []registration {
+	provided := make([]registration, 0, len(registrations))
+	for _, r := range registrations {
+		if r.cb != nil {
+			provided = append(provided, r)
+		}
+	}
+	return provided
 }
 
 // GetStatus implements Component#GetStatus.
@@ -68,9 +79,7 @@ func (s *status) GetStatus(section string) string {
 			continue
 		}
 
-		if s != nil {
-			fmt.Fprintf(&bldr, "%s\n", s.cb())
-		}
+		fmt.Fprintf(&bldr, "%s\n", s.cb())
 	}
 
 	if bldr.Len() == 0 {
@@ -113,10 +122,3 @@ func (s *status) ipcHandler(w http.ResponseWriter, r *http.Request) {
 func (s *status) flareFile() (string, error) {
 	return s.GetStatus(""), nil
 }
-
-// byOrder supports sorting sections by order.
-type byOrder []*Registration
-
-func (a byOrder) Len() int           { return len(a) }
-func (a byOrder) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
-func (a byOrder) Less(i, j int) bool { return a[i].order < a[j].order }
