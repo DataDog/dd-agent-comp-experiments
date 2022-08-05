@@ -53,8 +53,15 @@ See [#2](https://github.com/djmitche/dd-agent-comp-experiments/pull/2) for an at
  * How do we use MockModule in the face of Bundles?
  * Put IPCAPI client stuff in cmd/ instead of the same component
  * OneShot should use a Hook, rather than run things before startup
+ * Registration types in registering components should be fx.Out and have `group:"true"` defined
+ * Put LivenessMonitior in actor pkg
  * put all options in a variable for each app, and validate in a unit test (@ogaca-dd)
    * Maybe a common.RunCobraCommand?
+ * > As the pattern to use fxtest.New + fx.Populate + defer app.RequireStart().RequireStop() will be common in unit tests, what do you think about providing a function for hiding this complexity?
+   (@ogaca-dd)
+ * doc that flare cb will be called concurrently
+ * make IfConfigured the default AutoStart value
+ * 'actor' field is unnecessary in actor components
  * more tests
    * some kind of external test (`./test/`?)
  * more components
