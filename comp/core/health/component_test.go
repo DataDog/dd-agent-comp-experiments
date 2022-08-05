@@ -57,10 +57,8 @@ func TestLiveness(t *testing.T) {
 		Module,
 		log.Module,
 		fx.Supply(internal.BundleParams{AutoStart: startup.Always}),
-		fx.Provide(func() provides {
-			return provides{
-				Registration: reg,
-			}
+		fx.Supply(provides{
+			Registration: reg,
 		}),
 		fx.Populate(&h),
 	)
