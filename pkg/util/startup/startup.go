@@ -18,7 +18,7 @@ const (
 	Always AutoStart = 1
 
 	// Never means that the component should never start.
-	Never AutoStart = 0
+	Never AutoStart = 2
 )
 
 // ShouldStart helps a component determine whether it should start; "enabled"

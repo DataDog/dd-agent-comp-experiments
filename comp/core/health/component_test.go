@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/djmitche/dd-agent-comp-experiments/comp/core/config"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/core/internal"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/core/log"
 	"github.com/djmitche/dd-agent-comp-experiments/pkg/util/startup"
@@ -28,6 +29,7 @@ func TestSimple(t *testing.T) {
 	app := fxtest.New(t,
 		Module,
 		log.Module,
+		config.Module,
 		fx.Supply(internal.BundleParams{AutoStart: startup.Always}),
 		fx.Provide(func() provides {
 			return provides{
@@ -55,6 +57,7 @@ func TestLiveness(t *testing.T) {
 	reg := &Registration{component: "comp/thing"}
 	app := fxtest.New(t,
 		Module,
+		config.Module,
 		log.Module,
 		fx.Supply(internal.BundleParams{AutoStart: startup.Always}),
 		fx.Supply(provides{
