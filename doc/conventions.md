@@ -194,6 +194,16 @@ In this context, "failure" is a user-visible problem with the component that can
 This may be related to resource exhaustion, user misconfiguration, or an issue in the environment.
 Many components can't fail (or at least, we can't yet imagine how they would fail); these do not need to report to the `comp/core/health` component.
 
+## Binary and App Common Support
+
+(This support needs more development)
+
+Most apps can include `cmd/common.SharedOptions(..)` in their `fx.App` to provide common component bundles and their parameters.
+This takes a `oneShot` argument which distinguishes one-shot apps like `agent flare` from long-running apps like `trace-agent run`.
+
+One-shot apps can use `common.OneShot` to run a function and shut down the app when it completes.
+Long-running apps can use `common.RunApp`, which takes care to return an error on failure, rather than calling `os.Exit` as Fx's `app.Run` does.
+
 ## Non-Component Code
 
 Code that does not directly implement a component, but provides supporting functionality or ["plain old data"](https://en.wikipedia.org/wiki/Passive_data_structure) structures, should be in `pkg/`.

@@ -6,4 +6,4 @@
  * [Using Components](./using.md)
  * [Conventions](./conventions.md)
  * [Future Plans](./future.md)
- * [Work in Progress](./wip.md)
+ * [Open Questions](./open-questions.md)

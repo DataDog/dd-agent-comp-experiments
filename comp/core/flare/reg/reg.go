@@ -22,12 +22,13 @@ type Registration struct {
 	Callback func(flareDir string) error
 }
 
-// FileRegistration creates a Registration that will generat a single file of the
-// given name, with the content returned by `cb`.
-func FileRegistration(filename string, cb func() (string, error)) *Registration {
+// FileRegistration creates a Registration that will generat a single file of
+// the given name, with the content returned by `callback`.  The callback may be called
+// concurrently with any other activity.
+func FileRegistration(filename string, callback func() (string, error)) *Registration {
 	return &Registration{
 		Callback: func(flareDir string) error {
-			content, err := cb()
+			content, err := callback()
 			if err != nil {
 				return err
 			}

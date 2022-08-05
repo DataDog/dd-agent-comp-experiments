@@ -9,16 +9,16 @@ package startup
 type AutoStart int
 
 const (
-	// Never means that the component should never start.  This is the zero value.
-	Never AutoStart = 0
+	// IfConfigured means that the component should consult its configuration
+	// (e.g., `foo-agent.enabled`) to decide whether to start.  Components which
+	// have no configuration treat this as Always.  This is the zero value.
+	IfConfigured = 0
 
 	// Always means that the component should always start.
 	Always AutoStart = 1
 
-	// IfConfigured means that the component should consult its configuration
-	// (e.g., `foo-agent.enabled`) to decide whether to start.  Components which
-	// have no configuration treat this as Always
-	IfConfigured = 2
+	// Never means that the component should never start.
+	Never AutoStart = 0
 )
 
 // ShouldStart helps a component determine whether it should start; "enabled"
@@ -33,6 +33,6 @@ func (a AutoStart) ShouldStart(enabled bool) bool {
 	case IfConfigured:
 		return enabled
 	default:
-		return false // zero value is "Never", so use that as default
+		return enabled // use zero value as the default
 	}
 }
