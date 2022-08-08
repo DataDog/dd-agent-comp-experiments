@@ -37,10 +37,6 @@ type Component interface {
 	// CreateFlare creates a new flare locally and returns the path to the
 	// flare file.
 	CreateFlare() (string, error)
-
-	// CreateFlareRemote calls the running Agent's IPC API to instruct it to
-	// generate a flare remotely.
-	CreateFlareRemote() (string, error)
 }
 
 // Mock implements mock-specific methods.

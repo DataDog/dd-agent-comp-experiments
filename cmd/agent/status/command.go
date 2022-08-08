@@ -11,6 +11,7 @@ import (
 
 	"github.com/djmitche/dd-agent-comp-experiments/cmd/agent/root"
 	"github.com/djmitche/dd-agent-comp-experiments/cmd/common"
+	"github.com/djmitche/dd-agent-comp-experiments/comp/core/ipc/ipcclient"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/core/status"
 	"github.com/spf13/cobra"
 	"go.uber.org/fx"
@@ -33,15 +34,30 @@ func command(_ *cobra.Command, args []string) error {
 
 	app := fx.New(
 		common.SharedOptions(root.ConfFilePath, true),
-		common.OneShot(func(status status.Component) error {
-			return statusCmd(status, section)
+		common.OneShot(func(ipcclient ipcclient.Component, status status.Component) error {
+			return statusCmd(ipcclient, status, section)
 		}),
 	)
 	return common.RunApp(app)
 }
 
-func statusCmd(status status.Component, section string) error {
-	statusStr, err := status.GetStatusRemote(section)
+func getStatusRemote(ipcclient ipcclient.Component, section string) (string, error) {
+	var content map[string]string
+	path := "/agent/status"
+	if section != "" {
+		path = fmt.Sprintf("%s?section=%s", path, section)
+	}
+
+	err := ipcclient.GetJSON(path, &content)
+	if err != nil {
+		return "", err
+	}
+
+	return content["status"], nil
+}
+
+func statusCmd(ipcclient ipcclient.Component, status status.Component, section string) error {
+	statusStr, err := getStatusRemote(ipcclient, section)
 	if err != nil {
 		return err
 	}
