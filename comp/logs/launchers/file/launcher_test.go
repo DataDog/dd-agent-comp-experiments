@@ -32,7 +32,7 @@ func TestLauncher(t *testing.T) {
 		fx.Supply(core.BundleParams{AutoStart: startup.Never}),
 		fx.Supply(internal.BundleParams{AutoStart: startup.Always}),
 		health.Module,
-		config.Module,
+		config.MockModule,
 		log.MockModule,
 		sourcemgr.Module,
 		launchermgr.Module,

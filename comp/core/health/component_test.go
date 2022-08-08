@@ -29,7 +29,7 @@ func TestSimple(t *testing.T) {
 	app := fxtest.New(t,
 		Module,
 		log.Module,
-		config.Module,
+		config.MockModule,
 		fx.Supply(internal.BundleParams{AutoStart: startup.Always}),
 		fx.Provide(func() provides {
 			return provides{
@@ -57,7 +57,7 @@ func TestLiveness(t *testing.T) {
 	reg := &Registration{component: "comp/thing"}
 	app := fxtest.New(t,
 		Module,
-		config.Module,
+		config.MockModule,
 		log.Module,
 		fx.Supply(internal.BundleParams{AutoStart: startup.Always}),
 		fx.Supply(provides{
