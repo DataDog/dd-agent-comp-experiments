@@ -14,7 +14,6 @@ import (
 
 	flare "github.com/djmitche/dd-agent-comp-experiments/comp/core/flare"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/core/internal"
-	"github.com/djmitche/dd-agent-comp-experiments/comp/core/ipc/ipcclient"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/core/ipc/ipcserver"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/core/log"
 	"go.uber.org/fx"
@@ -32,18 +31,14 @@ type health struct {
 
 	// log supports logging about changes in health status
 	log log.Component
-
-	// ipcclient is used to get health remotely
-	ipcclient ipcclient.Component
 }
 
 type dependencies struct {
 	fx.In
 
-	Lc        fx.Lifecycle
-	Params    internal.BundleParams
-	Log       log.Component
-	IPCClient ipcclient.Component `optional:"true"` // can be omitted in 'agent run'
+	Lc     fx.Lifecycle
+	Params internal.BundleParams
+	Log    log.Component
 
 	Registrations []*Registration `group:"true"`
 }
@@ -61,7 +56,6 @@ func newHealth(deps dependencies) provides {
 		autoStart:  deps.Params.ShouldStart(),
 		components: make(map[string]ComponentHealth),
 		log:        deps.Log,
-		ipcclient:  deps.IPCClient,
 	}
 
 	// provide each registration with a pointer to the new component, and
@@ -89,17 +83,6 @@ func (h *health) GetHealth() map[string]ComponentHealth {
 		rv[k] = v
 	}
 	return rv
-}
-
-// GetHealthRemote implements Component#GetHealthRemote.
-func (h *health) GetHealthRemote() (map[string]ComponentHealth, error) {
-	var content map[string]ComponentHealth
-	err := h.ipcclient.GetJSON("/agent/health", &content)
-	if err != nil {
-		return nil, err
-	}
-
-	return content, nil
 }
 
 // ipcHandler serves the /agent/health endpoint

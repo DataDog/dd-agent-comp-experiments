@@ -34,9 +34,6 @@ type Component interface {
 	// GetHealth gets a map containing the health of all components.  This map is a copy
 	// and will not be altered after return.
 	GetHealth() map[string]ComponentHealth
-
-	// GetHealthRemote gets the same value as GetHealth, but using the IPC API.
-	GetHealthRemote() (map[string]ComponentHealth, error)
 }
 
 // Registration is provided by other components in order to register those

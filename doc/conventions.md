@@ -180,12 +180,9 @@ Note that l.subscription is nil if the component does not start, meaning that th
 ## IPC API Commands
 
 Several commands, such as `agent status` or `agent config`, call the running Agent's IPC API and format the result.
-Components implementing this pattern should generally have two similar methods, such as `GetStatus` and `GetStatusRemote`.
-The first method gathers the data locally, and the second requests the same data via the IPC API.
-The component should plugin to `comp/core/ipc/ipcserver` to provide the result of the first method over the IPC API.
+Components implementing this pattern generally have a method to get the data, such as `GetStatus`, and also publish this information over the IPC API.
 
-This arrangement locates both the client and server sides of the IPC API in one module.
-The command implementation (under `cmd/`) then simply calls `GetStatusRemote` and formats the result for display.
+The subcommand (e.g., `agent status`) implements the client side of this transaction, using `comp/core/ipc/ippclient` to fetch, format, and display the data.
 
 ## Health Monitoring
 

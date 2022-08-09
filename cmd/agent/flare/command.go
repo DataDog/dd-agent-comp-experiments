@@ -7,11 +7,13 @@
 package flare
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/djmitche/dd-agent-comp-experiments/cmd/agent/root"
 	"github.com/djmitche/dd-agent-comp-experiments/cmd/common"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/core/flare"
+	"github.com/djmitche/dd-agent-comp-experiments/comp/core/ipc/ipcclient"
 	"github.com/spf13/cobra"
 	"go.uber.org/fx"
 )
@@ -32,8 +34,24 @@ func command(_ *cobra.Command, args []string) error {
 	return common.RunApp(app)
 }
 
-func flareCmd(flare flare.Component) error {
-	archiveFile, err := flare.CreateFlareRemote()
+func getFlareRemote(ipcclient ipcclient.Component) (string, error) {
+	var content map[string]string
+	err := ipcclient.GetJSON("/agent/flare", &content)
+	if err != nil {
+		return "", err
+	}
+	if msg, found := content["error"]; found {
+		return "", fmt.Errorf("Error from Agent: %s", msg)
+	}
+
+	if filename, found := content["filename"]; found {
+		return filename, nil
+	}
+	return "", errors.New("No filename received from Agent")
+}
+
+func flareCmd(ipcclient ipcclient.Component, flare flare.Component) error {
+	archiveFile, err := getFlareRemote(ipcclient)
 	if err != nil {
 		fmt.Printf("Could not contact agent: %s\n", err)
 		fmt.Printf("Proceeding with local flare.\n")

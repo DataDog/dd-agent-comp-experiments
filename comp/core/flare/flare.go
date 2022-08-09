@@ -7,8 +7,6 @@ package flare
 
 import (
 	"encoding/json"
-	"errors"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -18,7 +16,6 @@ import (
 	"testing"
 
 	"github.com/djmitche/dd-agent-comp-experiments/comp/core/config"
-	"github.com/djmitche/dd-agent-comp-experiments/comp/core/ipc/ipcclient"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/core/ipc/ipcserver"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/core/log"
 	"github.com/mholt/archiver"
@@ -32,9 +29,6 @@ type flare struct {
 	// registrations contains all registrations by other components
 	registrations []*Registration
 
-	// ipcclient is used to fetch flares remotely
-	ipcclient ipcclient.Component
-
 	// log is the log component
 	log log.Component
 }
@@ -43,7 +37,6 @@ type dependencies struct {
 	fx.In
 
 	Config        config.Component
-	IPCClient     ipcclient.Component `optional:"true"` // can be omitted in 'agent run'
 	Log           log.Component
 	Registrations []*Registration `group:"true"`
 }
@@ -58,7 +51,6 @@ type provides struct {
 func newFlare(deps dependencies) provides {
 	f := &flare{
 		registrations: deps.Registrations,
-		ipcclient:     deps.IPCClient,
 		log:           deps.Log,
 	}
 
@@ -115,23 +107,6 @@ func (f *flare) CreateFlare() (string, error) {
 	}
 
 	return archiveFile, nil
-}
-
-// CreateFlareRemote implements Component#CreateFlareRemote.
-func (f *flare) CreateFlareRemote() (string, error) {
-	var content map[string]string
-	err := f.ipcclient.GetJSON("/agent/flare", &content)
-	if err != nil {
-		return "", err
-	}
-	if msg, found := content["error"]; found {
-		return "", fmt.Errorf("Error from Agent: %s", msg)
-	}
-
-	if filename, found := content["filename"]; found {
-		return filename, nil
-	}
-	return "", errors.New("No filename received from Agent")
 }
 
 // GetFlareFile implements Mock#GetFlareFile.
