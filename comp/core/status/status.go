@@ -13,7 +13,6 @@ import (
 	"sync"
 
 	"github.com/djmitche/dd-agent-comp-experiments/comp/core/flare"
-	"github.com/djmitche/dd-agent-comp-experiments/comp/core/ipc/ipcclient"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/core/ipc/ipcserver"
 	"go.uber.org/fx"
 )
@@ -22,19 +21,15 @@ type status struct {
 	// Mutex covers all fields, including all componentHealth values
 	sync.Mutex
 
-	// components maps component package path to that component's current status
+	// sections maps component package path to that component's current status
 	sections []registration
-
-	// ipcclient is used to fetch status remotely
-	ipcclient ipcclient.Component
 }
 
 type dependencies struct {
 	fx.In
 
 	Lc            fx.Lifecycle
-	IPCClient     ipcclient.Component `optional:"true"` // can be omitted in 'agent run'
-	Registrations []registration      `group:"status"`
+	Registrations []registration `group:"status"`
 }
 
 type provides struct {
@@ -47,8 +42,7 @@ type provides struct {
 
 func newStatus(deps dependencies) provides {
 	s := &status{
-		sections:  providedRegistrations(deps.Registrations),
-		ipcclient: deps.IPCClient,
+		sections: providedRegistrations(deps.Registrations),
 	}
 	return provides{
 		Component: s,
@@ -87,22 +81,6 @@ func (s *status) GetStatus(section string) string {
 	}
 
 	return bldr.String() + "\n"
-}
-
-// GetStatusRemote implements Component#GetStatusRemote.
-func (s *status) GetStatusRemote(section string) (string, error) {
-	var content map[string]string
-	path := "/agent/status"
-	if section != "" {
-		path = fmt.Sprintf("%s?section=%s", path, section)
-	}
-
-	err := s.ipcclient.GetJSON(path, &content)
-	if err != nil {
-		return "", err
-	}
-
-	return content["status"], nil
 }
 
 // ipcHandler serves the /agent/status endpoint

@@ -25,9 +25,6 @@ type Component interface {
 	// GetStatus gets the agent status.  If the section parameter is not empty, then
 	// only that section's status is returned.  This is a newline-terminated string.
 	GetStatus(section string) string
-
-	// GetStatus gets the same value as GetStatus, but using the IPC API.
-	GetStatusRemote(section string) (string, error)
 }
 
 // Registration is provided by other components to register themselves to

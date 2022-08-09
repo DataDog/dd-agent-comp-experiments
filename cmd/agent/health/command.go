@@ -12,6 +12,7 @@ import (
 	"github.com/djmitche/dd-agent-comp-experiments/cmd/agent/root"
 	"github.com/djmitche/dd-agent-comp-experiments/cmd/common"
 	"github.com/djmitche/dd-agent-comp-experiments/comp/core/health"
+	"github.com/djmitche/dd-agent-comp-experiments/comp/core/ipc/ipcclient"
 	"github.com/spf13/cobra"
 	"go.uber.org/fx"
 )
@@ -32,8 +33,18 @@ func command(_ *cobra.Command, args []string) error {
 	return common.RunApp(app)
 }
 
-func healthCmd(health health.Component) error {
-	resp, err := health.GetHealthRemote()
+func getHealthRemote(ipcclient ipcclient.Component) (map[string]health.ComponentHealth, error) {
+	var content map[string]health.ComponentHealth
+	err := ipcclient.GetJSON("/agent/health", &content)
+	if err != nil {
+		return nil, err
+	}
+
+	return content, nil
+}
+
+func healthCmd(ipcclient ipcclient.Component, health health.Component) error {
+	resp, err := getHealthRemote(ipcclient)
 	if err != nil {
 		return err
 	}
