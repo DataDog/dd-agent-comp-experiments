@@ -42,7 +42,7 @@ type Mock interface {
 type Route struct {
 	fx.Out
 
-	Route route `group:"true"`
+	Route route `group:"ipcserver"`
 }
 
 // NewRoute creates a new Route instance for the named component.

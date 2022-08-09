@@ -35,7 +35,7 @@ type Component interface {
 type Registration struct {
 	fx.Out
 
-	Registration registration `group:"true"`
+	Registration registration `group:"status"`
 }
 
 // NewRegistration creates a new Registration.

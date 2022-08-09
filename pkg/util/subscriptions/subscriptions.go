@@ -84,7 +84,7 @@ func (sp Transmitter[M]) Notify(message M) {
 type Subscription[M Message] struct {
 	fx.Out
 
-	Receiver Receiver[M] `group:"true"`
+	Receiver Receiver[M] `group:"subscriptions"`
 }
 
 // NewSubscription creates a new subscription of the required type.
@@ -104,7 +104,7 @@ func NewSubscription[M Message]() Subscription[M] {
 type Publisher[M Message] struct {
 	fx.In
 
-	Receivers []Receiver[M] `group:"true"`
+	Receivers []Receiver[M] `group:"subscriptions"`
 }
 
 // Transmitter creates a transmitter for a publisher.

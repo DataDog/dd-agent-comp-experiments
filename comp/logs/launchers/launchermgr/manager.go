@@ -26,7 +26,7 @@ type dependencies struct {
 	fx.In
 
 	Lc            fx.Lifecycle
-	Registrations []registration `group:"true"`
+	Registrations []registration `group:"launchermgr"`
 }
 
 func newManager(deps dependencies) Component {

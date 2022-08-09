@@ -45,7 +45,7 @@ type dependencies struct {
 	Log       log.Component
 	IPCClient ipcclient.Component `optional:"true"` // can be omitted in 'agent run'
 
-	Handles []*Handle `group:"true"`
+	Handles []*Handle `group:"health"`
 }
 
 type provides struct {

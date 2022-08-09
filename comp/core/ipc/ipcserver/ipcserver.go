@@ -45,7 +45,7 @@ type dependencies struct {
 	Lc     fx.Lifecycle
 	Params internal.BundleParams
 	Config config.Component
-	Routes []route `group:"true"`
+	Routes []route `group:"ipcserver"`
 }
 
 func newServer(deps dependencies) Component {

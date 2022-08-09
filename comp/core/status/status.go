@@ -34,7 +34,7 @@ type dependencies struct {
 
 	Lc            fx.Lifecycle
 	IPCClient     ipcclient.Component `optional:"true"` // can be omitted in 'agent run'
-	Registrations []registration      `group:"true"`
+	Registrations []registration      `group:"status"`
 }
 
 type provides struct {

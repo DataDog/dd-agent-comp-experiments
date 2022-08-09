@@ -197,7 +197,7 @@ For example:
 // server/server.go
 type dependencies struct {
     fx.In
-    Endpoints []Endpoint `group:"true"`
+    Endpoints []Endpoint `group:"server"`
 }
 ```
 ```go
@@ -205,7 +205,7 @@ type dependencies struct {
 type provides struct {
     fx.Out
     Component
-    Endpoint server.Endpoint `group:"true"`
+    Endpoint server.Endpoint `group:"server"`
 }
 ```
 
@@ -214,12 +214,13 @@ type provides struct {
 type provides struct {
     fx.Out
     Component
-    Endpoint server.Endpoint `group:"true"`
+    Endpoint server.Endpoint `group:"server"`
 }
 ```
 
 Here the `server` component's constructor will get, in `deps.Endpoints`, a slice of all `server.Endpoint` instances provided by other components -- in this case, by `todolist` and `users`.
-Value groups must be named, but typically there is only one group of a given type, so "true" makes an easy-to-remember, easy-to-read name.
+Value groups must be named, but typically there is only one group of a given type, so the choice of name isn't critical.
+Using the name of the package defining the type (in this case, `server`) is a good convention.
 
 # Day-to-Day Usage
 

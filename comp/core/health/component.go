@@ -48,7 +48,7 @@ type Component interface {
 type Registration struct {
 	fx.Out
 
-	Handle *Handle `group:"true"`
+	Handle *Handle `group:"health"`
 }
 
 // NewRegistration creates a new Registration instance for the named component.

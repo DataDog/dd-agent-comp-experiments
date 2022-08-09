@@ -55,7 +55,7 @@ type Mock interface {
 type Registration struct {
 	fx.Out
 
-	Registration registration `group:"true"`
+	Registration registration `group:"flare"`
 }
 
 // Module defines the fx options for this component.

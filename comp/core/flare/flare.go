@@ -45,7 +45,7 @@ type dependencies struct {
 	Config        config.Component
 	IPCClient     ipcclient.Component `optional:"true"` // can be omitted in 'agent run'
 	Log           log.Component
-	Registrations []registration `group:"true"`
+	Registrations []registration `group:"flare"`
 }
 
 func newFlare(deps dependencies) (Component, ipcserver.Route) {
@@ -61,7 +61,7 @@ func newFlare(deps dependencies) (Component, ipcserver.Route) {
 type mockDependencies struct {
 	fx.In
 
-	Registrations []registration `group:"true"`
+	Registrations []registration `group:"flare"`
 }
 
 func newMock(deps mockDependencies) Component {

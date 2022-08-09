@@ -16,7 +16,7 @@ Consider a simple case of a server component to which endpoints can be attached.
 The server is the collecting component, requiring a slice of type `[]*endpoint`, where `*endpoint` is the collected type.
 Providing components provide values of type `*endpoint`.
 
-The convention is to "wrap" the collected type in a struct type which embeds `fx.Out` and has tag `group:"true"`.
+The convention is to "wrap" the collected type in a struct type which embeds `fx.Out` and has tag `group:"pkgname"`, where `pkgname` is the short package name (Fx requires a group name, and this is as good as any).
 This helps providing components avoid the common mistake of omitting the tag.
 The collected type can be exported, such as if it has useful methods for providing components to call, but can also be unexported.
 
@@ -34,14 +34,14 @@ package server
 type Registration struct {
     fx.Out
 
-    Endpoint endpoint `group:"true"`
+    Endpoint endpoint `group:"server"`
 }
 
 // NewRegistration creates a new Registration instance for the given endpoint.
 func NewRegistration(route string, handler func()) Registration { .. }
 ```
 
-Its implementation then requires a slice of the collected type, again using `group:"true"`:
+Its implementation then requires a slice of the collected type, again using `group:"server"`:
 
 ```go
 // --- server/server.go ---
@@ -52,7 +52,7 @@ type endpoint struct { .. }
 type dependencies struct {
     fx.In
 
-    Registrations []endpoint `group:"true"`
+    Registrations []endpoint `group:"server"`
 }
 
 func newServer(deps dependencies) Component {
