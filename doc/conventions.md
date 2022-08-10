@@ -54,7 +54,7 @@ func newServer(deps dependencies) Component {
 It's good practice to ignore nil values, as that allows providing components to skip
 the registration if desired.
 
-Finally, the providing component includes a registration in its output:
+Finally, the providing component (in this case, `foo`) includes a registration in its output:
 
 ```go
 // --- foo/foo.go ---
@@ -110,16 +110,16 @@ type eventpub struct {
 }
 
 type dependencies struct {
-	fx.In
+    fx.In
 
     // ...
-	Subscriptions []Subscription `group:"true"`
+    Subscriptions []Subscription `group:"true"`
 }
 
 func newSourceMgr(deps dependencies) Component {
-	ep := &eventpub{
-		subscriptions: subscriptions.NewSubscriptionPoint[Event](deps.Subscriptions),
-	}
+    ep := &eventpub{
+        subscriptions: subscriptions.NewSubscriptionPoint[Event](deps.Subscriptions),
+    }
     // ...
 }
 
@@ -155,7 +155,7 @@ To support the `IfConfigured` value, bundles which take configuration can define
 // ShouldStart determines whether the bundle should start, based on
 // configuration.
 func (p BundleParams) ShouldStart(config config.Component) bool {
-	return p.AutoStart.ShouldStart(config.GetBool("foo_agent.enabled"))
+    return p.AutoStart.ShouldStart(config.GetBool("foo_agent.enabled"))
 }
 ```
 
@@ -180,7 +180,7 @@ Note that l.subscription is nil if the component does not start, meaning that th
 ## IPC API Commands
 
 Several commands, such as `agent status` or `agent config`, call the running Agent's IPC API and format the result.
-Components implementing this pattern generally have a method to get the data, such as `GetStatus`, and also publish this information over the IPC API.
+Components implementing the data used by these commands generally have a method to get the data, such as `GetStatus`, and also publish this information over the IPC API.
 
 The subcommand (e.g., `agent status`) implements the client side of this transaction, using `comp/core/ipc/ippclient` to fetch, format, and display the data.
 

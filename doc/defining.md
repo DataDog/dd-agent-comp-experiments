@@ -2,7 +2,7 @@
 
 This file describes the mechanics of implementing components and bundles.
 
-This guidelines in this file are quite prescriptive, with the intent of making all components "look the same".
+The guidelines in this file are quite prescriptive, with the intent of making all components "look the same".
 This reduces cognitive load when using components -- no need to remember one component's peculiarities.
 It also allows Agent-wide changes, where we make the same formulaic change to each component.
 If a situation arises that contradicts the guidelines, then we can update the guidelines (and change all affected components).
@@ -87,8 +87,9 @@ For very simple constructors, listing the dependencies inline is OK, but most wi
 As an `fx` constructor, it can also take an `fx.Lifetime` argument and set up OnStart or OnStop hooks.
 
 The constructor can return either `Component`, if it is infallible, or `(Component, error)`, if it could fail.
-An returned error will crash the agent at startup with a suitable message.
-In fact, it is possible to return multiple values, and this is useful for registrations and subscriptions, as described in [conventions](./conventions.md).
+In the second form, a non-nil error will crash the agent at startup with a message containing the error.
+It is possible, and often necessary, to return multiple values.
+This is useful for registrations and subscriptions, as described in [conventions](./conventions.md).
 If the list of return values grows unwieldy, `fx.Out` can be used to create an output struct.
 
 The constructor may call methods on other components, as long as the called method's documentation indicates it is OK.
@@ -98,9 +99,10 @@ The constructor may call methods on other components, as long as the called meth
 The documentation (both package-level and method-level) should include everything a user of the component needs to know.
 In particular, any assumptions that might lead to panics if violated by the user should be clearly documented.
 
-Treat extensive "how to use this component without introducing bugs" documentation as a code smell: simplifying the usage will improve the robustness of the Agent.
+Detailed documentation of how to avoiding bugs in using a component is an indicator of excessive complexity and should be treated as a bug.
+Simplifying the usage will improve the robustness of the Agent.
 
-Include:
+Documentation should include:
 
 * Precise information on when each method may be called.
   Can methods be called concurrently?
@@ -111,13 +113,15 @@ Include:
   Users can assume that any mutable value returned by a component will not be modified by the user or the component after it is returned.
   Similarly, any mutable value passed to a component will not be later modified either by the component or the caller.
   Any deviation from these defaults should be clearly documented.
-  It can be surprisingly hard to avoid mutating data -- for example, `append(..)` surprisingly mutates its first argument.
+
+  _Note: It can be surprisingly hard to avoid mutating data -- for example, `append(..)` surprisingly mutates its first argument.
   It is also hard to detect these bugs, as they are often intermittent, cause silent data corruption, or introduce rare data races.
-  Where performance is not an issue, prefer to copy mutable input and outputs to avoid any potential bugs.
+  Where performance is not an issue, prefer to copy mutable input and outputs to avoid any potential bugs._
 
 * Precise information about goroutines and blocking.
   Users can assume that methods do not block indefinitely, so blocking methods should be documented as such.
-  Methods that invoke callbacks should be clear about how the callback is invoked: is it OK for the callback to block?
+  Methods that invoke callbacks should be clear about how the callback is invoked, and what it might do.
+  For example, document whether the callback can block, and whether it might be called concurrently with other code.
 
 * Precise information about channels.
   Is the channel buffered?
@@ -202,7 +206,9 @@ To avoid Go package cycles, the `BundleParams` type must be defined in the bundl
 type BundleParams struct {
     ...
 }
+```
 
+```go
 // --- comp/<bundlename>/bundle.go ---
 import ".../comp/<bundlename>/internal"
 // ...

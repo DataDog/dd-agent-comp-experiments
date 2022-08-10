@@ -90,7 +90,7 @@ app := fx.App(
         fmt.Printf("scrubbed: %s", sc.ScrubString(somevalue))
     }))
 app.Run()
-// Output: my password is *******
+// Output: scrubbed: my password is *******
 ```
 
 For anything more complex, it's not practical to call `fx.Provide` for every component in a single source file.
@@ -100,7 +100,7 @@ Fx has two abstraction mechanisms that allow combining lots of options into one 
    As the example in the Fx documentation shows, this is useful to gather the options related to a single Go package, which might include un-exported items, into a single value typically named `Module`.
  * [`fx.Module`](https://pkg.go.dev/go.uber.org/fx#Module) is very similar, with two additional features.
    First, it requires a module name which is used in some Fx logging and can help with debugging.
-   Second, it creates a scope for the effects of `fx.Decorate` and `fx.Replace`.
+   Second, it creates a scope for the effects of [`fx.Decorate`](https://pkg.go.dev/go.uber.org/fx#Decorate) and [`fx.Replace`](https://pkg.go.dev/go.uber.org/fx#Replace).
    The second feature is not used in the Agent.
 
 So a slightly more complex version of the example might be:
@@ -119,7 +119,7 @@ app := fx.App(
         fmt.Printf("scrubbed: %s", sc.ScrubString(somevalue))
     }))
 app.Run()
-// Output: my password is *******
+// Output: scrubbed: my password is *******
 ```
 
 ## Lifecycle
@@ -130,7 +130,7 @@ Use it in your component's constructor like this:
 ```go
 func newScrubber(lc fx.Lifecycle) Component {
     sc := &scrubber{..}
-    ls.Append(fx.Hook{OnStart: sc.start, OnStop: sc.stop})
+    lc.Append(fx.Hook{OnStart: sc.start, OnStop: sc.stop})
     return sc
 }
 
@@ -148,11 +148,11 @@ This separates the application's lifecycle into a few distinct phases:
 ## Ins and Outs
 
 Fx provides some convenience types to help build constructors that require or provide lots of types: [`fx.In`](https://pkg.go.dev/go.uber.org/fx#In) and [`fx.Out`](https://pkg.go.dev/go.uber.org/fx#Out).
-Both types are embedded in structs, which can then be used as argument and return types for constructors.
+Both types are embedded in structs, which can then be used as argument and return types for constructors, respectively.
 By convention, these are named `dependencies` and `provides` in Agent code:
 
 ```go
-type depdencies struct {
+type dependencies struct {
     fx.In
 
     Config config.Component
@@ -167,7 +167,7 @@ type provides struct {
     // ... (we'll see why this is useful below)
 }
 
-func newScrubber(deps dependencies) (provides, error) {
+func newScrubber(deps dependencies) (provides, error) { // can return an fx.Out struct and other types, such as error
     // ..
     return provides {
         Component: scrubber,
