@@ -59,12 +59,15 @@ Those circumstances are:
    })
    ```
    Like constructors, Invoked functions can take multiple arguments, and can optionally return an error.
+   Invoked functions are called automatically when an app is created.
  * Pointers passed to [`fx.Populate`](https://pkg.go.dev/go.uber.org/fx#Populate).
    ```go
    var sc scrubber.Component
    // ...
    fx.Populate(&sc)
    ```
+   Populate is useful in tests to fill an existing variable with a provided value.
+   It's equivalent to `fx.Invoke(func(tmp scrubber.Component) { *sc = tmp })`.
 
 Functions can take multple arguments of different types, requiring all of them.
 
