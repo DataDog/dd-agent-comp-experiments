@@ -7,11 +7,11 @@
 package trace
 
 import (
-	"github.com/djmitche/dd-agent-comp-experiments/comp/trace/agent"
-	"github.com/djmitche/dd-agent-comp-experiments/comp/trace/internal"
-	"github.com/djmitche/dd-agent-comp-experiments/comp/trace/internal/httpreceiver"
-	"github.com/djmitche/dd-agent-comp-experiments/comp/trace/internal/processor"
-	"github.com/djmitche/dd-agent-comp-experiments/comp/trace/internal/tracewriter"
+	"github.com/DataDog/dd-agent-comp-experiments/comp/trace/agent"
+	"github.com/DataDog/dd-agent-comp-experiments/comp/trace/internal"
+	"github.com/DataDog/dd-agent-comp-experiments/comp/trace/internal/httpreceiver"
+	"github.com/DataDog/dd-agent-comp-experiments/comp/trace/internal/processor"
+	"github.com/DataDog/dd-agent-comp-experiments/comp/trace/internal/tracewriter"
 	"go.uber.org/fx"
 )
 

@@ -8,8 +8,8 @@ package main
 import (
 	"os"
 
-	"github.com/djmitche/dd-agent-comp-experiments/cmd/traceagent/root"
-	"github.com/djmitche/dd-agent-comp-experiments/cmd/traceagent/run"
+	"github.com/DataDog/dd-agent-comp-experiments/cmd/traceagent/root"
+	"github.com/DataDog/dd-agent-comp-experiments/cmd/traceagent/run"
 )
 
 func main() {

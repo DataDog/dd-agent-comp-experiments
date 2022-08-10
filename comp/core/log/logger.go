@@ -8,8 +8,8 @@ package log
 import (
 	"fmt"
 
-	"github.com/djmitche/dd-agent-comp-experiments/comp/core/config"
-	"github.com/djmitche/dd-agent-comp-experiments/comp/core/internal"
+	"github.com/DataDog/dd-agent-comp-experiments/comp/core/config"
+	"github.com/DataDog/dd-agent-comp-experiments/comp/core/internal"
 	"go.uber.org/fx"
 )
 

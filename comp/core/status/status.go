@@ -12,8 +12,8 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/djmitche/dd-agent-comp-experiments/comp/core/flare"
-	"github.com/djmitche/dd-agent-comp-experiments/comp/core/ipc/ipcserver"
+	"github.com/DataDog/dd-agent-comp-experiments/comp/core/flare"
+	"github.com/DataDog/dd-agent-comp-experiments/comp/core/ipc/ipcserver"
 	"go.uber.org/fx"
 )
 

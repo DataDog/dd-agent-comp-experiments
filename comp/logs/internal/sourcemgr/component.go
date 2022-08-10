@@ -17,7 +17,7 @@
 package sourcemgr
 
 import (
-	"github.com/djmitche/dd-agent-comp-experiments/pkg/util/subscriptions"
+	"github.com/DataDog/dd-agent-comp-experiments/pkg/util/subscriptions"
 	"go.uber.org/fx"
 )
 

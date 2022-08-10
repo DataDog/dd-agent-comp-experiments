@@ -14,10 +14,10 @@
 package logs
 
 import (
-	"github.com/djmitche/dd-agent-comp-experiments/comp/logs/agent"
-	"github.com/djmitche/dd-agent-comp-experiments/comp/logs/internal"
-	"github.com/djmitche/dd-agent-comp-experiments/comp/logs/internal/sourcemgr"
-	"github.com/djmitche/dd-agent-comp-experiments/comp/logs/launchers/launchermgr"
+	"github.com/DataDog/dd-agent-comp-experiments/comp/logs/agent"
+	"github.com/DataDog/dd-agent-comp-experiments/comp/logs/internal"
+	"github.com/DataDog/dd-agent-comp-experiments/comp/logs/internal/sourcemgr"
+	"github.com/DataDog/dd-agent-comp-experiments/comp/logs/launchers/launchermgr"
 	"go.uber.org/fx"
 )
 

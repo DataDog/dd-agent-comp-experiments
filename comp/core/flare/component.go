@@ -25,7 +25,7 @@ import (
 
 	"go.uber.org/fx"
 
-	"github.com/djmitche/dd-agent-comp-experiments/comp/core/flare/reg"
+	"github.com/DataDog/dd-agent-comp-experiments/comp/core/flare/reg"
 )
 
 // team: agent-shared-components

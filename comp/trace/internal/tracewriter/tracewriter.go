@@ -9,12 +9,12 @@ import (
 	"context"
 	"time"
 
-	"github.com/djmitche/dd-agent-comp-experiments/comp/core/config"
-	"github.com/djmitche/dd-agent-comp-experiments/comp/core/health"
-	"github.com/djmitche/dd-agent-comp-experiments/comp/core/log"
-	"github.com/djmitche/dd-agent-comp-experiments/comp/trace/internal"
-	"github.com/djmitche/dd-agent-comp-experiments/pkg/trace/api"
-	"github.com/djmitche/dd-agent-comp-experiments/pkg/util/actor"
+	"github.com/DataDog/dd-agent-comp-experiments/comp/core/config"
+	"github.com/DataDog/dd-agent-comp-experiments/comp/core/health"
+	"github.com/DataDog/dd-agent-comp-experiments/comp/core/log"
+	"github.com/DataDog/dd-agent-comp-experiments/comp/trace/internal"
+	"github.com/DataDog/dd-agent-comp-experiments/pkg/trace/api"
+	"github.com/DataDog/dd-agent-comp-experiments/pkg/util/actor"
 	"go.uber.org/fx"
 )
 

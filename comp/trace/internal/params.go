@@ -6,8 +6,8 @@
 package internal
 
 import (
-	"github.com/djmitche/dd-agent-comp-experiments/comp/core/config"
-	"github.com/djmitche/dd-agent-comp-experiments/pkg/util/startup"
+	"github.com/DataDog/dd-agent-comp-experiments/comp/core/config"
+	"github.com/DataDog/dd-agent-comp-experiments/pkg/util/startup"
 )
 
 // BundleParams must be defined here to avoid package dependency cycles.

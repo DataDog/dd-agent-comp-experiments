@@ -8,9 +8,9 @@ package common
 import (
 	"os"
 
-	"github.com/djmitche/dd-agent-comp-experiments/comp/autodiscovery"
-	"github.com/djmitche/dd-agent-comp-experiments/comp/core"
-	"github.com/djmitche/dd-agent-comp-experiments/pkg/util/startup"
+	"github.com/DataDog/dd-agent-comp-experiments/comp/autodiscovery"
+	"github.com/DataDog/dd-agent-comp-experiments/comp/core"
+	"github.com/DataDog/dd-agent-comp-experiments/pkg/util/startup"
 	"go.uber.org/fx"
 	"go.uber.org/fx/fxevent"
 )

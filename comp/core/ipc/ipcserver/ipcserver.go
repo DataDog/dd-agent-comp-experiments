@@ -10,8 +10,8 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/djmitche/dd-agent-comp-experiments/comp/core/config"
-	"github.com/djmitche/dd-agent-comp-experiments/comp/core/internal"
+	"github.com/DataDog/dd-agent-comp-experiments/comp/core/config"
+	"github.com/DataDog/dd-agent-comp-experiments/comp/core/internal"
 	"github.com/gorilla/mux"
 	"go.uber.org/fx"
 )

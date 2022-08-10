@@ -1,4 +1,4 @@
-module github.com/djmitche/dd-agent-comp-experiments
+module github.com/DataDog/dd-agent-comp-experiments
 
 go 1.18
 
