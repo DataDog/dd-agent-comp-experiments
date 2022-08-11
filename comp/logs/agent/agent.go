@@ -12,11 +12,11 @@ import (
 
 	"go.uber.org/fx"
 
-	"github.com/djmitche/dd-agent-comp-experiments/comp/core/config"
-	"github.com/djmitche/dd-agent-comp-experiments/comp/core/log"
-	"github.com/djmitche/dd-agent-comp-experiments/comp/core/status"
-	"github.com/djmitche/dd-agent-comp-experiments/comp/logs/internal"
-	"github.com/djmitche/dd-agent-comp-experiments/comp/logs/launchers/launchermgr"
+	"github.com/DataDog/dd-agent-comp-experiments/comp/core/config"
+	"github.com/DataDog/dd-agent-comp-experiments/comp/core/log"
+	"github.com/DataDog/dd-agent-comp-experiments/comp/core/status"
+	"github.com/DataDog/dd-agent-comp-experiments/comp/logs/internal"
+	"github.com/DataDog/dd-agent-comp-experiments/comp/logs/launchers/launchermgr"
 )
 
 type agent struct {

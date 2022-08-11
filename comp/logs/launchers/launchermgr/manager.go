@@ -25,7 +25,6 @@ type registration struct {
 type dependencies struct {
 	fx.In
 
-	Lc            fx.Lifecycle
 	Registrations []registration `group:"launchermgr"`
 }
 

@@ -8,7 +8,7 @@ package trace
 import (
 	"testing"
 
-	"github.com/djmitche/dd-agent-comp-experiments/comp/core"
+	"github.com/DataDog/dd-agent-comp-experiments/comp/core"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/fx"
 )

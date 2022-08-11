@@ -11,12 +11,12 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/djmitche/dd-agent-comp-experiments/comp/core/config"
-	"github.com/djmitche/dd-agent-comp-experiments/comp/core/health"
-	"github.com/djmitche/dd-agent-comp-experiments/comp/trace/internal"
-	"github.com/djmitche/dd-agent-comp-experiments/comp/trace/internal/tracewriter"
-	"github.com/djmitche/dd-agent-comp-experiments/pkg/trace/api"
-	"github.com/djmitche/dd-agent-comp-experiments/pkg/util/actor"
+	"github.com/DataDog/dd-agent-comp-experiments/comp/core/config"
+	"github.com/DataDog/dd-agent-comp-experiments/comp/core/health"
+	"github.com/DataDog/dd-agent-comp-experiments/comp/trace/internal"
+	"github.com/DataDog/dd-agent-comp-experiments/comp/trace/internal/tracewriter"
+	"github.com/DataDog/dd-agent-comp-experiments/pkg/trace/api"
+	"github.com/DataDog/dd-agent-comp-experiments/pkg/util/actor"
 	"go.uber.org/fx"
 )
 
@@ -33,7 +33,7 @@ type processor struct {
 	traceWriterChan chan<- *api.Payload
 
 	// actor implements the actor model for this component
-	actor actor.Goroutine
+	actor actor.Actor
 
 	// health supports monitoring this component
 	health *health.Handle

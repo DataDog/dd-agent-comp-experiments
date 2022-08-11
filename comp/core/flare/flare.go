@@ -15,9 +15,9 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/djmitche/dd-agent-comp-experiments/comp/core/config"
-	"github.com/djmitche/dd-agent-comp-experiments/comp/core/ipc/ipcserver"
-	"github.com/djmitche/dd-agent-comp-experiments/comp/core/log"
+	"github.com/DataDog/dd-agent-comp-experiments/comp/core/config"
+	"github.com/DataDog/dd-agent-comp-experiments/comp/core/ipc/ipcserver"
+	"github.com/DataDog/dd-agent-comp-experiments/comp/core/log"
 	"github.com/mholt/archiver"
 	"go.uber.org/fx"
 )

@@ -8,7 +8,7 @@
 package file
 
 import (
-	"github.com/djmitche/dd-agent-comp-experiments/comp/logs/launchers/launchermgr"
+	"github.com/DataDog/dd-agent-comp-experiments/comp/logs/launchers/launchermgr"
 	"go.uber.org/fx"
 )
 

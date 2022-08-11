@@ -9,10 +9,10 @@ package health
 import (
 	"fmt"
 
-	"github.com/djmitche/dd-agent-comp-experiments/cmd/agent/root"
-	"github.com/djmitche/dd-agent-comp-experiments/cmd/common"
-	"github.com/djmitche/dd-agent-comp-experiments/comp/core/health"
-	"github.com/djmitche/dd-agent-comp-experiments/comp/core/ipc/ipcclient"
+	"github.com/DataDog/dd-agent-comp-experiments/cmd/agent/root"
+	"github.com/DataDog/dd-agent-comp-experiments/cmd/common"
+	"github.com/DataDog/dd-agent-comp-experiments/comp/core/health"
+	"github.com/DataDog/dd-agent-comp-experiments/comp/core/ipc/ipcclient"
 	"github.com/spf13/cobra"
 	"go.uber.org/fx"
 )

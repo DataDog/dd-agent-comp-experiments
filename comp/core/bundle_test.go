@@ -8,13 +8,13 @@ package core
 import (
 	"testing"
 
-	"github.com/djmitche/dd-agent-comp-experiments/comp/core/config"
-	"github.com/djmitche/dd-agent-comp-experiments/comp/core/flare"
-	"github.com/djmitche/dd-agent-comp-experiments/comp/core/health"
-	"github.com/djmitche/dd-agent-comp-experiments/comp/core/ipc/ipcclient"
-	"github.com/djmitche/dd-agent-comp-experiments/comp/core/ipc/ipcserver"
-	"github.com/djmitche/dd-agent-comp-experiments/comp/core/log"
-	"github.com/djmitche/dd-agent-comp-experiments/comp/core/status"
+	"github.com/DataDog/dd-agent-comp-experiments/comp/core/config"
+	"github.com/DataDog/dd-agent-comp-experiments/comp/core/flare"
+	"github.com/DataDog/dd-agent-comp-experiments/comp/core/health"
+	"github.com/DataDog/dd-agent-comp-experiments/comp/core/ipc/ipcclient"
+	"github.com/DataDog/dd-agent-comp-experiments/comp/core/ipc/ipcserver"
+	"github.com/DataDog/dd-agent-comp-experiments/comp/core/log"
+	"github.com/DataDog/dd-agent-comp-experiments/comp/core/status"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/fx"
 )

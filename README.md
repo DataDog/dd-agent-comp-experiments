@@ -20,5 +20,5 @@ To regenerate files in the repo, run `inv generate`.
 
 # Documentation
 
-The [documentation](./doc) covers how to build and use components, including a description of the Fx, the framework used to coordinate component interactions.
+The [documentation](./doc) covers how to build and use components, including a description of Fx, the framework used to coordinate component interactions.
 It will become a part of the Agent's developer documentation, so bears close attention when reviewing this repository.

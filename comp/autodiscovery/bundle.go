@@ -10,8 +10,8 @@
 package autodiscovery
 
 import (
-	"github.com/djmitche/dd-agent-comp-experiments/comp/autodiscovery/internal"
-	"github.com/djmitche/dd-agent-comp-experiments/comp/autodiscovery/scheduler"
+	"github.com/DataDog/dd-agent-comp-experiments/comp/autodiscovery/internal"
+	"github.com/DataDog/dd-agent-comp-experiments/comp/autodiscovery/scheduler"
 	"go.uber.org/fx"
 )
 

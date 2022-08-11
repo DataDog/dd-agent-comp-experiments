@@ -8,9 +8,9 @@ package logs
 import (
 	"testing"
 
-	"github.com/djmitche/dd-agent-comp-experiments/comp/autodiscovery"
-	"github.com/djmitche/dd-agent-comp-experiments/comp/core"
-	"github.com/djmitche/dd-agent-comp-experiments/comp/logs/launchers/file"
+	"github.com/DataDog/dd-agent-comp-experiments/comp/autodiscovery"
+	"github.com/DataDog/dd-agent-comp-experiments/comp/core"
+	"github.com/DataDog/dd-agent-comp-experiments/comp/logs/launchers/file"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/fx"
 )

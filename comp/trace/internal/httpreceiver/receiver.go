@@ -11,10 +11,10 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/djmitche/dd-agent-comp-experiments/comp/core/config"
-	"github.com/djmitche/dd-agent-comp-experiments/comp/trace/internal"
-	"github.com/djmitche/dd-agent-comp-experiments/comp/trace/internal/processor"
-	"github.com/djmitche/dd-agent-comp-experiments/pkg/trace/api"
+	"github.com/DataDog/dd-agent-comp-experiments/comp/core/config"
+	"github.com/DataDog/dd-agent-comp-experiments/comp/trace/internal"
+	"github.com/DataDog/dd-agent-comp-experiments/comp/trace/internal/processor"
+	"github.com/DataDog/dd-agent-comp-experiments/pkg/trace/api"
 	"go.uber.org/fx"
 )
 

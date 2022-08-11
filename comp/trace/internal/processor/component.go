@@ -9,7 +9,7 @@
 package processor
 
 import (
-	"github.com/djmitche/dd-agent-comp-experiments/pkg/trace/api"
+	"github.com/DataDog/dd-agent-comp-experiments/pkg/trace/api"
 	"go.uber.org/fx"
 )
 

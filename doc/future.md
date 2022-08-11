@@ -15,7 +15,7 @@ This will also ease testing of components: tests can simply provide a filled-in 
 ## Component Reconfiguration and Restart
 
 Since we have per-component health monitoring, it may be useful to be able to react automatically to unhealthy cmoponents, perhaps by restarting them.
-This would require a more sophisticated lifecycle implementation than that provided by Fx, but `fx.Lifecyle`'s deign is a good place to start.
+This would require a more sophisticated lifecycle implementation than that provided by Fx, but `fx.Lifecyle`'s design is a good place to start.
 
 We may also want to support dynamic reconfiguration of the Agent.
 This would require

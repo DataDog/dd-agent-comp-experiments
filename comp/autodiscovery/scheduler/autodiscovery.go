@@ -12,11 +12,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/djmitche/dd-agent-comp-experiments/comp/autodiscovery/internal"
-	"github.com/djmitche/dd-agent-comp-experiments/comp/core/health"
-	"github.com/djmitche/dd-agent-comp-experiments/comp/core/log"
-	"github.com/djmitche/dd-agent-comp-experiments/pkg/util/actor"
-	"github.com/djmitche/dd-agent-comp-experiments/pkg/util/subscriptions"
+	"github.com/DataDog/dd-agent-comp-experiments/comp/autodiscovery/internal"
+	"github.com/DataDog/dd-agent-comp-experiments/comp/core/health"
+	"github.com/DataDog/dd-agent-comp-experiments/comp/core/log"
+	"github.com/DataDog/dd-agent-comp-experiments/pkg/util/actor"
+	"github.com/DataDog/dd-agent-comp-experiments/pkg/util/subscriptions"
 	"go.uber.org/fx"
 )
 
@@ -31,7 +31,7 @@ type autoDiscovery struct {
 	configChangeTx subscriptions.Transmitter[ConfigChange]
 
 	// actor manages the goroutine "monitoring" for container/pod changes
-	actor actor.Goroutine
+	actor actor.Actor
 
 	health *health.Handle
 }

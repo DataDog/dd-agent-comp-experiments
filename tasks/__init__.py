@@ -89,20 +89,20 @@ def get_components_and_bundles(ctx):
 
 
 def make_components_md(bundles):
-    pkg_root = 'github.com/djmitche/dd-agent-comp-experiments/'
+    pkg_root = 'github.com/DataDog/dd-agent-comp-experiments/'
     yield '# Agent Components'
     yield ''
     yield 'This file lists all components defined in this repository, with their package summary.'
     yield 'Click the links for more documentation.'
     yield ''
     for b in bundles:
-        yield f'## [{b.path}](https://pkg.go.dev/{pkg_root}{b.path}@v0.0.2) (Component Bundle)'
+        yield f'## [{b.path}](https://pkg.go.dev/{pkg_root}{b.path}) (Component Bundle)'
         yield ''
         yield f'*Datadog Team*: {b.team}'
         yield ''
         yield b.doc
         for c in b.components:
-            yield f'### [{c.path}](https://pkg.go.dev/{pkg_root}{c.path}@v0.0.2)'
+            yield f'### [{c.path}](https://pkg.go.dev/{pkg_root}{c.path})'
             yield ''
             if c.team != b.team:
                 yield f'*Datadog Team*: {c.team}'

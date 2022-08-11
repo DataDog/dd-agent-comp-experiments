@@ -9,11 +9,11 @@ import (
 	"context"
 	"sync"
 
-	"github.com/djmitche/dd-agent-comp-experiments/comp/autodiscovery/scheduler"
-	"github.com/djmitche/dd-agent-comp-experiments/comp/core/config"
-	"github.com/djmitche/dd-agent-comp-experiments/comp/logs/internal"
-	"github.com/djmitche/dd-agent-comp-experiments/pkg/util/actor"
-	"github.com/djmitche/dd-agent-comp-experiments/pkg/util/subscriptions"
+	"github.com/DataDog/dd-agent-comp-experiments/comp/autodiscovery/scheduler"
+	"github.com/DataDog/dd-agent-comp-experiments/comp/core/config"
+	"github.com/DataDog/dd-agent-comp-experiments/comp/logs/internal"
+	"github.com/DataDog/dd-agent-comp-experiments/pkg/util/actor"
+	"github.com/DataDog/dd-agent-comp-experiments/pkg/util/subscriptions"
 	"go.uber.org/fx"
 )
 
@@ -30,7 +30,7 @@ type sourceMgr struct {
 	// configChangeRx is used to subscribe to AD ConfigChanges
 	configChangeRx subscriptions.Receiver[scheduler.ConfigChange]
 
-	actor actor.Goroutine
+	actor actor.Actor
 }
 
 type dependencies struct {

@@ -8,11 +8,11 @@ package main
 import (
 	"os"
 
-	"github.com/djmitche/dd-agent-comp-experiments/cmd/agent/flare"
-	"github.com/djmitche/dd-agent-comp-experiments/cmd/agent/health"
-	"github.com/djmitche/dd-agent-comp-experiments/cmd/agent/root"
-	"github.com/djmitche/dd-agent-comp-experiments/cmd/agent/run"
-	"github.com/djmitche/dd-agent-comp-experiments/cmd/agent/status"
+	"github.com/DataDog/dd-agent-comp-experiments/cmd/agent/flare"
+	"github.com/DataDog/dd-agent-comp-experiments/cmd/agent/health"
+	"github.com/DataDog/dd-agent-comp-experiments/cmd/agent/root"
+	"github.com/DataDog/dd-agent-comp-experiments/cmd/agent/run"
+	"github.com/DataDog/dd-agent-comp-experiments/cmd/agent/status"
 )
 
 func main() {

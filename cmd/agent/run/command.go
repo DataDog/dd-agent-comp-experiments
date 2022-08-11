@@ -7,12 +7,12 @@
 package run
 
 import (
-	"github.com/djmitche/dd-agent-comp-experiments/cmd/agent/root"
-	"github.com/djmitche/dd-agent-comp-experiments/cmd/common"
-	"github.com/djmitche/dd-agent-comp-experiments/comp/logs"
-	"github.com/djmitche/dd-agent-comp-experiments/comp/logs/launchers/file"
-	"github.com/djmitche/dd-agent-comp-experiments/comp/trace"
-	"github.com/djmitche/dd-agent-comp-experiments/pkg/util/startup"
+	"github.com/DataDog/dd-agent-comp-experiments/cmd/agent/root"
+	"github.com/DataDog/dd-agent-comp-experiments/cmd/common"
+	"github.com/DataDog/dd-agent-comp-experiments/comp/logs"
+	"github.com/DataDog/dd-agent-comp-experiments/comp/logs/launchers/file"
+	"github.com/DataDog/dd-agent-comp-experiments/comp/trace"
+	"github.com/DataDog/dd-agent-comp-experiments/pkg/util/startup"
 	"github.com/spf13/cobra"
 	"go.uber.org/fx"
 )
