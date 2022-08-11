@@ -21,7 +21,7 @@ import (
 type traceWriter struct {
 	in chan *api.Payload
 
-	actor  actor.Goroutine
+	actor  actor.Actor
 	log    log.Component
 	health *health.Registration
 }

@@ -17,7 +17,6 @@ type manager struct {
 type dependencies struct {
 	fx.In
 
-	Lc            fx.Lifecycle
 	Registrations []*Registration `group:"true"`
 }
 

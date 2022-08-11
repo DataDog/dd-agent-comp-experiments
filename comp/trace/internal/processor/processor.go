@@ -33,7 +33,7 @@ type processor struct {
 	traceWriterChan chan<- *api.Payload
 
 	// actor implements the actor model for this component
-	actor actor.Goroutine
+	actor actor.Actor
 
 	// health supports monitoring this component
 	health *health.Registration

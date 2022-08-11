@@ -22,7 +22,7 @@ type Registration struct {
 	Callback func(flareDir string) error
 }
 
-// FileRegistration creates a Registration that will generat a single file of
+// FileRegistration creates a Registration that will generate a single file of
 // the given name, with the content returned by `callback`.  The callback may be called
 // concurrently with any other activity.
 func FileRegistration(filename string, callback func() (string, error)) *Registration {

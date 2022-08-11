@@ -14,7 +14,7 @@ import (
 func Example() {
 	type component struct {
 		ch    chan int
-		actor Goroutine
+		actor Actor
 	}
 
 	c := &component{

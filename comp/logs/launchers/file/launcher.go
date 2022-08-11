@@ -23,7 +23,7 @@ import (
 type launcher struct {
 	log          log.Component
 	subscription subscriptions.Subscription[sourcemgr.SourceChange]
-	actor        actor.Goroutine
+	actor        actor.Actor
 	health       *health.Registration
 }
 

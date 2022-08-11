@@ -30,7 +30,7 @@ type sourceMgr struct {
 	// subscription is the subscription to AD
 	subscription subscriptions.Subscription[scheduler.ConfigChange]
 
-	actor actor.Goroutine
+	actor actor.Actor
 }
 
 type dependencies struct {

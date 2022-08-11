@@ -31,7 +31,7 @@ type autoDiscovery struct {
 	subscriptionPoint *subscriptions.SubscriptionPoint[ConfigChange]
 
 	// actor manages the goroutine "monitoring" for container/pod changes
-	actor actor.Goroutine
+	actor actor.Actor
 
 	health *health.Registration
 }

@@ -68,9 +68,6 @@ type foo {
     foos []string
 }
 
-// Foo implements Component#Foo.
-func (f *foo) Foo(key string) string { ... }
-
 type dependencies struct {
     fx.In
 
@@ -80,6 +77,9 @@ type dependencies struct {
 }
 
 func newFoo(deps dependencies) Component { ...  }
+
+// Foo implements Component#Foo.
+func (f *foo) Foo(key string) string { ... }
 ```
 
 The constructor `newFoo` is an `fx` constructor, so it can refer to other types and expect them to be automatically supplied.

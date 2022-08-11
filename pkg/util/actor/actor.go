@@ -4,6 +4,10 @@
 // Copyright 2016-present Datadog, Inc.
 
 // Package actor provides basic support for building actors for use in the Agent.
+//
+// Methods on this component are not re-entrant.  Components using this one
+// should _either_ call HookLifecycle once in their constructor or call Start
+// and Stop from their lifecycle hook.
 package actor
 
 import (
@@ -12,12 +16,12 @@ import (
 	"go.uber.org/fx"
 )
 
-// Goroutine manages an actor goroutine, supporting starting and later stopping
+// Actor manages an actor goroutine, supporting starting and later stopping
 // the goroutine.  This is one-shot: once started and stopped, the goroutine cannot
 // be started again.
 //
 // The zero value is a valid initial state.
-type Goroutine struct {
+type Actor struct {
 	// started is true after the goroutine has been started, and remains true after
 	// it has stopped.
 	started bool
@@ -37,10 +41,10 @@ type RunFunc func(context.Context)
 // HookLifecycle connects this goroutine to the given fx.Lifecycle, starting and
 // stopping it with the lifecycle.  Use this method _or_ the Start and Stop methods,
 // but not both.
-func (gr *Goroutine) HookLifecycle(lc fx.Lifecycle, run RunFunc) {
+func (gr *Actor) HookLifecycle(lc fx.Lifecycle, runFunc RunFunc) {
 	lc.Append(fx.Hook{
 		OnStart: func(context.Context) error {
-			gr.Start(run)
+			gr.Start(runFunc)
 			return nil
 		},
 		OnStop: gr.Stop,
@@ -49,7 +53,7 @@ func (gr *Goroutine) HookLifecycle(lc fx.Lifecycle, run RunFunc) {
 
 // Start starts run in a goroutine, setting up to stop it by cancelling the context
 // it receives.
-func (gr *Goroutine) Start(run RunFunc) {
+func (gr *Actor) Start(runFunc RunFunc) {
 	if gr.started {
 		panic("Goroutine has already been started")
 	}
@@ -58,13 +62,13 @@ func (gr *Goroutine) Start(run RunFunc) {
 	ctx, cancel := context.WithCancel(context.Background())
 	gr.cancel = cancel
 	gr.stopped = make(chan struct{})
-	go gr.run(run, ctx)
+	go gr.run(runFunc, ctx)
 }
 
 // Stop stops the goroutine, waiting until it is complete, or the given context
 // is cancelled, before returning.  Returns the error from context if it is
 // cancelled.
-func (gr *Goroutine) Stop(ctx context.Context) error {
+func (gr *Actor) Stop(ctx context.Context) error {
 	if !gr.started {
 		panic("Goroutine has not been started")
 	}
@@ -83,7 +87,7 @@ func (gr *Goroutine) Stop(ctx context.Context) error {
 
 // run executes the given function, ensuring that the stopped channel is closed
 // when it finishes.  This method runs in a dedicated goroutine.
-func (gr *Goroutine) run(run RunFunc, ctx context.Context) {
+func (gr *Actor) run(runFunc RunFunc, ctx context.Context) {
 	defer close(gr.stopped)
-	run(ctx)
+	runFunc(ctx)
 }

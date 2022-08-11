@@ -10,14 +10,15 @@ type AutoStart int
 
 const (
 	// IfConfigured means that the component should consult its configuration
-	// (e.g., `foo-agent.enabled`) to decide whether to start.  Components which
-	// have no configuration treat this as Always.  This is the zero value.
-	IfConfigured = 0
+	// (e.g., `foo-agent.enabled`) to decide whether to start automatically.
+	// Components which have no configuration treat this as Always.  This is
+	// the zero value.
+	IfConfigured = iota
 
-	// Always means that the component should always start.
+	// Always means that the component should always start automatically.
 	Always AutoStart = 1
 
-	// Never means that the component should never start.
+	// Never means that the component should never start automatically.
 	Never AutoStart = 2
 )
 
