@@ -29,11 +29,6 @@ type autoDiscovery struct {
 
 	// configChangeTx connects to receivers of messages about config additions/removals
 	configChangeTx subscriptions.Transmitter[ConfigChange]
-
-	// actor manages the goroutine "monitoring" for container/pod changes
-	actor actor.Actor
-
-	health *health.Handle
 }
 
 type dependencies struct {
@@ -50,16 +45,16 @@ func newAD(deps dependencies) (Component, health.Registration) {
 	ad := &autoDiscovery{
 		log:            deps.Log,
 		configChangeTx: deps.Pub.Transmitter(),
-		health:         healthReg.Handle,
 	}
 	if deps.Params.ShouldStart() {
-		ad.actor.HookLifecycle(deps.Lc, ad.run)
+		actor := actor.New()
+		actor.HookLifecycle(deps.Lc, ad.run)
+		actor.MonitorLiveness(healthReg.Handle, time.Second)
 	}
 	return ad, healthReg
 }
 
-func (ad *autoDiscovery) run(ctx context.Context) {
-	monitor, stopMonitor := ad.health.LivenessMonitor(time.Second)
+func (ad *autoDiscovery) run(ctx context.Context, alive <-chan struct{}) {
 	scheduled := []*Config{}
 	tkr := time.NewTicker(time.Second)
 	for {
@@ -77,9 +72,8 @@ func (ad *autoDiscovery) run(ctx context.Context) {
 				ad.log.Debug("unscheduling", cfg.Name)
 				ad.configChangeTx.Notify(ConfigChange{IsScheduled: false, Config: cfg})
 			}
-		case <-monitor:
+		case <-alive:
 		case <-ctx.Done():
-			stopMonitor()
 			return
 		}
 	}

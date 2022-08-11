@@ -23,9 +23,6 @@ type health struct {
 	// Mutex covers all fields, including all componentHealth values
 	sync.Mutex
 
-	// autoStart indicates that the component should do start.
-	autoStart bool
-
 	// components maps component package path to that component's current health status
 	components map[string]ComponentHealth
 
@@ -53,7 +50,6 @@ type provides struct {
 
 func newHealth(deps dependencies) provides {
 	h := &health{
-		autoStart:  deps.Params.ShouldStart(),
 		components: make(map[string]ComponentHealth),
 		log:        deps.Log,
 	}
@@ -104,7 +100,7 @@ func (h *health) setHealth(component string, healthy bool, message string) {
 	h.Lock()
 	defer h.Unlock()
 
-	if ch, found := h.components[component]; found && h.autoStart {
+	if ch, found := h.components[component]; found {
 		// XXX: we will probably want to do more than just log
 		if healthy && !ch.Healthy {
 			h.log.Debug(fmt.Sprintf("Component %s is now healthy", component))

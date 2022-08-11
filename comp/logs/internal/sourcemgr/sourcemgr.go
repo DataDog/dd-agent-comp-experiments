@@ -8,9 +8,11 @@ package sourcemgr
 import (
 	"context"
 	"sync"
+	"time"
 
 	"github.com/DataDog/dd-agent-comp-experiments/comp/autodiscovery/scheduler"
 	"github.com/DataDog/dd-agent-comp-experiments/comp/core/config"
+	"github.com/DataDog/dd-agent-comp-experiments/comp/core/health"
 	"github.com/DataDog/dd-agent-comp-experiments/comp/logs/internal"
 	"github.com/DataDog/dd-agent-comp-experiments/pkg/util/actor"
 	"github.com/DataDog/dd-agent-comp-experiments/pkg/util/subscriptions"
@@ -29,8 +31,6 @@ type sourceMgr struct {
 
 	// configChangeRx is used to subscribe to AD ConfigChanges
 	configChangeRx subscriptions.Receiver[scheduler.ConfigChange]
-
-	actor actor.Actor
 }
 
 type dependencies struct {
@@ -43,12 +43,15 @@ type dependencies struct {
 }
 
 func newSourceMgr(deps dependencies) (Component, subscriptions.Subscription[scheduler.ConfigChange]) {
+	healthReg := health.NewRegistration(componentName)
 	sm := &sourceMgr{
 		sourceChangeTx: deps.Pub.Transmitter(),
 	}
 	var sub subscriptions.Subscription[scheduler.ConfigChange]
 	if deps.Params.ShouldStart(deps.Config) {
-		sm.actor.HookLifecycle(deps.Lc, sm.run)
+		actor := actor.New()
+		actor.HookLifecycle(deps.Lc, sm.run)
+		actor.MonitorLiveness(healthReg.Handle, time.Second)
 		deps.Lc.Append(fx.Hook{OnStart: sm.start})
 		sub = subscriptions.NewSubscription[scheduler.ConfigChange]()
 		sm.configChangeRx = sub.Receiver
@@ -64,7 +67,7 @@ func (sm *sourceMgr) start(ctx context.Context) error {
 	return nil
 }
 
-func (sm *sourceMgr) run(ctx context.Context) {
+func (sm *sourceMgr) run(ctx context.Context, alive <-chan struct{}) {
 	sources := map[string]*LogSource{}
 	for {
 		select {
@@ -82,6 +85,7 @@ func (sm *sourceMgr) run(ctx context.Context) {
 					sm.RemoveSource(src)
 				}
 			}
+		case <-alive:
 		case <-ctx.Done():
 			return
 		}

@@ -8,23 +8,26 @@ package actor
 import (
 	"context"
 	"fmt"
+	"testing"
 	"time"
+
+	"github.com/DataDog/dd-agent-comp-experiments/comp/core"
+	"github.com/DataDog/dd-agent-comp-experiments/comp/core/health"
+	"github.com/DataDog/dd-agent-comp-experiments/pkg/util/startup"
+	"github.com/stretchr/testify/require"
+	"go.uber.org/fx"
+	"go.uber.org/fx/fxtest"
 )
 
-func Example() {
-	type component struct {
-		ch    chan int
-		actor Actor
-	}
+func TestWithoutComponents(t *testing.T) {
+	actor := Actor{}
+	ch := make(chan int)
 
-	c := &component{
-		ch: make(chan int),
-	}
-
-	run := func(ctx context.Context) {
+	run := func(ctx context.Context, alive <-chan struct{}) {
 		for {
 			select {
-			case v := <-c.ch:
+			case <-alive:
+			case v := <-ch:
 				fmt.Printf("GOT: %d\n", v)
 			case <-ctx.Done():
 				fmt.Println("Stopping")
@@ -33,10 +36,10 @@ func Example() {
 		}
 	}
 
-	c.actor.Start(run)
-	c.ch <- 1
-	c.ch <- 2
-	c.actor.Stop(context.Background())
+	actor.Start(run)
+	ch <- 1
+	ch <- 2
+	actor.Stop(context.Background())
 
 	// Output:
 	// GOT: 1
@@ -44,14 +47,53 @@ func Example() {
 	// Stopping
 }
 
-func run(ctx context.Context) {
-	tkr := time.NewTicker(time.Millisecond)
+type testComp struct {
+	actor Actor
+}
+
+func newTestComp(lc fx.Lifecycle) (*testComp, health.Registration) {
+	reg := health.NewRegistration("test-comp")
+	c := &testComp{}
+	c.actor.MonitorLiveness(reg.Handle, time.Millisecond)
+	c.actor.HookLifecycle(lc, c.run)
+	return c, reg
+}
+
+func (c *testComp) run(ctx context.Context, alive <-chan struct{}) {
+	// this is healthy for about 5ms, then unhealthy for about 5ms, and repeats
+	// that pattern.
+	tkr := time.NewTicker(10 * time.Millisecond)
 	for {
 		select {
+		case <-alive:
 		case <-tkr.C:
-			fmt.Println("tick")
+			time.Sleep(5 * time.Millisecond) // unhealthy for a few ms
 		case <-ctx.Done():
 			return
 		}
 	}
+}
+
+func TestWithHealth(t *testing.T) {
+	var comp *testComp
+	var health health.Component
+	app := fxtest.New(t,
+		fx.Supply(core.BundleParams{AutoStart: startup.Never}),
+		core.Bundle,
+		fx.Provide(newTestComp),
+		fx.Populate(&comp),
+		fx.Populate(&health),
+	)
+
+	defer app.RequireStart().RequireStop()
+
+	// see it go unhealthy..
+	require.Eventually(t, func() bool {
+		return !health.GetHealth()["test-comp"].Healthy
+	}, time.Second, time.Millisecond)
+
+	// see it return to healthy..
+	require.Eventually(t, func() bool {
+		return !health.GetHealth()["test-comp"].Healthy
+	}, time.Second, time.Millisecond)
 }

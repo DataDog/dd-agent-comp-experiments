@@ -23,8 +23,6 @@ import (
 type launcher struct {
 	log            log.Component
 	sourceChangeRx subscriptions.Receiver[sourcemgr.SourceChange]
-	actor          actor.Actor
-	health         *health.Handle
 }
 
 type dependencies struct {
@@ -48,12 +46,13 @@ type provides struct {
 func newLauncher(deps dependencies) provides {
 	healthReg := health.NewRegistration(componentName)
 	l := &launcher{
-		log:    deps.Log,
-		health: healthReg.Handle,
+		log: deps.Log,
 	}
 	var sub subscriptions.Subscription[sourcemgr.SourceChange]
 	if deps.Params.ShouldStart(deps.Config) {
-		l.actor.HookLifecycle(deps.Lc, l.run)
+		actor := actor.New()
+		actor.HookLifecycle(deps.Lc, l.run)
+		actor.MonitorLiveness(healthReg.Handle, time.Second)
 		sub = subscriptions.NewSubscription[sourcemgr.SourceChange]()
 		l.sourceChangeRx = sub.Receiver
 	}
@@ -65,16 +64,14 @@ func newLauncher(deps dependencies) provides {
 	}
 }
 
-func (l *launcher) run(ctx context.Context) {
-	monitor, stopMonitor := l.health.LivenessMonitor(time.Second)
+func (l *launcher) run(ctx context.Context, alive <-chan struct{}) {
 	for {
 		select {
 		case chg := <-l.sourceChangeRx.Chan():
 			l.log.Debug("file launcher got LogSource change", chg)
 			// XXX start a tailer, etc. etc.
-		case <-monitor:
+		case <-alive:
 		case <-ctx.Done():
-			stopMonitor()
 			return
 		}
 	}
