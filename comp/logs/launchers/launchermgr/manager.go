@@ -14,10 +14,18 @@ type manager struct {
 	launchers map[string]Launcher
 }
 
+type registration struct {
+	// name is the name of the launcher
+	name string
+
+	// launcher points to the launcher itself
+	launcher Launcher
+}
+
 type dependencies struct {
 	fx.In
 
-	Registrations []*Registration `group:"true"`
+	Registrations []registration `group:"launchermgr"`
 }
 
 func newManager(deps dependencies) Component {

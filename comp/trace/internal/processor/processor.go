@@ -36,7 +36,7 @@ type processor struct {
 	actor actor.Actor
 
 	// health supports monitoring this component
-	health *health.Registration
+	health *health.Handle
 }
 
 type dependencies struct {
@@ -48,27 +48,18 @@ type dependencies struct {
 	TraceWriter tracewriter.Component
 }
 
-type provides struct {
-	fx.Out
-
-	Component
-	HealthReg *health.Registration `group:"true"`
-}
-
-func newProcessor(deps dependencies) provides {
+func newProcessor(deps dependencies) (Component, health.Registration) {
 	width := runtime.NumCPU()
+	healthReg := health.NewRegistration(componentName)
 	p := &processor{
 		payloadChan:     make(chan *api.Payload, width),
 		traceWriterChan: deps.TraceWriter.PayloadChan(),
-		health:          health.NewRegistration(componentName),
+		health:          healthReg.Handle,
 	}
 	if deps.Params.ShouldStart(deps.Config) {
 		p.actor.HookLifecycle(deps.Lc, p.run)
 	}
-	return provides{
-		Component: p,
-		HealthReg: p.health,
-	}
+	return p, healthReg
 }
 
 func (p *processor) PayloadChan() chan<- *api.Payload {

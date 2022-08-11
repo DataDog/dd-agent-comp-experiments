@@ -27,12 +27,12 @@ type Component interface {
 	GetStatus(section string) string
 }
 
-// Registration is provided by other components in order to register sections
-// for status reporting.
+// Registration is provided by other components to register themselves to
+// provide status.
 type Registration struct {
-	section string
-	order   int
-	cb      func() string
+	fx.Out
+
+	Registration registration `group:"status"`
 }
 
 // NewRegistration creates a new Registration.
@@ -41,8 +41,10 @@ type Registration struct {
 // status <section-name>`). When all sections are included, they are ordered by
 // `order`.  The `cb` returns the text of the section, including the header. If
 // an error occurs in `cb`, it should include the error message in its output.
-func NewRegistration(section string, order int, cb func() string) *Registration {
-	return &Registration{section, order, cb}
+func NewRegistration(section string, order int, cb func() string) Registration {
+	return Registration{
+		Registration: registration{section, order, cb},
+	}
 }
 
 // Module defines the fx options for this component.

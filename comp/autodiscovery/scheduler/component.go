@@ -3,13 +3,14 @@
 // This product includes software developed at Datadog (https://www.datadoghq.com/).
 // Copyright 2016-present Datadog, Inc.
 
-// Package scheduler broadcasts changes to discovered configuration
-// configuration to its subscribers.  Subscriptions are created by providing a
-// Subscription value in value-group "autodiscovery".
+// Package scheduler publishes changes to discovered configuration
+// configuration to its subscribers.
+//
+// Subscribe to the scheduler by providing a
+// `subscriptions.Subscription[scheduler.ConfigChange]`.
 package scheduler
 
 import (
-	"github.com/DataDog/dd-agent-comp-experiments/pkg/util/subscriptions"
 	"go.uber.org/fx"
 )
 
@@ -35,15 +36,6 @@ type ConfigChange struct {
 
 	// Config is the config being changed.
 	Config *Config
-}
-
-// Subscription is the type that other components should provide in order to
-// subscribe to ConfigChanges.
-type Subscription = subscriptions.Subscription[ConfigChange]
-
-// Subscribe creates a new subscription to this component.
-func Subscribe() Subscription {
-	return subscriptions.NewSubscription[ConfigChange]()
 }
 
 // Module defines the fx options for this component.

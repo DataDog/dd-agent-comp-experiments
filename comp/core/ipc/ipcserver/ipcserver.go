@@ -30,12 +30,22 @@ type server struct {
 	server *http.Server
 }
 
+// route is provided by other components in order to indicate routes that
+// should be served via the IPC API.
+type route struct {
+	// path is the path at which this handler should be registered
+	path string
+
+	// handler is the handler for this path.
+	handler http.HandlerFunc
+}
+
 type dependencies struct {
 	fx.In
 	Lc     fx.Lifecycle
 	Params internal.BundleParams
 	Config config.Component
-	Routes []*Route `group:"true"`
+	Routes []route `group:"ipcserver"`
 }
 
 func newServer(deps dependencies) Component {

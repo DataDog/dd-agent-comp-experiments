@@ -27,44 +27,35 @@ type autoDiscovery struct {
 	// log is the log component
 	log log.Component
 
-	// subscriptionPoint contains the subcriptions for source additions/removals
-	subscriptionPoint *subscriptions.SubscriptionPoint[ConfigChange]
+	// configChangeTx connects to receivers of messages about config additions/removals
+	configChangeTx subscriptions.Transmitter[ConfigChange]
 
 	// actor manages the goroutine "monitoring" for container/pod changes
 	actor actor.Actor
 
-	health *health.Registration
+	health *health.Handle
 }
 
 type dependencies struct {
 	fx.In
 
-	Lc            fx.Lifecycle
-	Log           log.Component
-	Subscriptions []Subscription `group:"true"`
-	Params        internal.BundleParams
+	Lc     fx.Lifecycle
+	Log    log.Component
+	Pub    subscriptions.Publisher[ConfigChange]
+	Params internal.BundleParams
 }
 
-type provides struct {
-	fx.Out
-
-	Component
-	HealthReg *health.Registration `group:"true"`
-}
-
-func newAD(deps dependencies) provides {
+func newAD(deps dependencies) (Component, health.Registration) {
+	healthReg := health.NewRegistration(componentName)
 	ad := &autoDiscovery{
-		log:               deps.Log,
-		subscriptionPoint: subscriptions.NewSubscriptionPoint[ConfigChange](deps.Subscriptions),
-		health:            health.NewRegistration(componentName),
+		log:            deps.Log,
+		configChangeTx: deps.Pub.Transmitter(),
+		health:         healthReg.Handle,
 	}
 	if deps.Params.ShouldStart() {
 		ad.actor.HookLifecycle(deps.Lc, ad.run)
 	}
-	return provides{
-		Component: ad,
-		HealthReg: ad.health,
-	}
+	return ad, healthReg
 }
 
 func (ad *autoDiscovery) run(ctx context.Context) {
@@ -78,13 +69,13 @@ func (ad *autoDiscovery) run(ctx context.Context) {
 				cfg := &Config{Name: fmt.Sprintf("cfg-%d", rand.Int63())}
 				scheduled = append(scheduled, cfg)
 				ad.log.Debug("scheduling", cfg.Name)
-				ad.subscriptionPoint.Notify(ConfigChange{IsScheduled: true, Config: cfg})
+				ad.configChangeTx.Notify(ConfigChange{IsScheduled: true, Config: cfg})
 			} else {
 				i := rand.Intn(len(scheduled))
 				cfg := scheduled[i]
 				scheduled = append(scheduled[:i], scheduled[i+1:]...)
 				ad.log.Debug("unscheduling", cfg.Name)
-				ad.subscriptionPoint.Notify(ConfigChange{IsScheduled: false, Config: cfg})
+				ad.configChangeTx.Notify(ConfigChange{IsScheduled: false, Config: cfg})
 			}
 		case <-monitor:
 		case <-ctx.Done():

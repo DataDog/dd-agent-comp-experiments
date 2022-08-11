@@ -5,9 +5,11 @@
 
 // Package sourcemgr implements a component managing logs-agent sources (type
 // LogSource).  It receives additions and removals of sources from other
-// components, and it informs subscribers of these additions and removals.
+// components, and it publishes SourceChanges to subscribers of these additions
+// and removals.
 //
-// Subscribers should provide a Subscription value in value-group "sourcemgr".
+// To subscribe to these changes, provide a
+// subscriptions.Subscription[sourcemgr.SourceChange].
 //
 // Once added to this component, a LogSource must be considered immutable: neither
 // the component having called AddSource, nor any of the subscribers, may modify the
@@ -17,7 +19,6 @@
 package sourcemgr
 
 import (
-	"github.com/DataDog/dd-agent-comp-experiments/pkg/util/subscriptions"
 	"go.uber.org/fx"
 )
 
@@ -46,15 +47,6 @@ type SourceChange struct {
 
 	// Source is the source being added or removed.
 	Source *LogSource
-}
-
-// Subscription is the type that other components should provide in order to
-// subscribe to SourceChanges.
-type Subscription = subscriptions.Subscription[SourceChange]
-
-// Subscribe creates a new subscription to this component.
-func Subscribe() Subscription {
-	return subscriptions.NewSubscription[SourceChange]()
 }
 
 // Module defines the fx options for this component.

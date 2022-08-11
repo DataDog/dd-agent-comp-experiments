@@ -7,8 +7,8 @@
 // the set of loaded launchers during start-up, and allows enumeration and retrieval
 // as necessary.
 //
-// Launchers provide a launchermgr.Registration instance in value-group "launchermgr" to
-// register themselves with this manager.
+// Launchers should provide a launchermgr.Registration instance to register
+// themselves with this manager.
 //
 // All component methods can be called concurrently.
 package launchermgr
@@ -31,18 +31,18 @@ type Component interface {
 	GetLauncher(name string) Launcher
 }
 
-// Registration is provided by launchers.
+// Registration is provided by launchers to register themselves with the manager.
 type Registration struct {
-	// name is the name of the launcher
-	name string
+	fx.Out
 
-	// launcher points to the launcher itself
-	launcher Launcher
+	Registration registration `group:"lauchermgr"`
 }
 
-// NewRegistration creates a new Registration instance for the named component.
-func NewRegistration(name string, launcher Launcher) *Registration {
-	return &Registration{name, launcher}
+// NewRegistration creates a new Registration instance for the named launcher.
+func NewRegistration(name string, launcher Launcher) Registration {
+	return Registration{
+		Registration: registration{name: name, launcher: launcher},
+	}
 }
 
 // Launcher defines the interface each launcher must satisfy.

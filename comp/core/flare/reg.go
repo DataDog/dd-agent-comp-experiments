@@ -3,11 +3,7 @@
 // This product includes software developed at Datadog (https://www.datadoghq.com/).
 // Copyright 2016-present Datadog, Inc.
 
-// Package reg contains the Registration type and helper functions for
-// comp/core/flare, isolated here to prevent Go package cycles.
-//
-// In most cases, these items can be used from the comp/core/flare package directly.
-package reg
+package flare
 
 import (
 	"io/ioutil"
@@ -15,19 +11,30 @@ import (
 	"path/filepath"
 )
 
-// Registration is provided by other components in order to register a callback
+// registration is provided by other components in order to register a callback
 // that will create files in a flare.
-type Registration struct {
-	// Callback is called to create the file(s) within a temporary directory.
-	Callback func(flareDir string) error
+type registration struct {
+	// callback is called to create the file(s) within a temporary directory.
+	callback func(flareDir string) error
+}
+
+// CallbackRegistration creates a Registration that will call the given
+// callback with a directory in which it should create the necessary files.
+// The callback may be called concurrently with any other activity.
+func CallbackRegistration(callback func(flareDir string) error) Registration {
+	return Registration{
+		Registration: registration{
+			callback: callback,
+		},
+	}
 }
 
 // FileRegistration creates a Registration that will generate a single file of
 // the given name, with the content returned by `callback`.  The callback may be called
 // concurrently with any other activity.
-func FileRegistration(filename string, callback func() (string, error)) *Registration {
-	return &Registration{
-		Callback: func(flareDir string) error {
+func FileRegistration(filename string, callback func() (string, error)) Registration {
+	reg := registration{
+		callback: func(flareDir string) error {
 			content, err := callback()
 			if err != nil {
 				return err
@@ -43,4 +50,5 @@ func FileRegistration(filename string, callback func() (string, error)) *Registr
 			return ioutil.WriteFile(fullpath, []byte(content), 0o600)
 		},
 	}
+	return Registration{Registration: reg}
 }

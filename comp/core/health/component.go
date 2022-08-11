@@ -9,9 +9,13 @@
 // The data from this component is provided by other components, by providing a
 // health.Registration instance in value-group "health".
 //
-// The health component supports monitoring several kinds of components.  "Simple"
-// components record their health status with this component with simple function
-// calls.  If such a component deadlocks, the health component will be unaware.
+// The health component supports monitoring several kinds of components.  All begin
+// by providing a Registration in their constructor.  The constructor should capture
+// and store the Handle within this Registration for later use.
+//
+// "Simple" components record their health status with this component with
+// simple function calls on the Handle.  If such a component deadlocks, the
+// health component will be unaware.
 //
 // Actor-based components can register and receive a channel from which they must
 // read within a configured amount of time.  This approach makes sense for components
@@ -36,23 +40,19 @@ type Component interface {
 	GetHealth() map[string]ComponentHealth
 }
 
-// Registration is provided by other components in order to register those
-// components for health monitoring.
-//
-// Registration methods must not be called until the calling component has
-// started.
+// Registration is provided by other components to register themselves to
+// provide flare data.
 type Registration struct {
-	// component is the name of the component being monitored.
-	component string
+	fx.Out
 
-	// health links to the comp/core/health component, once registration is
-	// complete.
-	health *health
+	Handle *Handle `group:"health"`
 }
 
 // NewRegistration creates a new Registration instance for the named component.
-func NewRegistration(component string) *Registration {
-	return &Registration{component: component}
+func NewRegistration(component string) Registration {
+	return Registration{
+		Handle: &Handle{component: component},
+	}
 }
 
 // Module defines the fx options for this component.

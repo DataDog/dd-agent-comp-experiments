@@ -34,26 +34,19 @@ type dependencies struct {
 	Launchermgr launchermgr.Component
 }
 
-type provides struct {
-	fx.Out
-
-	Component
-	StatusReg *status.Registration `group:"true"`
-}
-
-func newAgent(deps dependencies) provides {
+func newAgent(deps dependencies) (Component, status.Registration) {
 	a := &agent{
 		log:         deps.Log,
 		launchermgr: deps.Launchermgr,
 	}
 
-	prov := provides{Component: a}
+	var reg status.Registration
 	if deps.Params.ShouldStart(deps.Config) {
 		deps.Lc.Append(fx.Hook{OnStart: a.start, OnStop: a.stop})
-		prov.StatusReg = status.NewRegistration("logs-agent", 4, a.status)
+		reg = status.NewRegistration("logs-agent", 4, a.status)
 	}
 
-	return prov
+	return a, reg
 }
 
 func (a *agent) start(context.Context) error {

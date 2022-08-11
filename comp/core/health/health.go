@@ -40,15 +40,15 @@ type dependencies struct {
 	Params internal.BundleParams
 	Log    log.Component
 
-	Registrations []*Registration `group:"true"`
+	Handles []*Handle `group:"health"`
 }
 
 type provides struct {
 	fx.Out
 
 	Component
-	FlareReg *flare.Registration `group:"true"`
-	IPCRoute *ipcserver.Route    `group:"true"`
+	FlareReg flare.Registration
+	IPCRoute ipcserver.Route
 }
 
 func newHealth(deps dependencies) provides {
@@ -59,11 +59,11 @@ func newHealth(deps dependencies) provides {
 	}
 
 	// provide each registration with a pointer to the new component, and
-	// default to a healthy status. The Registrations will update the component
+	// default to a healthy status. The Handles will update the component
 	// as health status changes.
-	for _, reg := range deps.Registrations {
-		reg.health = h
-		h.components[reg.component] = ComponentHealth{Healthy: true}
+	for _, handle := range deps.Handles {
+		handle.health = h
+		h.components[handle.component] = ComponentHealth{Healthy: true}
 	}
 
 	return provides{

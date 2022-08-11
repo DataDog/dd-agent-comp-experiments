@@ -5,8 +5,8 @@
 
 // Package flare implements a component creates flares for submission to support.
 //
-// The data from this component is provided by other components, by providing a
-// flare.Registration instance in value-group "flare".
+// The data for this component is provided by other components, by providing a
+// flare.Registration instance.
 //
 // This component registers itself with the ipcserver component, and supports either
 // generating a flare locally (CreateFlare) or calling the API to direct the running
@@ -24,8 +24,6 @@ import (
 	"testing"
 
 	"go.uber.org/fx"
-
-	"github.com/DataDog/dd-agent-comp-experiments/comp/core/flare/reg"
 )
 
 // team: agent-shared-components
@@ -48,11 +46,13 @@ type Mock interface {
 	GetFlareFile(t *testing.T, filename string) (string, error)
 }
 
-// re-exports (avoiding a Go package dependency loop)
+// Registration is provided by other components to register themselves to
+// provide flare data.
+type Registration struct {
+	fx.Out
 
-type Registration = reg.Registration
-
-var FileRegistration = reg.FileRegistration
+	Registration registration `group:"flare"`
+}
 
 // Module defines the fx options for this component.
 var Module = fx.Module(

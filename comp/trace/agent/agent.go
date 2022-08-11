@@ -33,27 +33,20 @@ type dependencies struct {
 	Log          log.Component
 }
 
-type provides struct {
-	fx.Out
-
-	Component
-	StatusReg *status.Registration `group:"true"`
-}
-
-func newAgent(deps dependencies) provides {
+func newAgent(deps dependencies) (Component, status.Registration) {
 	// TODO: this will likely carry a reference to Receiver, Processor, and so
 	// on to handle requests for Status, stats, etc.
 	a := &agent{
 		log: deps.Log,
 	}
 
-	prov := provides{Component: a}
+	var reg status.Registration
 	if deps.Params.ShouldStart(deps.Config) {
 		deps.Lc.Append(fx.Hook{OnStart: a.start, OnStop: a.stop})
-		prov.StatusReg = status.NewRegistration("trace-agent", 3, a.status)
+		reg = status.NewRegistration("trace-agent", 3, a.status)
 	}
 
-	return prov
+	return a, reg
 }
 
 func (a *agent) start(context.Context) error {

@@ -27,7 +27,7 @@ type flare struct {
 	sync.Mutex
 
 	// registrations contains all registrations by other components
-	registrations []*Registration
+	registrations []registration
 
 	// log is the log component
 	log log.Component
@@ -38,39 +38,40 @@ type dependencies struct {
 
 	Config        config.Component
 	Log           log.Component
-	Registrations []*Registration `group:"true"`
+	Registrations []registration `group:"flare"`
 }
 
-type provides struct {
-	fx.Out
-
-	Component
-	IPCRoute *ipcserver.Route `group:"true"`
-}
-
-func newFlare(deps dependencies) provides {
+func newFlare(deps dependencies) (Component, ipcserver.Route) {
 	f := &flare{
-		registrations: deps.Registrations,
+		registrations: providedRegistrations(deps.Registrations),
 		log:           deps.Log,
 	}
 
-	return provides{
-		Component: f,
-		IPCRoute:  ipcserver.NewRoute("/agent/flare", f.ipcHandler),
-	}
+	return f, ipcserver.NewRoute("/agent/flare", f.ipcHandler)
 }
 
 type mockDependencies struct {
 	fx.In
 
-	Registrations []*Registration `group:"true"`
+	Registrations []registration `group:"flare"`
 }
 
 func newMock(deps mockDependencies) Component {
 	// mock is just like the real thing, but doesn't use ipcserver or config.
 	return &flare{
-		registrations: deps.Registrations,
+		registrations: providedRegistrations(deps.Registrations),
 	}
+}
+
+// providedRegistrations skips regsitrations with a nil callback.
+func providedRegistrations(registrations []registration) []registration {
+	provided := make([]registration, 0, len(registrations))
+	for _, r := range registrations {
+		if r.callback != nil {
+			provided = append(provided, r)
+		}
+	}
+	return provided
 }
 
 // CreateFlare implements Component#CreateFlare.
@@ -159,7 +160,7 @@ func (f *flare) ipcHandler(w http.ResponseWriter, _ *http.Request) {
 func (f *flare) writeFlareFiles(flareDir string, returnErrors bool) error {
 	errors := []string{}
 	for _, reg := range f.registrations {
-		err := reg.Callback(flareDir)
+		err := reg.callback(flareDir)
 		if err != nil {
 			if returnErrors {
 				return err
