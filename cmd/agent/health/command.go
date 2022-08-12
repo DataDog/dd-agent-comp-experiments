@@ -13,8 +13,8 @@ import (
 	"github.com/DataDog/dd-agent-comp-experiments/cmd/common"
 	"github.com/DataDog/dd-agent-comp-experiments/comp/core/health"
 	"github.com/DataDog/dd-agent-comp-experiments/comp/core/ipc/ipcclient"
+	"github.com/DataDog/dd-agent-comp-experiments/pkg/util/fxapps"
 	"github.com/spf13/cobra"
-	"go.uber.org/fx"
 )
 
 var (
@@ -26,11 +26,9 @@ var (
 )
 
 func command(_ *cobra.Command, args []string) error {
-	app := fx.New(
+	return fxapps.OneShot(healthCmd,
 		common.SharedOptions(root.ConfFilePath, true),
-		common.OneShot(healthCmd),
 	)
-	return common.RunApp(app)
 }
 
 func getHealthRemote(ipcclient ipcclient.Component) (map[string]health.ComponentHealth, error) {

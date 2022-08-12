@@ -13,6 +13,7 @@ import (
 	"github.com/DataDog/dd-agent-comp-experiments/cmd/common"
 	"github.com/DataDog/dd-agent-comp-experiments/comp/core/ipc/ipcclient"
 	"github.com/DataDog/dd-agent-comp-experiments/comp/core/status"
+	"github.com/DataDog/dd-agent-comp-experiments/pkg/util/fxapps"
 	"github.com/spf13/cobra"
 	"go.uber.org/fx"
 )
@@ -26,19 +27,20 @@ var (
 	}
 )
 
+type cmdArgs struct {
+	section string
+}
+
 func command(_ *cobra.Command, args []string) error {
-	var section string
+	var cmdArgs cmdArgs
 	if len(args) > 0 {
-		section = args[0]
+		cmdArgs.section = args[0]
 	}
 
-	app := fx.New(
+	return fxapps.OneShot(statusCmd,
+		fx.Supply(cmdArgs),
 		common.SharedOptions(root.ConfFilePath, true),
-		common.OneShot(func(ipcclient ipcclient.Component, status status.Component) error {
-			return statusCmd(ipcclient, status, section)
-		}),
 	)
-	return common.RunApp(app)
 }
 
 func getStatusRemote(ipcclient ipcclient.Component, section string) (string, error) {
@@ -56,8 +58,8 @@ func getStatusRemote(ipcclient ipcclient.Component, section string) (string, err
 	return content["status"], nil
 }
 
-func statusCmd(ipcclient ipcclient.Component, status status.Component, section string) error {
-	statusStr, err := getStatusRemote(ipcclient, section)
+func statusCmd(ipcclient ipcclient.Component, status status.Component, cmdArgs cmdArgs) error {
+	statusStr, err := getStatusRemote(ipcclient, cmdArgs.section)
 	if err != nil {
 		return err
 	}

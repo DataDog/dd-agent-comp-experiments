@@ -3,7 +3,7 @@
 // This product includes software developed at Datadog (https://www.datadoghq.com/).
 // Copyright 2016-present Datadog, Inc.
 
-package common
+package fxapps
 
 import (
 	"context"
@@ -11,9 +11,10 @@ import (
 	"go.uber.org/fx"
 )
 
-// RunApp is similar to fx.App#Run, but returns an error or nil when the app
-// completes, instead of exiting the process.
-func RunApp(app *fx.App) error {
+// Run runs an fx.App using the supplied options, returning any errors.
+func Run(opts ...fx.Option) error {
+	app := fx.New(opts...)
+
 	startCtx, cancel := context.WithTimeout(context.Background(), app.StartTimeout())
 	defer cancel()
 
