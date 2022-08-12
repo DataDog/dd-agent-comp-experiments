@@ -12,7 +12,9 @@ import (
 	"time"
 
 	"github.com/DataDog/dd-agent-comp-experiments/comp/core"
+	"github.com/DataDog/dd-agent-comp-experiments/comp/core/config"
 	"github.com/DataDog/dd-agent-comp-experiments/comp/core/health"
+	"github.com/DataDog/dd-agent-comp-experiments/comp/core/log"
 	"github.com/DataDog/dd-agent-comp-experiments/pkg/util/startup"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/fx"
@@ -76,24 +78,26 @@ func (c *testComp) run(ctx context.Context, alive <-chan struct{}) {
 
 func TestWithHealth(t *testing.T) {
 	var comp *testComp
-	var health health.Component
+	var h health.Component
 	app := fxtest.New(t,
 		fx.Supply(core.BundleParams{AutoStart: startup.Never}),
-		core.Bundle,
+		health.Module,
+		log.Module,
+		config.MockModule,
 		fx.Provide(newTestComp),
 		fx.Populate(&comp),
-		fx.Populate(&health),
+		fx.Populate(&h),
 	)
 
 	defer app.RequireStart().RequireStop()
 
 	// see it go unhealthy..
 	require.Eventually(t, func() bool {
-		return !health.GetHealth()["test-comp"].Healthy
+		return !h.GetHealth()["test-comp"].Healthy
 	}, time.Second, time.Millisecond)
 
 	// see it return to healthy..
 	require.Eventually(t, func() bool {
-		return !health.GetHealth()["test-comp"].Healthy
+		return !h.GetHealth()["test-comp"].Healthy
 	}, time.Second, time.Millisecond)
 }
