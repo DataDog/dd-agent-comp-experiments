@@ -35,7 +35,7 @@ type Component interface {
 type Registration struct {
 	fx.Out
 
-	Registration registration `group:"lauchermgr"`
+	Registration registration `group:"launchermgr"`
 }
 
 // NewRegistration creates a new Registration instance for the named launcher.
