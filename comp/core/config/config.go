@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/DataDog/dd-agent-comp-experiments/comp/core/internal"
+	"github.com/DataDog/dd-agent-comp-experiments/pkg/util/testing"
 	"github.com/spf13/viper"
 	"go.uber.org/fx"
 )
@@ -26,6 +27,9 @@ type dependencies struct {
 
 func newConfig(deps dependencies) (Component, error) {
 	v := viper.New()
+	if testing.InTestBinary {
+		panic("do not use non-mock comp/core/config in tests")
+	}
 	v.SetConfigName("datadog")
 	v.SetEnvPrefix("DD_")
 	v.SetConfigType("yaml")
