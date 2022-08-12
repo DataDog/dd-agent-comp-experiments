@@ -141,7 +141,31 @@ Components often take the form of an [actor](https://en.wikipedia.org/wiki/Actor
 This approach requires no concurrency controls, since all activity takes place in one goroutine.
 It is also easy to test: start a goroutine, send it some events, and assert on the output.
 
-The `pkg/util/actor` package supports components that use the actor structure, including connecting them to the `fx` life cycle.
+The `pkg/util/actor` package supports components that use the actor structure, including connecting them to the `fx` life cycle and automatic "liveness monitoring".
+
+A component structured as an actor typically looks like this:
+
+```go
+func newThing(lc fx.Lifecycle) (Component, health.Registration) {
+    healthReg := health.NewRegistration(componentName)
+    t := &thing{..}
+    actor := actor.New()
+    actor.HookLifecycle(lc, t.run)
+    actor.MonitorLiveness(healthReg.Handle, time.Second)
+    return thing, healthReg
+}
+
+func (t *thing) run(ctx context.Context, alive <-chan struct{}) {
+    for {
+        select {
+            // .. receive from some component specific channels
+            case <-alive:
+            case <-ctx.Done():
+                return
+        }
+    }
+}
+```
 
 ## Component Auto-Startup
 

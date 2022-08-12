@@ -21,9 +21,7 @@ import (
 type traceWriter struct {
 	in chan *api.Payload
 
-	actor  actor.Actor
-	log    log.Component
-	health *health.Handle
+	log log.Component
 }
 
 type dependencies struct {
@@ -38,12 +36,13 @@ type dependencies struct {
 func newTraceWriter(deps dependencies) (Component, health.Registration) {
 	healthReg := health.NewRegistration(componentName)
 	t := &traceWriter{
-		in:     make(chan *api.Payload, 1000),
-		log:    deps.Log,
-		health: healthReg.Handle,
+		in:  make(chan *api.Payload, 1000),
+		log: deps.Log,
 	}
 	if deps.Params.ShouldStart(deps.Config) {
-		t.actor.HookLifecycle(deps.Lc, t.run)
+		actor := actor.New()
+		actor.HookLifecycle(deps.Lc, t.run)
+		actor.MonitorLiveness(healthReg.Handle, time.Second)
 	}
 	return t, healthReg
 }
@@ -52,15 +51,13 @@ func (t *traceWriter) PayloadChan() chan<- *api.Payload {
 	return t.in
 }
 
-func (t *traceWriter) run(ctx context.Context) {
-	monitor, stopMonitor := t.health.LivenessMonitor(time.Second)
+func (t *traceWriter) run(ctx context.Context, alive <-chan struct{}) {
 	for {
 		select {
 		case payload := <-t.in:
 			t.log.Debug("sending payload", payload)
-		case <-monitor:
+		case <-alive:
 		case <-ctx.Done():
-			stopMonitor()
 			return
 		}
 	}

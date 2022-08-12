@@ -12,16 +12,25 @@ package actor
 
 import (
 	"context"
+	"time"
 
+	"github.com/DataDog/dd-agent-comp-experiments/comp/core/health"
 	"go.uber.org/fx"
 )
 
-// Actor manages an actor goroutine, supporting starting and later stopping
-// the goroutine.  This is one-shot: once started and stopped, the goroutine cannot
-// be started again.
-//
-// The zero value is a valid initial state.
+// Actor manages a component structured as an actor, supporting starting and
+// later stopping the goroutine.  This is one-shot: once started and stopped,
+// the goroutine cannot be started again.
 type Actor struct {
+	// healthHandle is the handle to which liveness data should be reported.  If
+	// this is nil, liveness is not monitored.
+	healthHandle *health.Handle
+
+	// livenessPeriod is the period passed to MonitorLiveness. The expectation
+	// is that the actor goroutine will read from a channel at least once
+	// during this time.
+	livenessPeriod time.Duration
+
 	// started is true after the goroutine has been started, and remains true after
 	// it has stopped.
 	started bool
@@ -34,51 +43,60 @@ type Actor struct {
 	stopped chan struct{}
 }
 
+// New creates a new actor.
+func New() *Actor {
+	return &Actor{}
+}
+
 // RunFunc defines the function implementing the actor's event loop.  It should
 // run until the passed context is cancelled.
-type RunFunc func(context.Context)
+//
+// The loop should read from `alive`, discarding the results.  This is used by
+// MonitorLiveness to monitor the component's health.
+type RunFunc func(ctx context.Context, alive <-chan struct{})
 
-// HookLifecycle connects this goroutine to the given fx.Lifecycle, starting and
+// HookLifecycle connects this actor to the given fx.Lifecycle, starting and
 // stopping it with the lifecycle.  Use this method _or_ the Start and Stop methods,
 // but not both.
-func (gr *Actor) HookLifecycle(lc fx.Lifecycle, runFunc RunFunc) {
+func (a *Actor) HookLifecycle(lc fx.Lifecycle, runFunc RunFunc) {
 	lc.Append(fx.Hook{
 		OnStart: func(context.Context) error {
-			gr.Start(runFunc)
+			a.Start(runFunc)
 			return nil
 		},
-		OnStop: gr.Stop,
+		OnStop: a.Stop,
 	})
 }
 
 // Start starts run in a goroutine, setting up to stop it by cancelling the context
 // it receives.
-func (gr *Actor) Start(runFunc RunFunc) {
-	if gr.started {
+func (a *Actor) Start(runFunc RunFunc) {
+	if a.started {
 		panic("Goroutine has already been started")
 	}
-	gr.started = true
+	a.started = true
 
 	ctx, cancel := context.WithCancel(context.Background())
-	gr.cancel = cancel
-	gr.stopped = make(chan struct{})
-	go gr.run(runFunc, ctx)
+	a.cancel = cancel
+	a.stopped = make(chan struct{})
+
+	go a.run(runFunc, ctx)
 }
 
 // Stop stops the goroutine, waiting until it is complete, or the given context
 // is cancelled, before returning.  Returns the error from context if it is
 // cancelled.
-func (gr *Actor) Stop(ctx context.Context) error {
-	if !gr.started {
+func (a *Actor) Stop(ctx context.Context) error {
+	if !a.started {
 		panic("Goroutine has not been started")
 	}
-	if gr.cancel == nil {
+	if a.cancel == nil {
 		panic("Goroutine has already been stopped")
 	}
-	gr.cancel()
-	gr.cancel = nil
+	a.cancel()
+	a.cancel = nil
 	select {
-	case <-gr.stopped:
+	case <-a.stopped:
 		return nil
 	case <-ctx.Done():
 		return ctx.Err()
@@ -87,7 +105,9 @@ func (gr *Actor) Stop(ctx context.Context) error {
 
 // run executes the given function, ensuring that the stopped channel is closed
 // when it finishes.  This method runs in a dedicated goroutine.
-func (gr *Actor) run(runFunc RunFunc, ctx context.Context) {
-	defer close(gr.stopped)
-	runFunc(ctx)
+func (a *Actor) run(runFunc RunFunc, ctx context.Context) {
+	defer close(a.stopped)
+	alive, stopLiveness := a.livenessMonitor()
+	defer stopLiveness()
+	runFunc(ctx, alive)
 }

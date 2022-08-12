@@ -31,12 +31,6 @@ type processor struct {
 	// traceWriterChan is the channel to which this component writes payloads
 	// that should be sent to the Datadog API.
 	traceWriterChan chan<- *api.Payload
-
-	// actor implements the actor model for this component
-	actor actor.Actor
-
-	// health supports monitoring this component
-	health *health.Handle
 }
 
 type dependencies struct {
@@ -54,10 +48,11 @@ func newProcessor(deps dependencies) (Component, health.Registration) {
 	p := &processor{
 		payloadChan:     make(chan *api.Payload, width),
 		traceWriterChan: deps.TraceWriter.PayloadChan(),
-		health:          healthReg.Handle,
 	}
 	if deps.Params.ShouldStart(deps.Config) {
-		p.actor.HookLifecycle(deps.Lc, p.run)
+		actor := actor.New()
+		actor.HookLifecycle(deps.Lc, p.run)
+		actor.MonitorLiveness(healthReg.Handle, time.Second)
 	}
 	return p, healthReg
 }
@@ -67,8 +62,7 @@ func (p *processor) PayloadChan() chan<- *api.Payload {
 }
 
 // run implements the component's core loop
-func (p *processor) run(ctx context.Context) {
-	monitor, stopMonitor := p.health.LivenessMonitor(time.Second)
+func (p *processor) run(ctx context.Context, alive <-chan struct{}) {
 	for {
 		select {
 		case payload := <-p.payloadChan:
@@ -79,9 +73,8 @@ func (p *processor) run(ctx context.Context) {
 			// facilitate testing, but otherwise not add a lot of value.
 
 			p.traceWriterChan <- payload
-		case <-monitor:
+		case <-alive:
 		case <-ctx.Done():
-			stopMonitor()
 			return
 		}
 	}
