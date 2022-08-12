@@ -184,6 +184,9 @@ The package must have the following defined in `bundle.go`:
    Use `fx.Invoke(func(componentpkg.Component) {})` to instantiate components automatically.
    This item should have a formulaic doc string like `// Module defines the fx options for this component.`
 
+* `MockBundle` -- similar to `Bundle`, but replacing all of the `Module` values with `MockModule` where that is defined.
+  This value should also supply a `BundleParams` value suitable for use in tests.
+
 Typically, a bundle will automatically instantiate the top-level components that represent the bundle's purpose.
 For example, the trace-agent bundle `comp/trace` might automatically instantiate `comp/trace/agent`.
 

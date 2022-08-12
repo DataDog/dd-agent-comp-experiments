@@ -14,18 +14,18 @@ import (
 	"github.com/DataDog/dd-agent-comp-experiments/comp/core/config"
 	"github.com/DataDog/dd-agent-comp-experiments/comp/core/internal"
 	"github.com/DataDog/dd-agent-comp-experiments/comp/core/log"
+	"github.com/DataDog/dd-agent-comp-experiments/pkg/util/comptest"
 	"github.com/DataDog/dd-agent-comp-experiments/pkg/util/startup"
 	"github.com/mholt/archiver"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/fx"
-	"go.uber.org/fx/fxtest"
 )
 
 func TestFlareMechanics(t *testing.T) {
 	flareDir := t.TempDir()
 
 	var flare Component
-	app := fxtest.New(t,
+	comptest.FxTest(t,
 		Module,
 		log.Module,
 		config.MockModule,
@@ -36,29 +36,26 @@ func TestFlareMechanics(t *testing.T) {
 			})
 		}),
 		fx.Populate(&flare),
-	)
+	).WithRunningApp(func() {
+		archiveFile, err := flare.CreateFlare()
+		require.NoError(t, err)
+		// this will create a temporary file without t.TempDir, so we must clean it
+		// up manually
+		defer os.RemoveAll(archiveFile)
 
-	defer app.RequireStart().RequireStop()
+		require.NotEqual(t, "", archiveFile)
+		err = archiver.Extract(archiveFile, "hostname/greeting.txt", flareDir)
+		require.NoError(t, err)
 
-	archiveFile, err := flare.CreateFlare()
-	require.NoError(t, err)
-
-	require.NotEqual(t, "", archiveFile)
-	err = archiver.Extract(archiveFile, "hostname/greeting.txt", flareDir)
-	require.NoError(t, err)
-
-	content, err := ioutil.ReadFile(filepath.Join(flareDir, "hostname", "greeting.txt"))
-	require.NoError(t, err)
-	require.Equal(t, "hello, world", string(content))
-
-	// this will create a temporary file without t.TempDir, so we must clean it
-	// up manually
-	os.RemoveAll(archiveFile)
+		content, err := ioutil.ReadFile(filepath.Join(flareDir, "hostname", "greeting.txt"))
+		require.NoError(t, err)
+		require.Equal(t, "hello, world", string(content))
+	})
 }
 
 func TestMock(t *testing.T) {
 	var flare Component
-	app := fxtest.New(t,
+	comptest.FxTest(t,
 		MockModule,
 		fx.Provide(func() Registration {
 			return FileRegistration("sub/dir/test.txt", func() (string, error) {
@@ -66,11 +63,9 @@ func TestMock(t *testing.T) {
 			})
 		}),
 		fx.Populate(&flare),
-	)
-
-	defer app.RequireStart().RequireStop()
-
-	content, err := flare.(Mock).GetFlareFile(t, "sub/dir/test.txt")
-	require.NoError(t, err)
-	require.Equal(t, "hello, world", content)
+	).WithRunningApp(func() {
+		content, err := flare.(Mock).GetFlareFile(t, "sub/dir/test.txt")
+		require.NoError(t, err)
+		require.Equal(t, "hello, world", content)
+	})
 }

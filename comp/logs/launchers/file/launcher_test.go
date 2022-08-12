@@ -11,52 +11,44 @@ import (
 	"time"
 
 	"github.com/DataDog/dd-agent-comp-experiments/comp/core"
-	"github.com/DataDog/dd-agent-comp-experiments/comp/core/config"
-	"github.com/DataDog/dd-agent-comp-experiments/comp/core/health"
 	"github.com/DataDog/dd-agent-comp-experiments/comp/core/log"
 	"github.com/DataDog/dd-agent-comp-experiments/comp/logs/internal"
 	"github.com/DataDog/dd-agent-comp-experiments/comp/logs/internal/sourcemgr"
 	"github.com/DataDog/dd-agent-comp-experiments/comp/logs/launchers/launchermgr"
+	"github.com/DataDog/dd-agent-comp-experiments/pkg/util/comptest"
 	"github.com/DataDog/dd-agent-comp-experiments/pkg/util/startup"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/fx"
-	"go.uber.org/fx/fxtest"
 )
 
 func TestLauncher(t *testing.T) {
 	var comp Component
 	var smgr sourcemgr.Component
 	var l log.Component
-	app := fxtest.New(t,
+	comptest.FxTest(t,
 		Module,
-		fx.Supply(core.BundleParams{AutoStart: startup.Never}),
+		core.MockBundle,
 		fx.Supply(internal.BundleParams{AutoStart: startup.Always}),
-		health.Module,
-		config.MockModule,
-		log.MockModule,
 		sourcemgr.Module,
 		launchermgr.Module,
-		fx.Supply(t),
 		fx.Populate(&comp),
 		fx.Populate(&smgr),
 		fx.Populate(&l),
-	)
+	).WithRunningApp(func() {
+		// Arrange
+		l.(log.Mock).StartCapture()
 
-	defer app.RequireStart().RequireStop()
+		// Act
+		smgr.AddSource(&sourcemgr.LogSource{Name: "testy"})
 
-	// Arrange
-	l.(log.Mock).StartCapture()
-
-	// Act
-	smgr.AddSource(&sourcemgr.LogSource{Name: "testy"})
-
-	// Assert
-	require.Eventually(t, func() bool {
-		for _, m := range l.(log.Mock).Captured() {
-			if strings.Contains(m, "got LogSource change") {
-				return true
+		// Assert
+		require.Eventually(t, func() bool {
+			for _, m := range l.(log.Mock).Captured() {
+				if strings.Contains(m, "got LogSource change") {
+					return true
+				}
 			}
-		}
-		return false
-	}, time.Second, time.Millisecond)
+			return false
+		}, time.Second, time.Millisecond)
+	})
 }

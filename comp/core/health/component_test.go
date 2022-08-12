@@ -11,28 +11,27 @@ import (
 	"github.com/DataDog/dd-agent-comp-experiments/comp/core/config"
 	"github.com/DataDog/dd-agent-comp-experiments/comp/core/internal"
 	"github.com/DataDog/dd-agent-comp-experiments/comp/core/log"
+	"github.com/DataDog/dd-agent-comp-experiments/pkg/util/comptest"
 	"github.com/DataDog/dd-agent-comp-experiments/pkg/util/startup"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/fx"
-	"go.uber.org/fx/fxtest"
 )
 
 func TestSimple(t *testing.T) {
 	var h Component
 	reg := NewRegistration("comp/thing")
-	app := fxtest.New(t,
+	comptest.FxTest(t,
 		Module,
 		log.Module,
 		config.MockModule,
 		fx.Supply(internal.BundleParams{AutoStart: startup.Always}),
 		fx.Supply(reg),
 		fx.Populate(&h),
-	)
-	defer app.RequireStart().RequireStop()
-
-	require.Equal(t, ComponentHealth{Healthy: true}, h.GetHealth()["comp/thing"])
-	reg.Handle.SetUnhealthy("uhoh")
-	require.Equal(t, ComponentHealth{Healthy: false, Message: "uhoh"}, h.GetHealth()["comp/thing"])
-	reg.Handle.SetHealthy()
-	require.Equal(t, ComponentHealth{Healthy: true}, h.GetHealth()["comp/thing"])
+	).WithRunningApp(func() {
+		require.Equal(t, ComponentHealth{Healthy: true}, h.GetHealth()["comp/thing"])
+		reg.Handle.SetUnhealthy("uhoh")
+		require.Equal(t, ComponentHealth{Healthy: false, Message: "uhoh"}, h.GetHealth()["comp/thing"])
+		reg.Handle.SetHealthy()
+		require.Equal(t, ComponentHealth{Healthy: true}, h.GetHealth()["comp/thing"])
+	})
 }
