@@ -12,9 +12,8 @@ and monitoring for updates.
 
 ### [comp/autodiscovery/scheduler](https://pkg.go.dev/github.com/DataDog/dd-agent-comp-experiments/comp/autodiscovery/scheduler)
 
-Package scheduler broadcasts changes to discovered configuration
-configuration to its subscribers.  Subscriptions are created by providing a
-Subscription value in value-group "autodiscovery".
+Package scheduler publishes changes to discovered configuration
+configuration to its subscribers.
 
 ## [comp/core](https://pkg.go.dev/github.com/DataDog/dd-agent-comp-experiments/comp/core) (Component Bundle)
 
@@ -70,7 +69,8 @@ to the Datadog intake.
 
 Package sourcemgr implements a component managing logs-agent sources (type
 LogSource).  It receives additions and removals of sources from other
-components, and it informs subscribers of these additions and removals.
+components, and it publishes SourceChanges to subscribers of these additions
+and removals.
 
 ### [comp/logs/launchers/file](https://pkg.go.dev/github.com/DataDog/dd-agent-comp-experiments/comp/logs/launchers/file)
 
