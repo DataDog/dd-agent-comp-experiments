@@ -15,10 +15,10 @@ import (
 	"github.com/DataDog/dd-agent-comp-experiments/comp/core/config"
 	"github.com/DataDog/dd-agent-comp-experiments/comp/core/health"
 	"github.com/DataDog/dd-agent-comp-experiments/comp/core/log"
+	"github.com/DataDog/dd-agent-comp-experiments/pkg/util/comptest"
 	"github.com/DataDog/dd-agent-comp-experiments/pkg/util/startup"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/fx"
-	"go.uber.org/fx/fxtest"
 )
 
 func TestWithoutComponents(t *testing.T) {
@@ -79,7 +79,7 @@ func (c *testComp) run(ctx context.Context, alive <-chan struct{}) {
 func TestWithHealth(t *testing.T) {
 	var comp *testComp
 	var h health.Component
-	app := fxtest.New(t,
+	comptest.FxTest(t,
 		fx.Supply(core.BundleParams{AutoStart: startup.Never}),
 		health.Module,
 		log.Module,
@@ -87,17 +87,15 @@ func TestWithHealth(t *testing.T) {
 		fx.Provide(newTestComp),
 		fx.Populate(&comp),
 		fx.Populate(&h),
-	)
+	).WithRunningApp(func() {
+		// see it go unhealthy..
+		require.Eventually(t, func() bool {
+			return !h.GetHealth()["test-comp"].Healthy
+		}, time.Second, time.Millisecond)
 
-	defer app.RequireStart().RequireStop()
-
-	// see it go unhealthy..
-	require.Eventually(t, func() bool {
-		return !h.GetHealth()["test-comp"].Healthy
-	}, time.Second, time.Millisecond)
-
-	// see it return to healthy..
-	require.Eventually(t, func() bool {
-		return !h.GetHealth()["test-comp"].Healthy
-	}, time.Second, time.Millisecond)
+		// see it return to healthy..
+		require.Eventually(t, func() bool {
+			return !h.GetHealth()["test-comp"].Healthy
+		}, time.Second, time.Millisecond)
+	})
 }

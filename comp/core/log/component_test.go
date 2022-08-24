@@ -10,19 +10,19 @@ import (
 
 	"github.com/DataDog/dd-agent-comp-experiments/comp/core/config"
 	"github.com/DataDog/dd-agent-comp-experiments/comp/core/internal"
+	"github.com/DataDog/dd-agent-comp-experiments/pkg/util/comptest"
 	"go.uber.org/fx"
-	"go.uber.org/fx/fxtest"
 )
 
 func TestLogging(t *testing.T) {
 	var log Component
-	app := fxtest.New(t,
+	comptest.FxTest(t,
 		fx.Supply(internal.BundleParams{}),
 		config.MockModule,
 		Module,
 		fx.Populate(&log),
-	)
-	defer app.RequireStart().RequireStop()
-	log.Debug("hello, world.")
-	// TODO: assert that the log succeeded
+	).WithRunningApp(func() {
+		log.Debug("hello, world.")
+		// TODO: assert that the log succeeded
+	})
 }

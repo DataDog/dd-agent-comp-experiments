@@ -8,9 +8,9 @@ package subscriptions
 import (
 	"testing"
 
+	"github.com/DataDog/dd-agent-comp-experiments/pkg/util/comptest"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/fx"
-	"go.uber.org/fx/fxtest"
 )
 
 func TestSubscribe(t *testing.T) {
@@ -68,13 +68,13 @@ func (tx *transmitter) SendMessage(message string) {
 func TestFx(t *testing.T) {
 	var rx RxComponent
 	var tx TxComponent
-	app := fxtest.New(t,
+	comptest.FxTest(t,
 		fx.Provide(newRx),
 		fx.Provide(newTx),
 		fx.Populate(&rx),
 		fx.Populate(&tx),
-	)
-	defer app.RequireStart().RequireStop()
-	tx.SendMessage("hello")
-	require.Equal(t, "hello", rx.GetMessage())
+	).WithRunningApp(func() {
+		tx.SendMessage("hello")
+		require.Equal(t, "hello", rx.GetMessage())
+	})
 }

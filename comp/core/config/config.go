@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/DataDog/dd-agent-comp-experiments/comp/core/internal"
+	"github.com/DataDog/dd-agent-comp-experiments/pkg/util/comptest"
 	"github.com/spf13/viper"
 	"go.uber.org/fx"
 )
@@ -25,6 +26,10 @@ type dependencies struct {
 }
 
 func newConfig(deps dependencies) (Component, error) {
+	if comptest.IsTest {
+		panic("do not use non-mock comp/core/config in tests")
+	}
+
 	v := viper.New()
 	v.SetConfigName("datadog")
 	v.SetEnvPrefix("DD_")

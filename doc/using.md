@@ -28,30 +28,29 @@ func newThing(deps dependencies) Component {
 
 ## Testing
 
-Testing for a component should use `fxtest` to create the component.
-This focuses testing on the API surface of the component against which other components will be built.
+Tests for a component should use `pkg/util/comptest`, which is a thin wrapper around [`fxtest`](https://pkg.go.dev/go.uber.org/fx/fxtest), to create apps in which to test the component.
+This approach focuses testing on the API surface of the component against which other components will be built.
 Per-function unit tests are, of course, also great where appropriate!
 
-Here's an example testing a component with a mocked dependency on `other`:
+Here's an example testing a component with a mocked dependency on `other` and on the `forwarder` bundle:
 
 ```go
 func TestMyComponent(t *testing.T) {
     var comp Component
     var other other.Component
-    app := fxtest.New(t,
-        Module,              // use the real version of this component
-        other.MockModule,    // use the mock version of other
-        fx.Populate(&comp),  // get the instance of this component
-        fx.Populate(&other), // get the (mock) instance of the other component
-    )
-
-    // start and, at completion of the test, stop the components
-    defer app.RequireStart().RequireStop()
-
-    // cast `other` to its mock interface to call mock-specific methods on it
-    other.(other.Mock).SetSomeValue(10)                      // Arrange
-    comp.DoTheThing()                                        // Act
-    require.Equal(t, 20, other.(other.Mock).GetSomeResult()) // Assert
+    comptest.FxTest(t,
+        Module,               // use the real version of this component
+        other.MockModule,     // use the mock version of another component in this bundle
+        forwarder.MockBundle, // all forwarder components, mocked
+        fx.Populate(&comp),   // get the instance of this component
+        fx.Populate(&other),  // get the (mock) instance of the other component
+    ).WithRunningApp(func() {
+        // cast `other` to its mock interface to call mock-specific methods on it
+        config.(config.Mock).SetConfig('foo', 'bar')             // Arrange (from core.MockBundle)
+        other.(other.Mock).SetSomeValue(10)                      // Arrange
+        comp.DoTheThing()                                        // Act
+        require.Equal(t, 20, other.(other.Mock).GetSomeResult()) // Assert
+    })
 }
 ```
 

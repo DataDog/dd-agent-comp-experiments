@@ -46,3 +46,18 @@ var Bundle = fx.Module(
 	// on it (but it depends on a number of other things, such as flare and status)
 	fx.Invoke(func(ipcserver.Component) {}),
 )
+
+// MockBundle defines the mock fx options for this bundle.
+var MockBundle = fx.Module(
+	componentName,
+
+	fx.Supply(internal.BundleParams{}),
+
+	config.MockModule,
+	flare.MockModule,
+	health.Module,
+	ipcclient.Module,
+	ipcserver.MockModule,
+	log.MockModule,
+	status.Module,
+)
