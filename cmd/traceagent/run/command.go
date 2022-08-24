@@ -10,6 +10,7 @@ import (
 	"github.com/DataDog/dd-agent-comp-experiments/cmd/agent/root"
 	"github.com/DataDog/dd-agent-comp-experiments/cmd/common"
 	"github.com/DataDog/dd-agent-comp-experiments/comp/trace"
+	"github.com/DataDog/dd-agent-comp-experiments/pkg/util/fxapps"
 	"github.com/DataDog/dd-agent-comp-experiments/pkg/util/startup"
 	"github.com/spf13/cobra"
 	"go.uber.org/fx"
@@ -25,12 +26,11 @@ var (
 )
 
 func run(_ *cobra.Command, args []string) error {
-	app := fx.New(
+	return fxapps.Run(
 		common.SharedOptions(root.ConfFilePath, false),
 		fx.Supply(trace.BundleParams{
 			AutoStart: startup.IfConfigured,
 		}),
 		trace.Bundle,
 	)
-	return common.RunApp(app)
 }

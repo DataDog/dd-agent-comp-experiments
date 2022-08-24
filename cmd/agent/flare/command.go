@@ -14,8 +14,8 @@ import (
 	"github.com/DataDog/dd-agent-comp-experiments/cmd/common"
 	"github.com/DataDog/dd-agent-comp-experiments/comp/core/flare"
 	"github.com/DataDog/dd-agent-comp-experiments/comp/core/ipc/ipcclient"
+	"github.com/DataDog/dd-agent-comp-experiments/pkg/util/fxapps"
 	"github.com/spf13/cobra"
-	"go.uber.org/fx"
 )
 
 var (
@@ -27,11 +27,9 @@ var (
 )
 
 func command(_ *cobra.Command, args []string) error {
-	app := fx.New(
+	return fxapps.OneShot(flareCmd,
 		common.SharedOptions(root.ConfFilePath, true),
-		common.OneShot(flareCmd),
 	)
-	return common.RunApp(app)
 }
 
 func getFlareRemote(ipcclient ipcclient.Component) (string, error) {

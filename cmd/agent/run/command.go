@@ -12,6 +12,7 @@ import (
 	"github.com/DataDog/dd-agent-comp-experiments/comp/logs"
 	"github.com/DataDog/dd-agent-comp-experiments/comp/logs/launchers/file"
 	"github.com/DataDog/dd-agent-comp-experiments/comp/trace"
+	"github.com/DataDog/dd-agent-comp-experiments/pkg/util/fxapps"
 	"github.com/DataDog/dd-agent-comp-experiments/pkg/util/startup"
 	"github.com/spf13/cobra"
 	"go.uber.org/fx"
@@ -35,7 +36,7 @@ func logsAgentPluginOptions() fx.Option {
 }
 
 func run(_ *cobra.Command, args []string) error {
-	app := fx.New(
+	return fxapps.Run(
 		common.SharedOptions(root.ConfFilePath, false),
 		fx.Supply(logs.BundleParams{
 			AutoStart: startup.IfConfigured,
@@ -47,5 +48,4 @@ func run(_ *cobra.Command, args []string) error {
 		trace.Bundle,
 		logsAgentPluginOptions(),
 	)
-	return common.RunApp(app)
 }
